@@ -20,6 +20,7 @@ import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useMounted } from "@/hooks/use-mounted";
 
 export const Route = createFileRoute("/_layout/kalendarz")({
   head: () => ({
@@ -32,10 +33,12 @@ export const Route = createFileRoute("/_layout/kalendarz")({
 });
 
 function CalendarPage() {
+  const mounted = useMounted();
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState<Date>(new Date());
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<{ start: string; end: string } | null>(null);
+
 
   const appointments = useStore((s) => s.appointments);
   const patients = useStore((s) => s.patients);
@@ -98,6 +101,10 @@ function CalendarPage() {
         }
       />
       <PageContainer>
+        {!mounted ? (
+          <div className="min-h-[60vh]" aria-hidden />
+        ) : (
+          <>
         <div className="mb-3 grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {weekdayLabels.map((w) => (
             <div key={w}>{w}</div>
@@ -174,6 +181,8 @@ function CalendarPage() {
             }}
           />
         </section>
+          </>
+        )}
       </PageContainer>
 
       <Button

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { fmtDateLong, isSameLocalDay } from "@/lib/format";
 import { parseISO } from "date-fns";
+import { useMounted } from "@/hooks/use-mounted";
 
 export const Route = createFileRoute("/_layout/")({
   head: () => ({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/_layout/")({
 });
 
 function TodayPage() {
+  const mounted = useMounted();
   const today = new Date();
   const appointments = useStore((s) => s.appointments);
   const patients = useStore((s) => s.patients);
@@ -44,9 +46,13 @@ function TodayPage() {
     <>
       <AppHeader
         title="Dzisiaj"
-        subtitle={capitalize(fmtDateLong(today))}
+        subtitle={mounted ? capitalize(fmtDateLong(today)) : ""}
       />
       <PageContainer>
+        {!mounted ? (
+          <div className="min-h-[60vh]" aria-hidden />
+        ) : (
+          <>
         {nextUp ? (
           <section aria-labelledby="next-up" className="mb-6">
             <h2
@@ -94,6 +100,8 @@ function TodayPage() {
             </ul>
           )}
         </section>
+          </>
+        )}
       </PageContainer>
 
       <Button

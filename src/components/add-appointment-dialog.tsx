@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AvailabilityStrip } from "@/components/availability-strip";
 import { useStore } from "@/lib/store";
 import type { AppointmentType } from "@/lib/types";
 import { overlaps } from "@/lib/format";

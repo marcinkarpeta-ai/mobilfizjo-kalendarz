@@ -43,7 +43,10 @@ function PatientDetail() {
 
   const [noteBody, setNoteBody] = useState("");
 
-  if (!patient) throw notFound();
+  if (!patient) {
+    throw notFound();
+  }
+  const patientData = patient;
 
   const labelById = new Map(labels.map((l) => [l.id, l]));
 

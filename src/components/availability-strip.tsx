@@ -82,7 +82,6 @@ export function AvailabilityStrip({
   const selEnd = hhmmToMin(end);
 
   const swipe = useRef<{ x: number; moved: boolean } | null>(null);
-  const [, force] = useState(0);
 
   const changeDay = (delta: number) => {
     const d = parseISO(date);

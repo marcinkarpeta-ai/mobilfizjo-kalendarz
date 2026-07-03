@@ -20,6 +20,7 @@ import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useMounted } from "@/hooks/use-mounted";
 
 export const Route = createFileRoute("/_layout/kalendarz")({
   head: () => ({

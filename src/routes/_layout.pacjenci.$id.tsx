@@ -67,7 +67,7 @@ function PatientDetail() {
     }
     addNote({
       appointment_id: lastVisit.id,
-      patient_id: patient.id,
+      patient_id: patientData.id,
       body: noteBody.trim(),
     });
     setNoteBody("");
@@ -77,8 +77,8 @@ function PatientDetail() {
   return (
     <>
       <AppHeader
-        title={`${patient.first_name} ${patient.last_name}`}
-        subtitle={patient.salutation}
+        title={`${patientData.first_name} ${patientData.last_name}`}
+        subtitle={patientData.salutation}
         right={
           <Button asChild variant="ghost" size="icon" aria-label="Wróć do listy">
             <Link to="/pacjenci">
@@ -89,7 +89,7 @@ function PatientDetail() {
       />
 
       <PageContainer>
-        {!patient.service_consent_at ? (
+        {!patientData.service_consent_at ? (
           <div
             role="alert"
             className="mb-4 flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm"
@@ -110,18 +110,18 @@ function PatientDetail() {
           </TabsList>
 
           <TabsContent value="dane" className="mt-4 space-y-3">
-            <DataRow label="Telefon" value={patient.phone} />
-            <DataRow label="Forma grzecznościowa" value={patient.salutation} />
+            <DataRow label="Telefon" value={patientData.phone} />
+            <DataRow label="Forma grzecznościowa" value={patientData.salutation} />
             <DataRow
               label="Data urodzenia"
-              value={patient.birth_date ? fmtDate(patient.birth_date) : "—"}
+              value={patientData.birth_date ? fmtDate(patientData.birth_date) : "—"}
             />
             <DataRow
               label="Zgoda obsługowa"
               value={
-                patient.service_consent_at ? (
+                patientData.service_consent_at ? (
                   <Badge variant="secondary">
-                    Wyrażona {fmtDate(patient.service_consent_at)}
+                    Wyrażona {fmtDate(patientData.service_consent_at)}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">Brak</Badge>
@@ -131,9 +131,9 @@ function PatientDetail() {
             <DataRow
               label="Zgoda marketingowa"
               value={
-                patient.marketing_consent_at ? (
+                patientData.marketing_consent_at ? (
                   <Badge variant="outline">
-                    Wyrażona {fmtDate(patient.marketing_consent_at)}
+                    Wyrażona {fmtDate(patientData.marketing_consent_at)}
                   </Badge>
                 ) : (
                   <Badge variant="outline">Brak</Badge>

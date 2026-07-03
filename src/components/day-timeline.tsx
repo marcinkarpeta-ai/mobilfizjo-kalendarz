@@ -268,7 +268,7 @@ export function DayTimeline({
             style={{
               top,
               height,
-              left: `calc(${GUTTER_PX + 4}px + ${(col / cols) * 100}% - ${((GUTTER_PX + 4) * col) / cols}px)`,
+              left: `calc(${GUTTER_PX + 4}px + (100% - ${GUTTER_PX + 4}px) * ${col / cols})`,
               width: `calc((100% - ${GUTTER_PX + 4}px) / ${cols} - 4px)`,
             }}
           >

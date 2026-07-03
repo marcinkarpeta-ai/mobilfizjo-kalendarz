@@ -1,88 +1,46 @@
 
-# FizjoPlan — iteracja 1: szkielet UI bez backendu
+# Widok dnia jako pionowa oś czasu (Kalendarz)
 
 ## Zakres
-Pełny szkielet aplikacji mobile-first w języku polskim, na mockach (dane w pamięci / localStorage). Bez Supabase, bez auth, bez webhooków — te dochodzą w kolejnych iteracjach. Wszystkie 5 ekranów nawigowalne, wyglądają docelowo.
+Zmieniamy wyłącznie sekcję "dzień" pod gridem miesiąca w `src/routes/_layout.kalendarz.tsx`. Grid miesiąca, dolna nawigacja i ekran Dzisiaj pozostają bez zmian.
 
-## Design
-- **Paleta Warm Sand**: `#faf8f5` (tło), `#f0ebe3` (karty/muted), `#c9b99a` (akcent/border), `#8b7355` (primary/foreground brązowy). Ciepła, przyjazna, nie-kliniczna.
-- **Font**: Figtree (wąski, wysoki, pełne polskie znaki, czytelny na mobile). Załadowany przez `@fontsource-variable/figtree`. Ustawiony jako `--font-sans` w `@theme`.
-- **Layout**: single-column, karty z zaokrągleniami, dużo oddechu, mobile-first (bazowo 375–430px, responsywnie do desktop).
-- Wszystkie kolory jako tokeny w `src/styles.css` (light + dark). Zero hardcoded klas kolorów.
+## Zachowanie
 
-## Nawigacja
-Dolny tab bar (mobile) z 5 sekcjami: **Dzisiaj / Kalendarz / Pacjenci / Wiadomości / Ustawienia**. Ikony z lucide-react. Aktywna zakładka podświetlona akcentem.
+- Oś od **07:00 do 20:00** (14 godzin), linie separujące co godzinę, etykiety godzin po lewej (kolumna ~44 px).
+- Skala: **1 minuta = 1 px** → oś ma stałą wysokość 840 px. Prosta, przewidywalna, wystarczająco czytelna na 390 px szerokości.
+- Wpisy renderowane jako bloki pozycjonowane absolutnie wewnątrz kontenera osi:
+  - `top = (startMin - 420)`, `height = max(24, duration)` px (min. 24 px żeby krótkie bloki były klikalne).
+  - Wpisy przycięte do zakresu 07:00–20:00 (jeśli wystają, przycinamy z ostrzeżeniem wizualnym: zaokrąglony brzeg tylko od strony wewnątrz zakresu).
+- **Luki (wolne sloty)** liczone z wpisów **nieodwołanych** posortowanych po `starts_at`, w zakresie 07:00–20:00, z uwzględnieniem brzegów dnia.
+  - Luki > 30 min dostają subtelną etykietę `Wolne HH:MM–HH:MM` (mały, `text-muted-foreground`, wyśrodkowaną).
+  - Cały obszar luki (także < 30 min) jest klikalny (`button` przezroczysty) i otwiera `AddAppointmentDialog` z `defaultDate` i **wstępnie ustawionymi godzinami** luki.
+- **Wizyty odwołane**: renderowane wyblakłe (`opacity-40`, przekreślony tekst godziny), **nie liczą się do zajętości** — luka „przechodzi" pod nimi. Wizyta odwołana leży wtedy nad luką (z-index wyższy niż przycisk luki, `pointer-events-none` na wnętrzu, żeby kliknięcie w wolny obszar wciąż otwierało formularz; sama karta ma osobny `pointer-events-auto` tylko na treści dla ewentualnego linku).
+- **Nakładające się wpisy** (np. rodzinne + wizyta): dzielą szerokość kolumny wpisów na równe kolumny side-by-side (proste grupowanie po overlapie, bez algorytmu Google Calendar — wystarczy).
+- **Skrócona zawartość dla krótkich bloków**: gdy `height < 56 px`, karta pokazuje tylko `HH:MM` + nazwisko/tytuł, bez podtytułu i bez badge'y statusu.
 
-Routing TanStack (file-based) w `src/routes/`:
-```
-__root.tsx        → shell + <link> Figtree + <Outlet/>
-_layout.tsx       → layout z bottom tab barem (public na razie)
-_layout.index.tsx → /  Dzisiaj
-_layout.kalendarz.tsx
-_layout.pacjenci.tsx
-_layout.pacjenci.$id.tsx  → karta pacjenta z zakładkami
-_layout.wiadomosci.tsx
-_layout.ustawienia.tsx
-_layout.o-aplikacji.tsx
-```
-Każda trasa ma własne `head()` z polskim tytułem i meta description. Root ustawia globalny tytuł "FizjoPlan — kalendarz fizjoterapeuty".
+## Wygląd
+- Zachowujemy wygląd `AppointmentCard`: kolory, zaokrąglenia (`rounded-2xl`), lewy pasek akcentu (`bg-primary`/`bg-accent`/wyszarzony), border, cień. Wewnątrz osi renderujemy nowy komponent `TimelineAppointment` (wariant kompaktowy istniejącej karty), żeby nie mieszać z domyślnym paddingiem `p-4` — używamy `p-2` / `p-3` zależnie od wysokości.
+- Etykiety godzin: `text-[11px] text-muted-foreground`, pozycjonowane na linii godziny.
+- Linie: `border-t border-border/60` co 60 px, plus jaśniejsza pół-godzina (`border-dashed border-border/30`) — pomaga w orientacji, ale nie krzyczy.
 
-## Ekrany (mocki)
-
-### Dzisiaj (`/`)
-- Nagłówek: dzisiejsza data po polsku ("piątek, 3 lipca 2026").
-- Sekcja "Następna wizyta" — duża karta.
-- Lista dzisiejszych wpisów chronologicznie: wizyty pacjentów + wydarzenia rodzinne, każde jako karta z godziną od–do, imieniem/etykietą, statusem.
-- Wizyty odwołane wyszarzone z tagiem "Odwołana".
-- Empty state gdy brak: "Dziś nic nie zaplanowano".
-- FAB "+ Dodaj wpis" → dialog z wyborem typu (wizyta/wydarzenie rodzinne).
-
-### Kalendarz
-- Widok miesiąca (grid 7×n) + przełącznik miesiąca. Kropki na dniach z wpisami (kolor: wizyta vs rodzinne).
-- Kliknięcie w dzień → lista wpisów tego dnia poniżej.
-- Przycisk "+ Dodaj". Formularz z typem, datą, czasem od–do, pacjentem (jeśli wizyta), etykietą zabiegu (select z edytowalnej listy). Ostrzeżenie o nakładaniu (nie blokada).
-
-### Pacjenci
-- Lista z wyszukiwaniem po imieniu/telefonie. Karta pacjenta: imię, salutation, telefon, znaczniki zgód (obsługowa/marketingowa).
-- Przycisk "+ Dodaj pacjenta" → formularz z walidacją zod (telefon wymagany, format PL, unikalny w mocku), salutation, data ur., dwie zgody z datami.
-- Detal `/pacjenci/$id` z zakładkami: **Dane**, **Historia wizyt**, **Notatki i zdjęcia**.
-  - Notatka powizytowa: textarea + placeholder na zdjęcia (uploader wyłączony w tej iteracji z tooltipem "Dostępne po włączeniu Cloud").
-  - Baner ostrzegawczy gdy brak zgody obsługowej: "Brak zgody obsługowej — SMS-y nie będą wysyłane".
-
-### Wiadomości
-- Dwie zakładki: **Dziennik** i **Propozycje marketingowe**.
-- Dziennik: lista wpisów `messages_log` (mock) — pacjent, typ (przypomnienie/potwierdzenie/marketing), status (pending/sent/failed), timestamp.
-- Propozycje: karty z pacjentem, powodem (rocznica pierwszej wizyty / urodziny), podgląd treści z szablonu, przyciski **Zatwierdź** / **Odrzuć**.
-
-### Ustawienia
-- Sekcje: **Profil**, **Etykiety zabiegów** (CRUD listy w localStorage), **Szablony wiadomości** (edycja tekstu, placeholdery {salutation}, {data}, {godzina}), **Konto rodzinne** (przycisk "Zaproś żonę e-mailem" — na razie disabled z etykietą "Wymaga Cloud"), **O aplikacji** (link).
-- Stopka: "Powered by Simple Fast AI".
-
-### O aplikacji
-- Krótki opis, wersja, przycisk **Udostępnij twórcę** (Web Share API / kopiuj link).
-- Stopka "Powered by Simple Fast AI".
-
-## Ekran logowania (atrapa)
-`/auth` — formularz e-mail+hasło (nieaktywny, przycisk "Zaloguj" → przechodzi do `/`). Stopka "Powered by Simple Fast AI". Włączymy realny auth przy Cloud.
-
-## Dane (mock)
-- `src/lib/mock-data.ts` — kilka pacjentów, wizyt (w tym odwołane), wydarzeń rodzinnych, wpisów dziennika, propozycji marketingowych, szablonów.
-- `src/lib/store.ts` — cienki store (Zustand albo React context + useReducer) z persystencją do localStorage, żeby CRUD "działał" wizualnie.
-- Typy TS zgodne z docelowym modelem (03): `Patient`, `Appointment`, `VisitLabel`, `VisitNote`, `MessageLog`, `MarketingProposal`, `MessageTemplate` — dzięki temu przejście na Supabase w iteracji 2 to podmiana warstwy dostępu.
-
-## Walidacja i i18n
-- Zod na wszystkich formularzach, polskie komunikaty błędów.
-- Wszystkie stringi UI po polsku, `date-fns` z locale `pl` do formatowania dat.
+## Struktura plików
+- Nowy komponent `src/components/day-timeline.tsx`:
+  - Props: `date: Date`, `appointments: Appointment[]`, `patients: Map`, `labels: Map`, `onGapClick(startISO, endISO)`.
+  - Wewnątrz: obliczenie luk, layout kolumn dla overlapu, render osi + bloków + luk.
+- `src/routes/_layout.kalendarz.tsx`:
+  - Zamiast `ul` z `AppointmentCard` renderuje `<DayTimeline …/>`.
+  - Trzyma stan `dialogPreset: { date: Date, startHHMM?: string, endHHMM?: string } | null`.
+  - Przekazuje preset do `AddAppointmentDialog`.
+- `src/components/add-appointment-dialog.tsx`:
+  - Rozszerzamy o opcjonalne propsy `defaultStart?: string` (HH:MM) i `defaultEnd?: string` (HH:MM), użyte przy `reset`/`defaultValues` formularza. Bez zmian logiki walidacji.
 
 ## Szczegóły techniczne
-- Instalacje: `@fontsource-variable/figtree`, `date-fns`, `zod`, `react-hook-form`, `zustand` (jeśli nie ma).
-- Zmiana tokenów w `src/styles.css` (light + dark), rejestracja `--font-sans: "Figtree Variable"`.
-- `__root.tsx`: aktualny tytuł/meta na "FizjoPlan", `lang="pl"`.
-- Trasy publiczne (brak `_authenticated`) — auth wejdzie w iteracji Cloud.
-- Zero placeholder-src z `blank-app-v1.svg` — zastępujemy prawdziwym ekranem Dzisiaj.
+- Wszystkie kolory z tokenów (`bg-card`, `border-border`, `bg-primary`, `bg-accent`, `text-muted-foreground`) — bez hardcoded klas kolorów.
+- Bez nowych zależności. `date-fns` z locale `pl` już jest.
+- Helper `minutesFromStartOfDay(iso, date)` w komponencie (lokalny), + `TIMELINE_START = 420`, `TIMELINE_END = 1200`, `PX_PER_MIN = 1`.
+- Dostępność: bloki wpisów są `<Link>` lub `<article>` (tak jak dziś), luki to `<button type="button" aria-label="Nowy wpis 09:45–10:30">`.
 
-## Poza zakresem tej iteracji (do kolejnych)
-- Supabase: schemat DB (03), RLS dla ról therapist/family, auth e-mail, storage `patient-photos`, zaproszenia rodzinne.
-- Webhooki n8n + HMAC (na razie zapis do `messages_log` ze statusem `pending`).
-- Realny upload zdjęć i podpisane URL-e.
-- Wysyłka SMS / marketing (po zatwierdzeniu → emisja zdarzenia).
+## Poza zakresem
+- Widoki tygodnia i miesiąca (grid dat zostaje).
+- Ekran Dzisiaj (`_layout.index.tsx`) — bez zmian.
+- Drag & drop, resize bloków, scroll-to-now — nie w tej iteracji.

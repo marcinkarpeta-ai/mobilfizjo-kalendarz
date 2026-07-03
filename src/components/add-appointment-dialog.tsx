@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import { z } from "zod";
@@ -40,10 +40,14 @@ export function AddAppointmentDialog({
   open,
   onOpenChange,
   defaultDate = new Date(),
+  defaultStart,
+  defaultEnd,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   defaultDate?: Date;
+  defaultStart?: string;
+  defaultEnd?: string;
 }) {
   const patients = useStore((s) => s.patients);
   const labels = useStore((s) => s.labels);
@@ -52,11 +56,18 @@ export function AddAppointmentDialog({
 
   const [type, setType] = useState<AppointmentType>("patient_visit");
   const [date, setDate] = useState(format(defaultDate, "yyyy-MM-dd"));
-  const [start, setStart] = useState("09:00");
-  const [end, setEnd] = useState("09:45");
+  const [start, setStart] = useState(defaultStart ?? "09:00");
+  const [end, setEnd] = useState(defaultEnd ?? "09:45");
   const [patientId, setPatientId] = useState<string>("");
   const [labelId, setLabelId] = useState<string>("");
   const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setDate(format(defaultDate, "yyyy-MM-dd"));
+    if (defaultStart) setStart(defaultStart);
+    if (defaultEnd) setEnd(defaultEnd);
+  }, [open, defaultDate, defaultStart, defaultEnd]);
 
   const startISO = `${date}T${start}:00`;
   const endISO = `${date}T${end}:00`;

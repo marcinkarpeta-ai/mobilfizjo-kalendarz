@@ -16,7 +16,6 @@ import { pl } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { DayTimeline } from "@/components/day-timeline";
-import { AppointmentCard } from "@/components/appointment-card";
 import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";

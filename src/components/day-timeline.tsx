@@ -253,9 +253,7 @@ export function DayTimeline({
         const compact = height < 56;
         const timeText = `${hhmm(p.startMin)}–${hhmm(p.endMin)}`;
 
-        const colWidthPct = 100 / cols;
-        const left = `calc(${GUTTER_PX + 4}px + ${col * colWidthPct}% * ((100% - ${GUTTER_PX + 4}px) / 100%))`;
-        // Simpler: use pixel gutter + percentage widths via inline nested calc is fragile; use left/right in pixels via offset.
+
 
         return (
           <article

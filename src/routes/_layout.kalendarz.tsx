@@ -181,6 +181,8 @@ function CalendarPage() {
             }}
           />
         </section>
+          </>
+        )}
       </PageContainer>
 
       <Button

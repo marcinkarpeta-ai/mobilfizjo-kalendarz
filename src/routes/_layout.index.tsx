@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { fmtDateLong, isSameLocalDay } from "@/lib/format";
 import { parseISO } from "date-fns";
+import { useMounted } from "@/hooks/use-mounted";
 
 export const Route = createFileRoute("/_layout/")({
   head: () => ({

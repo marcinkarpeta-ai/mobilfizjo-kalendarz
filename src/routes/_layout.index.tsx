@@ -100,6 +100,8 @@ function TodayPage() {
             </ul>
           )}
         </section>
+          </>
+        )}
       </PageContainer>
 
       <Button

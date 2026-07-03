@@ -168,6 +168,19 @@ export function AddAppointmentDialog({
             </div>
           </div>
 
+          <AvailabilityStrip
+            date={date}
+            onDateChange={setDate}
+            start={start}
+            end={end}
+            onRangeChange={(s, e) => {
+              setStart(s);
+              setEnd(e);
+            }}
+            appointments={appointments}
+          />
+
+
           {type === "patient_visit" ? (
             <>
               <div>

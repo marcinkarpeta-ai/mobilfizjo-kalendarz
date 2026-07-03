@@ -35,6 +35,7 @@ function CalendarPage() {
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState<Date>(new Date());
   const [open, setOpen] = useState(false);
+  const [preset, setPreset] = useState<{ start: string; end: string } | null>(null);
 
   const appointments = useStore((s) => s.appointments);
   const patients = useStore((s) => s.patients);

@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_layout/")({
 });
 
 function TodayPage() {
+  const mounted = useMounted();
   const today = new Date();
   const appointments = useStore((s) => s.appointments);
   const patients = useStore((s) => s.patients);
@@ -45,9 +46,13 @@ function TodayPage() {
     <>
       <AppHeader
         title="Dzisiaj"
-        subtitle={capitalize(fmtDateLong(today))}
+        subtitle={mounted ? capitalize(fmtDateLong(today)) : ""}
       />
       <PageContainer>
+        {!mounted ? (
+          <div className="min-h-[60vh]" aria-hidden />
+        ) : (
+          <>
         {nextUp ? (
           <section aria-labelledby="next-up" className="mb-6">
             <h2

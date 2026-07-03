@@ -101,6 +101,10 @@ function CalendarPage() {
         }
       />
       <PageContainer>
+        {!mounted ? (
+          <div className="min-h-[60vh]" aria-hidden />
+        ) : (
+          <>
         <div className="mb-3 grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {weekdayLabels.map((w) => (
             <div key={w}>{w}</div>

@@ -156,7 +156,7 @@ function PatientDetail() {
                     </div>
                     <AppointmentCard
                       appt={a}
-                      patient={patient}
+                      patient={patientData}
                       label={a.visit_label_id ? labelById.get(a.visit_label_id) : undefined}
                     />
                   </li>

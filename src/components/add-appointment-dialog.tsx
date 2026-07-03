@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AvailabilityStrip } from "@/components/availability-strip";
 import { useStore } from "@/lib/store";
 import type { AppointmentType } from "@/lib/types";
 import { overlaps } from "@/lib/format";
@@ -166,6 +167,19 @@ export function AddAppointmentDialog({
               />
             </div>
           </div>
+
+          <AvailabilityStrip
+            date={date}
+            onDateChange={setDate}
+            start={start}
+            end={end}
+            onRangeChange={(s, e) => {
+              setStart(s);
+              setEnd(e);
+            }}
+            appointments={appointments}
+          />
+
 
           {type === "patient_visit" ? (
             <>

@@ -132,7 +132,6 @@ export function AvailabilityStrip({
         onPointerMove={(e) => {
           if (!swipe.current) return;
           if (Math.abs(e.clientX - swipe.current.x) > 8) swipe.current.moved = true;
-          force((n) => n + 0); // no-op, keep type
         }}
         onPointerUp={(e) => {
           const s = swipe.current;

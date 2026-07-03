@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
+import { Route as LayoutPacjenciRouteImport } from './routes/_layout.pacjenci'
 import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
 
 const LayoutRoute = LayoutRouteImport.update({
@@ -22,6 +23,11 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPacjenciRoute = LayoutPacjenciRouteImport.update({
+  id: '/pacjenci',
+  path: '/pacjenci',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
   id: '/kalendarz',
   path: '/kalendarz',
@@ -31,23 +37,31 @@ const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/kalendarz': typeof LayoutKalendarzRoute
+  '/pacjenci': typeof LayoutPacjenciRoute
 }
 export interface FileRoutesByTo {
   '/kalendarz': typeof LayoutKalendarzRoute
+  '/pacjenci': typeof LayoutPacjenciRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
+  '/_layout/pacjenci': typeof LayoutPacjenciRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kalendarz'
+  fullPaths: '/' | '/kalendarz' | '/pacjenci'
   fileRoutesByTo: FileRoutesByTo
-  to: '/kalendarz' | '/'
-  id: '__root__' | '/_layout' | '/_layout/kalendarz' | '/_layout/'
+  to: '/kalendarz' | '/pacjenci' | '/'
+  id:
+    | '__root__'
+    | '/_layout'
+    | '/_layout/kalendarz'
+    | '/_layout/pacjenci'
+    | '/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -70,6 +84,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/pacjenci': {
+      id: '/_layout/pacjenci'
+      path: '/pacjenci'
+      fullPath: '/pacjenci'
+      preLoaderRoute: typeof LayoutPacjenciRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/kalendarz': {
       id: '/_layout/kalendarz'
       path: '/kalendarz'
@@ -82,11 +103,13 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteChildren {
   LayoutKalendarzRoute: typeof LayoutKalendarzRoute
+  LayoutPacjenciRoute: typeof LayoutPacjenciRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutKalendarzRoute: LayoutKalendarzRoute,
+  LayoutPacjenciRoute: LayoutPacjenciRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
 

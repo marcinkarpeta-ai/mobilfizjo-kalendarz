@@ -9,13 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
 import { Route as LayoutWiadomosciRouteImport } from './routes/_layout.wiadomosci'
+import { Route as LayoutUstawieniaRouteImport } from './routes/_layout.ustawienia'
 import { Route as LayoutPacjenciRouteImport } from './routes/_layout.pacjenci'
+import { Route as LayoutOAplikacjiRouteImport } from './routes/_layout.o-aplikacji'
 import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => rootRouteImport,
@@ -30,9 +38,19 @@ const LayoutWiadomosciRoute = LayoutWiadomosciRouteImport.update({
   path: '/wiadomosci',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutUstawieniaRoute = LayoutUstawieniaRouteImport.update({
+  id: '/ustawienia',
+  path: '/ustawienia',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutPacjenciRoute = LayoutPacjenciRouteImport.update({
   id: '/pacjenci',
   path: '/pacjenci',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutOAplikacjiRoute = LayoutOAplikacjiRouteImport.update({
+  id: '/o-aplikacji',
+  path: '/o-aplikacji',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
@@ -48,14 +66,20 @@ const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/auth': typeof AuthRoute
   '/kalendarz': typeof LayoutKalendarzRoute
+  '/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/pacjenci': typeof LayoutPacjenciRouteWithChildren
+  '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRoute
   '/kalendarz': typeof LayoutKalendarzRoute
+  '/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/pacjenci': typeof LayoutPacjenciRouteWithChildren
+  '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/': typeof LayoutIndexRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
@@ -63,22 +87,44 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/auth': typeof AuthRoute
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
+  '/_layout/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/_layout/pacjenci': typeof LayoutPacjenciRouteWithChildren
+  '/_layout/ustawienia': typeof LayoutUstawieniaRoute
   '/_layout/wiadomosci': typeof LayoutWiadomosciRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kalendarz' | '/pacjenci' | '/wiadomosci' | '/pacjenci/$id'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/kalendarz'
+    | '/o-aplikacji'
+    | '/pacjenci'
+    | '/ustawienia'
+    | '/wiadomosci'
+    | '/pacjenci/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/kalendarz' | '/pacjenci' | '/wiadomosci' | '/' | '/pacjenci/$id'
+  to:
+    | '/auth'
+    | '/kalendarz'
+    | '/o-aplikacji'
+    | '/pacjenci'
+    | '/ustawienia'
+    | '/wiadomosci'
+    | '/'
+    | '/pacjenci/$id'
   id:
     | '__root__'
     | '/_layout'
+    | '/auth'
     | '/_layout/kalendarz'
+    | '/_layout/o-aplikacji'
     | '/_layout/pacjenci'
+    | '/_layout/ustawienia'
     | '/_layout/wiadomosci'
     | '/_layout/'
     | '/_layout/pacjenci/$id'
@@ -86,10 +132,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_layout': {
       id: '/_layout'
       path: ''
@@ -111,11 +165,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutWiadomosciRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/ustawienia': {
+      id: '/_layout/ustawienia'
+      path: '/ustawienia'
+      fullPath: '/ustawienia'
+      preLoaderRoute: typeof LayoutUstawieniaRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/pacjenci': {
       id: '/_layout/pacjenci'
       path: '/pacjenci'
       fullPath: '/pacjenci'
       preLoaderRoute: typeof LayoutPacjenciRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/o-aplikacji': {
+      id: '/_layout/o-aplikacji'
+      path: '/o-aplikacji'
+      fullPath: '/o-aplikacji'
+      preLoaderRoute: typeof LayoutOAplikacjiRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/kalendarz': {
@@ -149,14 +217,18 @@ const LayoutPacjenciRouteWithChildren = LayoutPacjenciRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutKalendarzRoute: typeof LayoutKalendarzRoute
+  LayoutOAplikacjiRoute: typeof LayoutOAplikacjiRoute
   LayoutPacjenciRoute: typeof LayoutPacjenciRouteWithChildren
+  LayoutUstawieniaRoute: typeof LayoutUstawieniaRoute
   LayoutWiadomosciRoute: typeof LayoutWiadomosciRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutKalendarzRoute: LayoutKalendarzRoute,
+  LayoutOAplikacjiRoute: LayoutOAplikacjiRoute,
   LayoutPacjenciRoute: LayoutPacjenciRouteWithChildren,
+  LayoutUstawieniaRoute: LayoutUstawieniaRoute,
   LayoutWiadomosciRoute: LayoutWiadomosciRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
@@ -166,6 +238,7 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

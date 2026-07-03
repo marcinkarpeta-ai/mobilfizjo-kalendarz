@@ -162,23 +162,16 @@ function CalendarPage() {
           >
             {capitalize(format(selected, "EEEE, d MMMM", { locale: pl }))}
           </h2>
-          {selectedItems.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
-              Brak wpisów tego dnia.
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {selectedItems.map((a) => (
-                <li key={a.id}>
-                  <AppointmentCard
-                    appt={a}
-                    patient={a.patient_id ? patientById.get(a.patient_id) : undefined}
-                    label={a.visit_label_id ? labelById.get(a.visit_label_id) : undefined}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
+          <DayTimeline
+            date={selected}
+            appointments={selectedItems}
+            patientById={patientById}
+            labelById={labelById}
+            onGapClick={(start, end) => {
+              setPreset({ start, end });
+              setOpen(true);
+            }}
+          />
         </section>
       </PageContainer>
 
@@ -186,12 +179,21 @@ function CalendarPage() {
         size="lg"
         className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full p-0 shadow-lg"
         aria-label="Dodaj wpis"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setPreset(null);
+          setOpen(true);
+        }}
       >
         <Plus className="h-6 w-6" />
       </Button>
 
-      <AddAppointmentDialog open={open} onOpenChange={setOpen} defaultDate={selected} />
+      <AddAppointmentDialog
+        open={open}
+        onOpenChange={setOpen}
+        defaultDate={selected}
+        defaultStart={preset?.start}
+        defaultEnd={preset?.end}
+      />
     </>
   );
 }

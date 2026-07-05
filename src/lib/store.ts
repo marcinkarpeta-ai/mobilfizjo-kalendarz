@@ -37,6 +37,8 @@ interface StoreState {
 
   addPatient: (p: Omit<Patient, "id" | "created_at">) => Patient;
   updatePatient: (id: string, patch: Partial<Patient>) => void;
+  archivePatient: (id: string) => void;
+  restorePatient: (id: string) => void;
 
   addAppointment: (a: Omit<Appointment, "id">) => Appointment;
   cancelAppointment: (id: string) => void;

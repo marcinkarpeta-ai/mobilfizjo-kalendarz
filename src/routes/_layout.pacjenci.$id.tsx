@@ -51,13 +51,19 @@ function PatientDetail() {
   const labels = useStore((s) => s.labels);
   const notes = useStore((s) => s.notes.filter((n) => n.patient_id === id));
   const addNote = useStore((s) => s.addNote);
+  const archivePatient = useStore((s) => s.archivePatient);
+  const restorePatient = useStore((s) => s.restorePatient);
+  const navigate = useNavigate();
 
   const [noteBody, setNoteBody] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   if (!patient) {
     throw notFound();
   }
   const patientData = patient;
+  const isArchived = Boolean(patientData.archived_at);
 
   const labelById = new Map(labels.map((l) => [l.id, l]));
 

@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#faf8f5" },
-      { title: "FizjoPlan — kalendarz i pacjenci fizjoterapeuty" },
+      { title: "FizjoPlan — kalendarz fizjoterapeuty" },
       {
         name: "description",
         content:
           "FizjoPlan to mobilna aplikacja fizjoterapeuty: kalendarz wizyt, kartoteka pacjentów, przypomnienia SMS i marketing.",
       },
       { name: "author", content: "Simple Fast AI" },
-      { property: "og:title", content: "FizjoPlan — kalendarz i pacjenci fizjoterapeuty" },
+      { property: "og:title", content: "FizjoPlan — kalendarz fizjoterapeuty" },
       {
         property: "og:description",
         content:
@@ -94,6 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "FizjoPlan — kalendarz fizjoterapeuty" },
+      { name: "description", content: "Therapy Planner is a mobile-first web app for physiotherapists to manage patient appointments and practice." },
+      { property: "og:description", content: "Therapy Planner is a mobile-first web app for physiotherapists to manage patient appointments and practice." },
+      { name: "twitter:description", content: "Therapy Planner is a mobile-first web app for physiotherapists to manage patient appointments and practice." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fb03c02d-7945-4bc0-810a-0c9cdf4793af/id-preview-4e4e51ab--3219d5d0-0620-462c-b227-a8313dfaa36f.lovable.app-1783095514448.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fb03c02d-7945-4bc0-810a-0c9cdf4793af/id-preview-4e4e51ab--3219d5d0-0620-462c-b227-a8313dfaa36f.lovable.app-1783095514448.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

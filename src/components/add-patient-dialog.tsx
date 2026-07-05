@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
@@ -12,8 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from "@/lib/store";
+import type { Patient } from "@/lib/types";
 
 const phoneRegex = /^\+?\d[\d\s-]{7,17}$/;
 
@@ -26,37 +28,61 @@ const schema = z.object({
     .trim()
     .regex(phoneRegex, "Podaj prawidłowy numer telefonu"),
   birth_date: z.string().optional(),
+  general_note: z.string().max(2000, "Notatka jest zbyt długa").optional(),
 });
+
+function normalizePhone(v: string) {
+  return v.replace(/\s+/g, " ").trim();
+}
 
 export function AddPatientDialog({
   open,
   onOpenChange,
+  patient,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  patient?: Patient;
 }) {
   const patients = useStore((s) => s.patients);
   const addPatient = useStore((s) => s.addPatient);
+  const updatePatient = useStore((s) => s.updatePatient);
+
+  const isEdit = Boolean(patient);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [salutation, setSalutation] = useState("");
   const [phone, setPhone] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [generalNote, setGeneralNote] = useState("");
   const [serviceConsent, setServiceConsent] = useState(true);
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  function reset() {
-    setFirstName("");
-    setLastName("");
-    setSalutation("");
-    setPhone("");
-    setBirthDate("");
-    setServiceConsent(true);
-    setMarketingConsent(false);
+  useEffect(() => {
+    if (!open) return;
+    if (patient) {
+      setFirstName(patient.first_name);
+      setLastName(patient.last_name);
+      setSalutation(patient.salutation);
+      setPhone(patient.phone);
+      setBirthDate(patient.birth_date ?? "");
+      setGeneralNote(patient.general_note ?? "");
+      setServiceConsent(Boolean(patient.service_consent_at));
+      setMarketingConsent(Boolean(patient.marketing_consent_at));
+    } else {
+      setFirstName("");
+      setLastName("");
+      setSalutation("");
+      setPhone("");
+      setBirthDate("");
+      setGeneralNote("");
+      setServiceConsent(true);
+      setMarketingConsent(false);
+    }
     setErrors({});
-  }
+  }, [open, patient]);
 
   function submit() {
     const parsed = schema.safeParse({
@@ -65,6 +91,7 @@ export function AddPatientDialog({
       salutation,
       phone,
       birth_date: birthDate || undefined,
+      general_note: generalNote.trim() || undefined,
     });
     if (!parsed.success) {
       const errs: Record<string, string> = {};
@@ -74,38 +101,61 @@ export function AddPatientDialog({
       setErrors(errs);
       return;
     }
-    const normalizedPhone = parsed.data.phone.replace(/\s+/g, " ").trim();
-    if (patients.some((p) => p.phone.replace(/\s+/g, " ").trim() === normalizedPhone)) {
-      setErrors({ phone: "Pacjent z tym numerem już istnieje." });
+    const normalizedPhone = normalizePhone(parsed.data.phone);
+    const clash = patients.find(
+      (p) => p.id !== patient?.id && normalizePhone(p.phone) === normalizedPhone,
+    );
+    if (clash) {
+      setErrors({
+        phone: `Ten numer należy już do: ${clash.first_name} ${clash.last_name}.`,
+      });
       return;
     }
 
     const now = new Date().toISOString();
-    addPatient({
+    const prevService = Boolean(patient?.service_consent_at);
+    const prevMarketing = Boolean(patient?.marketing_consent_at);
+    const serviceChanged = !isEdit ? serviceConsent : serviceConsent !== prevService;
+    const marketingChanged = !isEdit
+      ? marketingConsent
+      : marketingConsent !== prevMarketing;
+
+    const commonPatch = {
       first_name: parsed.data.first_name,
       last_name: parsed.data.last_name,
       salutation: parsed.data.salutation,
       phone: normalizedPhone,
       birth_date: parsed.data.birth_date,
-      service_consent_at: serviceConsent ? now : undefined,
-      marketing_consent_at: marketingConsent ? now : undefined,
-    });
-    toast.success("Pacjent dodany do kartoteki.");
-    reset();
+      general_note: parsed.data.general_note,
+      service_consent_at: serviceConsent
+        ? patient?.service_consent_at ?? now
+        : undefined,
+      service_consent_changed_at: serviceChanged
+        ? now
+        : patient?.service_consent_changed_at,
+      marketing_consent_at: marketingConsent
+        ? patient?.marketing_consent_at ?? now
+        : undefined,
+      marketing_consent_changed_at: marketingChanged
+        ? now
+        : patient?.marketing_consent_changed_at,
+    };
+
+    if (isEdit && patient) {
+      updatePatient(patient.id, commonPatch);
+      toast.success("Dane pacjenta zapisane.");
+    } else {
+      addPatient(commonPatch);
+      toast.success("Pacjent dodany do kartoteki.");
+    }
     onOpenChange(false);
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v) reset();
-        onOpenChange(v);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Nowy pacjent</DialogTitle>
+          <DialogTitle>{isEdit ? "Edytuj pacjenta" : "Nowy pacjent"}</DialogTitle>
           <DialogDescription>
             Telefon jest wymagany i musi być unikalny.
           </DialogDescription>
@@ -175,6 +225,20 @@ export function AddPatientDialog({
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="p-note">Notatka ogólna (opcjonalnie)</Label>
+            <Textarea
+              id="p-note"
+              value={generalNote}
+              onChange={(e) => setGeneralNote(e.target.value)}
+              placeholder="Uwagi, przeciwwskazania, preferencje…"
+              rows={3}
+            />
+            {errors.general_note ? (
+              <p className="mt-1 text-xs text-destructive">{errors.general_note}</p>
+            ) : null}
           </div>
 
           <div className="space-y-2 rounded-lg border border-border bg-secondary/50 p-3">

@@ -37,6 +37,8 @@ interface StoreState {
 
   addPatient: (p: Omit<Patient, "id" | "created_at">) => Patient;
   updatePatient: (id: string, patch: Partial<Patient>) => void;
+  archivePatient: (id: string) => void;
+  restorePatient: (id: string) => void;
 
   addAppointment: (a: Omit<Appointment, "id">) => Appointment;
   cancelAppointment: (id: string) => void;
@@ -75,6 +77,20 @@ export const useStore = create<StoreState>()(
       updatePatient: (pid, patch) =>
         set((s) => ({
           patients: s.patients.map((p) => (p.id === pid ? { ...p, ...patch } : p)),
+        })),
+      archivePatient: (pid) =>
+        set((s) => ({
+          patients: s.patients.map((p) =>
+            p.id === pid ? { ...p, archived_at: new Date().toISOString() } : p,
+          ),
+        })),
+      restorePatient: (pid) =>
+        set((s) => ({
+          patients: s.patients.map((p) => {
+            if (p.id !== pid) return p;
+            const { archived_at: _a, ...rest } = p;
+            return rest;
+          }),
         })),
 
       addAppointment: (a) => {

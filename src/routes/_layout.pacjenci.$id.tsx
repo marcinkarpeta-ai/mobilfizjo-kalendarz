@@ -1,13 +1,24 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, ImageOff, ShieldAlert } from "lucide-react";
+import { Archive, ArrowLeft, ImageOff, Pencil, RotateCcw, ShieldAlert } from "lucide-react";
 import { parseISO } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { AppointmentCard } from "@/components/appointment-card";
+import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useStore } from "@/lib/store";
 import { fmtDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -40,13 +51,19 @@ function PatientDetail() {
   const labels = useStore((s) => s.labels);
   const notes = useStore((s) => s.notes.filter((n) => n.patient_id === id));
   const addNote = useStore((s) => s.addNote);
+  const archivePatient = useStore((s) => s.archivePatient);
+  const restorePatient = useStore((s) => s.restorePatient);
+  const navigate = useNavigate();
 
   const [noteBody, setNoteBody] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   if (!patient) {
     throw notFound();
   }
   const patientData = patient;
+  const isArchived = Boolean(patientData.archived_at);
 
   const labelById = new Map(labels.map((l) => [l.id, l]));
 
@@ -89,6 +106,48 @@ function PatientDetail() {
       />
 
       <PageContainer>
+        {isArchived ? (
+          <div
+            role="status"
+            className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-border bg-secondary/60 p-3 text-sm"
+          >
+            <span>
+              <strong>Pacjent zarchiwizowany.</strong> Nie pojawia się na liście
+              ani w wyszukiwarce w nowym wpisie. Historia pozostaje.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                restorePatient(patientData.id);
+                toast.success("Pacjent przywrócony.");
+              }}
+            >
+              <RotateCcw className="mr-1 h-4 w-4" /> Przywróć
+            </Button>
+          </div>
+        ) : null}
+
+        <div className="mb-4 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil className="mr-1 h-4 w-4" /> Edytuj
+          </Button>
+          {!isArchived ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setArchiveOpen(true)}
+            >
+              <Archive className="mr-1 h-4 w-4" /> Archiwizuj
+            </Button>
+          ) : null}
+        </div>
+
+
         {!patientData.service_consent_at ? (
           <div
             role="alert"
@@ -121,7 +180,11 @@ function PatientDetail() {
               value={
                 patientData.service_consent_at ? (
                   <Badge variant="secondary">
-                    Wyrażona {fmtDate(patientData.service_consent_at)}
+                    Zgoda z dn. {fmtDate(patientData.service_consent_at)}
+                  </Badge>
+                ) : patientData.service_consent_changed_at ? (
+                  <Badge variant="outline">
+                    Wycofana dn. {fmtDate(patientData.service_consent_changed_at)}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">Brak</Badge>
@@ -133,13 +196,25 @@ function PatientDetail() {
               value={
                 patientData.marketing_consent_at ? (
                   <Badge variant="outline">
-                    Wyrażona {fmtDate(patientData.marketing_consent_at)}
+                    Zgoda z dn. {fmtDate(patientData.marketing_consent_at)}
+                  </Badge>
+                ) : patientData.marketing_consent_changed_at ? (
+                  <Badge variant="outline">
+                    Wycofana dn. {fmtDate(patientData.marketing_consent_changed_at)}
                   </Badge>
                 ) : (
                   <Badge variant="outline">Brak</Badge>
                 )
               }
             />
+            {patientData.general_note ? (
+              <div className="rounded-xl border border-border bg-card px-4 py-3">
+                <div className="mb-1 text-sm text-muted-foreground">Notatka ogólna</div>
+                <p className="whitespace-pre-wrap text-sm text-foreground">
+                  {patientData.general_note}
+                </p>
+              </div>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="historia" className="mt-4">
@@ -217,9 +292,40 @@ function PatientDetail() {
           </TabsContent>
         </Tabs>
       </PageContainer>
+
+      <AddPatientDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        patient={patientData}
+      />
+
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archiwizować pacjenta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Pacjent zniknie z listy i wyszukiwarki w nowym wpisie, ale jego
+              historia wizyt zostaje nietknięta. Zawsze możesz go przywrócić.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                archivePatient(patientData.id);
+                toast.success("Pacjent zarchiwizowany.");
+                navigate({ to: "/pacjenci" });
+              }}
+            >
+              Archiwizuj
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (

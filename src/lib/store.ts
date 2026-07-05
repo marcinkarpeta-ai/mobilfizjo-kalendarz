@@ -78,6 +78,20 @@ export const useStore = create<StoreState>()(
         set((s) => ({
           patients: s.patients.map((p) => (p.id === pid ? { ...p, ...patch } : p)),
         })),
+      archivePatient: (pid) =>
+        set((s) => ({
+          patients: s.patients.map((p) =>
+            p.id === pid ? { ...p, archived_at: new Date().toISOString() } : p,
+          ),
+        })),
+      restorePatient: (pid) =>
+        set((s) => ({
+          patients: s.patients.map((p) => {
+            if (p.id !== pid) return p;
+            const { archived_at: _a, ...rest } = p;
+            return rest;
+          }),
+        })),
 
       addAppointment: (a) => {
         const appt: Appointment = { ...a, id: id("a") };

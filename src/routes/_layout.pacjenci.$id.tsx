@@ -180,7 +180,11 @@ function PatientDetail() {
               value={
                 patientData.service_consent_at ? (
                   <Badge variant="secondary">
-                    Wyrażona {fmtDate(patientData.service_consent_at)}
+                    Zgoda z dn. {fmtDate(patientData.service_consent_at)}
+                  </Badge>
+                ) : patientData.service_consent_changed_at ? (
+                  <Badge variant="outline">
+                    Wycofana dn. {fmtDate(patientData.service_consent_changed_at)}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">Brak</Badge>
@@ -192,13 +196,25 @@ function PatientDetail() {
               value={
                 patientData.marketing_consent_at ? (
                   <Badge variant="outline">
-                    Wyrażona {fmtDate(patientData.marketing_consent_at)}
+                    Zgoda z dn. {fmtDate(patientData.marketing_consent_at)}
+                  </Badge>
+                ) : patientData.marketing_consent_changed_at ? (
+                  <Badge variant="outline">
+                    Wycofana dn. {fmtDate(patientData.marketing_consent_changed_at)}
                   </Badge>
                 ) : (
                   <Badge variant="outline">Brak</Badge>
                 )
               }
             />
+            {patientData.general_note ? (
+              <div className="rounded-xl border border-border bg-card px-4 py-3">
+                <div className="mb-1 text-sm text-muted-foreground">Notatka ogólna</div>
+                <p className="whitespace-pre-wrap text-sm text-foreground">
+                  {patientData.general_note}
+                </p>
+              </div>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="historia" className="mt-4">

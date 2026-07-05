@@ -106,6 +106,49 @@ function PatientDetail() {
       />
 
       <PageContainer>
+        {isArchived ? (
+          <div
+            role="status"
+            className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-border bg-secondary/60 p-3 text-sm"
+          >
+            <span>
+              <strong>Pacjent zarchiwizowany.</strong> Nie pojawia się na liście
+              ani w wyszukiwarce w nowym wpisie. Historia pozostaje.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                restorePatient(patientData.id);
+                toast.success("Pacjent przywrócony.");
+              }}
+            >
+              <RotateCcw className="mr-1 h-4 w-4" /> Przywróć
+            </Button>
+          </div>
+        ) : null}
+
+        <div className="mb-4 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil className="mr-1 h-4 w-4" /> Edytuj
+          </Button>
+          {!isArchived ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setArchiveOpen(true)}
+            >
+              <Archive className="mr-1 h-4 w-4" /> Archiwizuj
+            </Button>
+          ) : null}
+        </div>
+
+
+      <PageContainer>
         {!patientData.service_consent_at ? (
           <div
             role="alert"

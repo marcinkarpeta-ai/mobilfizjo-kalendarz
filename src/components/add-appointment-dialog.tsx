@@ -50,7 +50,7 @@ export function AddAppointmentDialog({
   defaultStart?: string;
   defaultEnd?: string;
 }) {
-  const patients = useStore((s) => s.patients);
+  const patients = useStore((s) => s.patients.filter((p) => !p.archived_at));
   const labels = useStore((s) => s.labels);
   const appointments = useStore((s) => s.appointments);
   const addAppointment = useStore((s) => s.addAppointment);

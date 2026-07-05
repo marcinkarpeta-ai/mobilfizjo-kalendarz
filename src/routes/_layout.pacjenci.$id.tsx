@@ -292,9 +292,40 @@ function PatientDetail() {
           </TabsContent>
         </Tabs>
       </PageContainer>
+
+      <AddPatientDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        patient={patientData}
+      />
+
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archiwizować pacjenta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Pacjent zniknie z listy i wyszukiwarki w nowym wpisie, ale jego
+              historia wizyt zostaje nietknięta. Zawsze możesz go przywrócić.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                archivePatient(patientData.id);
+                toast.success("Pacjent zarchiwizowany.");
+                navigate({ to: "/pacjenci" });
+              }}
+            >
+              Archiwizuj
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (

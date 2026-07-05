@@ -1,69 +1,74 @@
 
-# Pasek dostępności w formularzu „Nowy wpis"
-
 ## Zakres
-Tylko dwa pliki:
-- **Nowy** `src/components/availability-strip.tsx` — kompaktowy pasek dostępności dnia.
-- **Edycja** `src/components/add-appointment-dialog.tsx` — osadzenie paska pod polami Od/Do.
 
-Bez zmian: `day-timeline.tsx`, `_layout.kalendarz.tsx`, walidacja, logika zapisu, inne ekrany.
+Ekran Pacjenci (`_layout.pacjenci.tsx`) i karta pacjenta (`_layout.pacjenci.$id.tsx`). Wspólny formularz dodawania/edycji (`add-patient-dialog.tsx`). Store i typy.
 
-## Komponent AvailabilityStrip
+## Zmiany modelu (`src/lib/types.ts`)
 
-Props:
-```ts
-{
-  date: string;              // "YYYY-MM-DD", synchronizowane z polem Data
-  onDateChange: (d: string) => void;
-  start: string;             // "HH:MM" z formularza
-  end: string;               // "HH:MM"
-  onRangeChange: (start: string, end: string) => void;
-  appointments: Appointment[]; // z useStore w rodzicu
-}
+Dodać do `Patient`:
+- `service_consent_changed_at?: string` — data ostatniej zmiany zgody obsługowej (włączenia lub wycofania)
+- `marketing_consent_changed_at?: string` — analogicznie dla marketingowej
+- `general_note?: string` — notatka ogólna o pacjencie (pole tekstowe w formularzu)
+- `archived_at?: string` — jeśli ustawione, pacjent jest zarchiwizowany
+
+## Store (`src/lib/store.ts`)
+
+- `updatePatient` już istnieje — użyjemy go do edycji i archiwizacji.
+- Dodać helpery: `archivePatient(id)` ustawia `archived_at = now`; `restorePatient(id)` czyści `archived_at`.
+- Fizyczne `deletePatient` NIE powstaje — usuwanie nie istnieje w UI.
+- Przy tworzeniu i edycji, gdy zmienia się stan zgody, ustawiać `*_consent_at` (data wyrażenia, kasowana przy wycofaniu) oraz zawsze aktualizować `*_consent_changed_at` (data ostatniej zmiany, do etykiet "wycofana dn. ..."). Logikę trzymamy w dialogu, store zapisuje przekazane wartości.
+
+## Formularz `add-patient-dialog.tsx` (dodawanie + edycja)
+
+Rozszerzyć props:
 ```
-
-Layout (od góry):
-1. **Nagłówek** (~28 px): strzałka `‹` (lewa), etykieta dnia po polsku (np. „pt, 3 lipca"), strzałka `›` (prawa). Kliknięcie strzałek: `onDateChange(prevDay/nextDay)`.
-2. **Pasek dostępności** (~64 px): `position: relative`, `bg-secondary/40`, `rounded-xl`, `border border-border`. Skala pozioma: 100% szerokości = 07:00–20:00 (780 min).
-   - Dla każdego nieodwołanego wpisu z wybranego dnia: `absolute` blok o `left = (startMin−420)/780*100%`, `width = duration/780*100%`, przycięty do zakresu; kolor: `bg-primary` (wizyta) lub `bg-accent` (rodzinne); bez tekstu. `title` dla dostępności: „HH:MM–HH:MM".
-   - **Wolne luki**: obliczone tak jak w day-timeline (bez wpisów odwołanych). Każda luka to niewidoczny `<button>` pokrywający swój fragment paska, `aria-label="Ustaw termin od HH:MM"`. Kliknięcie: `onRangeChange(gap.start, gap.start+45min)` (przycięte do końca luki jeśli krótsza niż 45 min, ale nie krócej niż koniec luki albo min. 15 min).
-   - **Zaznaczenie aktualnego terminu formularza**: nakładka `absolute` z `border-2 border-foreground/70 rounded-md`, pozycjonowana wg `start`/`end` formularza.
-   - **Nakładka kolizji**: dla każdego nieodwołanego wpisu, przecięcie z aktualnym `[start,end]` renderowane jako `absolute bg-destructive/60` nad blokiem (tylko ta część, która się nakłada).
-3. **Skala godzin** (~16 px, pod paskiem): drobne kreski i etykiety `07`, `10`, `13`, `16`, `20` w `text-[10px] text-muted-foreground` co 3 godziny — czytelnie i niezaśmiecająco.
-
-## Gesty
-Swipe poziomy na obszarze paska za pomocą natywnych pointer events:
-- `onPointerDown` zapamiętuje `clientX`, `pointerId`, `capture`.
-- `onPointerMove` — jeśli `|dx| > 50 px` po `pointerUp` → `onDateChange(prev/next)`. Jeśli w trakcie ruchu przekroczy próg 60 px, wywołujemy jednorazowo (blokada) i ustawiamy flagę „swiping" żeby uniknąć wywołania kliknięcia luki.
-- Kliknięcie luki działa gdy `!swiping` w `onClick`.
-
-Bez zewnętrznych bibliotek (żadnych framer/hammerjs).
-
-## Integracja w dialogu
-
-W `add-appointment-dialog.tsx`, tuż pod diva z polami `Od`/`Do` (ok. linii 156):
-```tsx
-<AvailabilityStrip
-  date={date}
-  onDateChange={setDate}
-  start={start}
-  end={end}
-  onRangeChange={(s, e) => { setStart(s); setEnd(e); }}
-  appointments={appointments}
-/>
+{ open, onOpenChange, patient?: Patient }
 ```
-`appointments` już jest pobierane z useStore w komponencie.
+- Bez `patient` → tryb "Nowy pacjent" (jak dziś).
+- Z `patient` → tryb "Edytuj pacjenta": tytuł i tekst przycisku zmienione; stany inicjalizowane z `patient` w `useEffect` na `open`.
 
-Reszta pól, ostrzeżenia (`overlapping`, `noServiceConsent`), przyciski — bez zmian.
+Nowe pole:
+- `Textarea` "Notatka ogólna" (opcjonalne, max ~2000 znaków) — pod polem daty urodzenia.
 
-## Szczegóły techniczne
-- Kolory wyłącznie z tokenów: `bg-primary`, `bg-accent`, `bg-destructive`, `border-border`, `bg-secondary`, `text-muted-foreground`, `text-foreground`.
-- Zakres 07:00–20:00 = 780 minut, stałe: `START_MIN = 420`, `END_MIN = 1200`, `RANGE = 780`.
-- Helpery lokalne: `hhmmToMin`, `minToHHMM`, `pctLeft(min)`, `pctWidth(startMin, endMin)`, `computeGaps` (kopia z day-timeline, mała, lokalna — nie eksportujemy tam nic).
-- Filtr wpisów: `appointments.filter(a => a.starts_at.startsWith(date))` — bo formularz operuje na łańcuchu `YYYY-MM-DD` a mocki mają ISO z lokalnym offsetem — zabezpieczenie: fallback na `format(parseISO(a.starts_at),"yyyy-MM-dd")` jeśli powyższe zawiedzie.
-- Dostępność: strzałki mają `aria-label="Poprzedni dzień"` / „Następny dzień"; pasek `role="group" aria-label="Dostępność dnia HH:MM–HH:MM"`.
+Walidacja telefonu:
+- Unikalność sprawdzana przeciw pacjentom o innym `id` niż edytowany. Jeśli kolizja, błąd: `"Ten numer należy już do: {imię nazwisko}"` (zamiast obecnego ogólnego komunikatu).
+
+Zgody:
+- Porównać stan checkboxów z wartościami z `patient` (lub `undefined` przy tworzeniu). Dla każdej zgody, której stan się zmienił, ustawić `*_consent_changed_at = now`. `*_consent_at` = `now` gdy włączona, `undefined` gdy wyłączona (przy tworzeniu — jak dziś, tylko z now dla wyrażonej).
+
+Zapis:
+- Tryb tworzenia: `addPatient(...)`.
+- Tryb edycji: `updatePatient(patient.id, patch)` z pełnym patchem (w tym `general_note`, obie daty zgód, `*_changed_at`).
+
+## Karta pacjenta (`_layout.pacjenci.$id.tsx`)
+
+Nagłówek/nagłówki akcji:
+- Przycisk `Edytuj` (obok istniejącego `ArrowLeft` po prawej albo w sekcji Dane) → otwiera `AddPatientDialog` z przekazanym `patient`.
+- Przycisk `Archiwizuj` (widoczny gdy nie zarchiwizowany) → otwiera `AlertDialog` z tekstem: "Pacjent zniknie z listy, ale historia wizyt zostaje.". Potwierdzenie wywołuje `archivePatient(id)`, toast "Zarchiwizowano.", `router.navigate({ to: "/pacjenci" })`.
+- Gdy pacjent jest zarchiwizowany: baner informacyjny + przycisk `Przywróć` w miejscu `Archiwizuj`.
+
+W zakładce "Dane" pokazać zgodę z datą:
+- `Wyrażona {fmtDate(service_consent_at)}` gdy obecna.
+- Gdy `service_consent_at` brak, ale `service_consent_changed_at` obecne → `Wycofana {fmtDate(service_consent_changed_at)}`.
+- Gdy brak obu → `Brak` (jak dziś).
+- Analogicznie dla marketingowej.
+
+Dodać wiersz z `general_note` (jeśli obecna) — pełnej szerokości pod ostatnią zgodą, w karcie z etykietą "Notatka ogólna".
+
+## Lista pacjentów (`_layout.pacjenci.tsx`)
+
+- Filtrować `patients` po `!archived_at` domyślnie.
+- Nad polem wyszukiwania (lub obok, po prawej) dyskretny `Switch` z etykietą "Pokaż zarchiwizowanych" (użyć `@/components/ui/switch`, jeśli nie zaimportowany).
+- Gdy włączony: pokazuj wszystkich; przy każdym zarchiwizowanym `Badge variant="outline"` "Zarchiwizowany" oraz przycisk `Przywróć` (np. mały `Button` obok badge). Kliknięcie `Przywróć` wywołuje `restorePatient(id)` i toast.
+- Licznik w podtytule pokazuje tylko aktywnych ("N osób w kartotece"); w trybie z zarchiwizowanymi doprecyzować: "N aktywnych • M zarchiwizowanych".
+
+## Wybór pacjenta w "Nowy wpis" (`add-appointment-dialog.tsx`)
+
+- W liście `<Select>` filtrować `patients.filter(p => !p.archived_at)`. Zarchiwizowani nie pojawiają się jako opcje.
+- Istniejące wizyty (w tym powiązane z zarchiwizowanym pacjentem) pozostają w kalendarzu bez zmian — nie modyfikujemy `appointments`.
 
 ## Poza zakresem
-- Drag do wyznaczania nowego terminu na pasku (tylko klik luki).
-- Resize istniejących wpisów.
-- Zmiany walidacji/zapisu, day-timeline, ekranów.
+
+- Fizyczne usuwanie pacjentów — nie dodajemy.
+- Kalendarz, `day-timeline.tsx`, `availability-strip.tsx`, wiadomości, ekran Dzisiaj — bez zmian.
+- Wizyty archiwizowanych pacjentów w kalendarzu wyświetlane normalnie (można w przyszłej iteracji dodać oznaczenie, teraz brak wymogu).

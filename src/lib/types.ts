@@ -14,7 +14,11 @@ export interface Patient {
   phone: string; // wymagany, unikalny
   birth_date?: string; // ISO date
   service_consent_at?: string; // ISO datetime; brak = brak SMS-ów
+  service_consent_changed_at?: string; // ostatnia zmiana stanu zgody
   marketing_consent_at?: string;
+  marketing_consent_changed_at?: string;
+  general_note?: string;
+  archived_at?: string; // ustawione = zarchiwizowany
   created_at: string;
 }
 

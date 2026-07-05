@@ -148,7 +148,6 @@ function PatientDetail() {
         </div>
 
 
-      <PageContainer>
         {!patientData.service_consent_at ? (
           <div
             role="alert"

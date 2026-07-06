@@ -45,7 +45,7 @@ function AuthPage() {
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: toEmail(username),
           password,
         });
         if (error) {
@@ -55,7 +55,7 @@ function AuthPage() {
         navigate({ to: "/" });
       } else {
         const { error } = await supabase.auth.signUp({
-          email: email.trim(),
+          email: toEmail(username),
           password,
           options: {
             emailRedirectTo: window.location.origin,
@@ -66,7 +66,7 @@ function AuthPage() {
           return;
         }
         toast.success(
-          "Konto utworzone. Jeśli e-mail jest na liście dostępowej, możesz się zalogować.",
+          "Konto utworzone. Jeśli nazwa użytkownika jest na liście dostępowej, możesz się zalogować.",
         );
         setMode("signin");
       }

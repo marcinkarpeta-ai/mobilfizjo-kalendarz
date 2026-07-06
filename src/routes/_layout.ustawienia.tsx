@@ -20,6 +20,7 @@ import type { MessageKind } from "@/lib/types";
 
 const KIND_LABEL: Record<MessageKind, string> = {
   reminder_24h: "Przypomnienie 24h",
+  reminder_2h: "Przypomnienie 2h",
   confirmation: "Potwierdzenie",
   cancellation: "Odwołanie",
   marketing_anniversary: "Marketing · rocznica",
@@ -126,8 +127,9 @@ function SettingsPage() {
 
         <Section title="Szablony wiadomości">
           <p className="mb-2 px-1 text-xs text-muted-foreground">
-            Dostępne placeholdery: <code>{"{salutation}"}</code>,{" "}
-            <code>{"{data}"}</code>, <code>{"{godzina}"}</code>.
+            Dostępne placeholdery: <code>{"{{salutation}}"}</code>,{" "}
+            <code>{"{{date}}"}</code>, <code>{"{{time}}"}</code>,{" "}
+            <code>{"{{ics_link}}"}</code>.
           </p>
           <ul className="space-y-2">
             {templates.map((t) => (

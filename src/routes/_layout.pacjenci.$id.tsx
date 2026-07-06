@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Archive, ArrowLeft, ImageOff, Pencil, RotateCcw, ShieldAlert } from "lucide-react";
 import { parseISO } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
@@ -45,11 +45,9 @@ export const Route = createFileRoute("/_layout/pacjenci/$id")({
 function PatientDetail() {
   const { id } = Route.useParams();
   const patient = useStore((s) => s.patients.find((p) => p.id === id));
-  const appointments = useStore((s) =>
-    s.appointments.filter((a) => a.patient_id === id),
-  );
+  const allAppointments = useStore((s) => s.appointments);
   const labels = useStore((s) => s.labels);
-  const notes = useStore((s) => s.notes.filter((n) => n.patient_id === id));
+  const allNotes = useStore((s) => s.notes);
   const addNote = useStore((s) => s.addNote);
   const archivePatient = useStore((s) => s.archivePatient);
   const restorePatient = useStore((s) => s.restorePatient);
@@ -65,7 +63,15 @@ function PatientDetail() {
   const patientData = patient;
   const isArchived = Boolean(patientData.archived_at);
 
-  const labelById = new Map(labels.map((l) => [l.id, l]));
+  const appointments = useMemo(
+    () => allAppointments.filter((a) => a.patient_id === id),
+    [allAppointments, id],
+  );
+  const notes = useMemo(
+    () => allNotes.filter((n) => n.patient_id === id),
+    [allNotes, id],
+  );
+  const labelById = useMemo(() => new Map(labels.map((l) => [l.id, l])), [labels]);
 
   const history = [...appointments].sort(
     (a, b) => parseISO(b.starts_at).getTime() - parseISO(a.starts_at).getTime(),

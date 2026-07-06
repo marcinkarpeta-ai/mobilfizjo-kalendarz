@@ -1,14 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, RotateCcw, Search, ShieldAlert } from "lucide-react";
+import { Archive, Pencil, Plus, RotateCcw, Search, ShieldAlert } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
+import type { Patient } from "@/lib/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_layout/pacjenci/")({
@@ -23,9 +34,12 @@ export const Route = createFileRoute("/_layout/pacjenci/")({
 
 function PatientsPage() {
   const patients = useStore((s) => s.patients);
+  const archivePatient = useStore((s) => s.archivePatient);
   const restorePatient = useStore((s) => s.restorePatient);
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [archivingPatient, setArchivingPatient] = useState<Patient | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
   const activeCount = useMemo(
@@ -125,6 +139,26 @@ function PatientsPage() {
                         {!archived && p.marketing_consent_at ? (
                           <Badge variant="outline">Marketing</Badge>
                         ) : null}
+                        <div className="mt-2 flex flex-wrap justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2 text-xs"
+                            onClick={() => setEditingPatient(p)}
+                          >
+                            <Pencil className="mr-1 h-3 w-3" /> Edytuj
+                          </Button>
+                          {!archived ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2 text-xs"
+                              onClick={() => setArchivingPatient(p)}
+                            >
+                              <Archive className="mr-1 h-3 w-3" /> Archiwizuj
+                            </Button>
+                          ) : null}
+                        </div>
                         {archived ? (
                           <Button
                             size="sm"
@@ -153,12 +187,49 @@ function PatientsPage() {
         size="lg"
         className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full p-0 shadow-lg"
         aria-label="Dodaj pacjenta"
-        onClick={() => setOpen(true)}
+        onClick={() => setAddOpen(true)}
       >
         <Plus className="h-6 w-6" />
       </Button>
 
-      <AddPatientDialog open={open} onOpenChange={setOpen} />
+      <AddPatientDialog open={addOpen} onOpenChange={setAddOpen} />
+      <AddPatientDialog
+        open={Boolean(editingPatient)}
+        onOpenChange={(v) => {
+          if (!v) setEditingPatient(null);
+        }}
+        patient={editingPatient ?? undefined}
+      />
+
+      <AlertDialog
+        open={Boolean(archivingPatient)}
+        onOpenChange={(v) => {
+          if (!v) setArchivingPatient(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archiwizować pacjenta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Pacjent zniknie z listy i wyszukiwarki w nowym wpisie, ale jego
+              historia wizyt zostaje nietknięta. Zawsze możesz go przywrócić.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!archivingPatient) return;
+                archivePatient(archivingPatient.id);
+                toast.success("Pacjent zarchiwizowany.");
+                setArchivingPatient(null);
+              }}
+            >
+              Archiwizuj
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

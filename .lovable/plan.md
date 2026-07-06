@@ -1,74 +1,128 @@
+# Plan: Podłączenie Supabase (krok A)
 
 ## Zakres
+- Włączenie Lovable Cloud (Supabase, region UE).
+- Schemat DB zgodny z `src/lib/types.ts` + korekty typów.
+- Auth e-mail+hasło; `/auth` podłączone do prawdziwego logowania.
+- Allowlist e-maili terapeuty: konta spoza listy nie dostają profilu.
+- RLS oparte na `has_role('therapist')` — brak profilu ⇒ brak dostępu przez API.
+- `appointments.created_by` uzupełniane automatycznie triggerem.
+- Zamiana zustand+localStorage na Supabase, **API `useStore` bez zmian**.
+- Seed: etykiety zabiegów + szablony wiadomości. Bez mocków pacjentów/wizyt.
+- Zero zmian wizualnych.
 
-Ekran Pacjenci (`_layout.pacjenci.tsx`) i karta pacjenta (`_layout.pacjenci.$id.tsx`). Wspólny formularz dodawania/edycji (`add-patient-dialog.tsx`). Store i typy.
+## Poza zakresem (krok B)
+Rola `family` i jej polityki, notatki UI, zdjęcia, SMS, webhooki.
 
-## Zmiany modelu (`src/lib/types.ts`)
+---
 
-Dodać do `Patient`:
-- `service_consent_changed_at?: string` — data ostatniej zmiany zgody obsługowej (włączenia lub wycofania)
-- `marketing_consent_changed_at?: string` — analogicznie dla marketingowej
-- `general_note?: string` — notatka ogólna o pacjencie (pole tekstowe w formularzu)
-- `archived_at?: string` — jeśli ustawione, pacjent jest zarchiwizowany
+## 1. Korekty typów (`src/lib/types.ts`)
+- `MessageKind` → dodać `"reminder_2h"`.
+- Placeholdery szablonów: `{{salutation}}`, `{{date}}`, `{{time}}`, `{{ics_link}}`.
+- `Appointment` → dodać `created_by?: string`.
 
-## Store (`src/lib/store.ts`)
+## 2. Schemat DB (migracja SQL)
 
-- `updatePatient` już istnieje — użyjemy go do edycji i archiwizacji.
-- Dodać helpery: `archivePatient(id)` ustawia `archived_at = now`; `restorePatient(id)` czyści `archived_at`.
-- Fizyczne `deletePatient` NIE powstaje — usuwanie nie istnieje w UI.
-- Przy tworzeniu i edycji, gdy zmienia się stan zgody, ustawiać `*_consent_at` (data wyrażenia, kasowana przy wycofaniu) oraz zawsze aktualizować `*_consent_changed_at` (data ostatniej zmiany, do etykiet "wycofana dn. ..."). Logikę trzymamy w dialogu, store zapisuje przekazane wartości.
+### 2.1 Enum ról (przygotowanie pod krok B)
+- `CREATE TYPE public.app_role AS ENUM ('therapist','family');`
+- (Alternatywnie `text` + CHECK; wybieram enum — spójne z knowledge o user_roles.)
 
-## Formularz `add-patient-dialog.tsx` (dodawanie + edycja)
+### 2.2 Tabele w `public`
+Każda z `GRANT` (patrz §2.5) i `ENABLE ROW LEVEL SECURITY`.
 
-Rozszerzyć props:
+- `profiles` — `user_id uuid PK REFERENCES auth.users ON DELETE CASCADE`, `display_name text`, `role app_role NOT NULL DEFAULT 'therapist'`, `created_at timestamptz default now()`.
+- `patients` — 1:1 z `Patient` (`id uuid PK default gen_random_uuid()`, `first_name`, `last_name`, `salutation`, `phone text UNIQUE NOT NULL`, `birth_date date`, `service_consent_at`, `service_consent_changed_at`, `marketing_consent_at`, `marketing_consent_changed_at`, `general_note`, `archived_at`, `created_at`).
+- `visit_labels` — `id`, `name`.
+- `appointments` — `id`, `type`, `starts_at`, `ends_at`, `status`, `patient_id fk`, `visit_label_id fk`, `title`, `notes`, **`created_by uuid REFERENCES public.profiles(user_id)`**, `created_at`.
+- `visit_notes`, `note_photos`, `messages_log`, `marketing_proposals`, `message_templates` (`kind` UNIQUE), `app_settings` (singleton + kolumna `allowed_emails text[]`).
+
+Indexy: `appointments(starts_at)`, `appointments(patient_id)`, `messages_log(patient_id)`, `visit_notes(patient_id)`.
+
+### 2.3 Funkcje SECURITY DEFINER (`SET search_path = public`)
+- `public.has_role(_user_id uuid, _role app_role) RETURNS boolean` — czyta `profiles.role` (jedna rola per user w kroku A; docelowo tabela `user_roles` w kroku B, jeśli będzie potrzeba wielu ról; API funkcji zostaje).
+- `public.is_allowed_email(_email text) RETURNS boolean` — case-insensitive, sprawdza:
+  1. stałą listę zaszytą w migracji (fallback bootstrap), oraz
+  2. `app_settings.allowed_emails` (jeśli wypełnione).
+- `public.handle_new_user()` — trigger `AFTER INSERT ON auth.users`: jeżeli e-mail dozwolony, `INSERT INTO profiles (user_id, role) VALUES (NEW.id, 'therapist') ON CONFLICT DO NOTHING`. W przeciwnym razie no-op (brak profilu → RLS blokuje wszystko).
+- `public.set_appointment_created_by()` — trigger `BEFORE INSERT ON appointments`: `NEW.created_by := COALESCE(NEW.created_by, auth.uid());`.
+
+### 2.4 RLS — krok A (korekta wg prośby)
+
+Wszystkie tabele danych: **jedna polityka FOR ALL**
+
+```sql
+CREATE POLICY "therapist_full_access"
+ON public.<table>
+FOR ALL
+TO authenticated
+USING (public.has_role(auth.uid(), 'therapist'))
+WITH CHECK (public.has_role(auth.uid(), 'therapist'));
 ```
-{ open, onOpenChange, patient?: Patient }
+
+Dotyczy: `patients`, `visit_labels`, `appointments`, `visit_notes`, `note_photos`, `messages_log`, `marketing_proposals`, `message_templates`, `app_settings`.
+
+`profiles` — polityki osobne:
+- SELECT `TO authenticated USING (auth.uid() = user_id)` (własny profil; w kroku B rozszerzenie dla admina/rodziny).
+- UPDATE `TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id)`.
+- INSERT: brak polityki dla `authenticated` — wpisy tworzy wyłącznie trigger `handle_new_user` (SECURITY DEFINER omija RLS). `service_role` może wstawiać dla operacji administracyjnych.
+
+Efekt: konto zalogowane bez profilu (albo z rolą `family` w kroku B) nie odczyta ani nie zapisze niczego z tabel danych — nawet bez bramki w UI.
+
+### 2.5 GRANTy (obowiązkowe dla PostgREST)
+Dla każdej tabeli:
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.<table> TO authenticated;
+GRANT ALL ON public.<table> TO service_role;
 ```
-- Bez `patient` → tryb "Nowy pacjent" (jak dziś).
-- Z `patient` → tryb "Edytuj pacjenta": tytuł i tekst przycisku zmienione; stany inicjalizowane z `patient` w `useEffect` na `open`.
+**Bez** `GRANT ... TO anon` — wszystkie polityki są auth-only.
 
-Nowe pole:
-- `Textarea` "Notatka ogólna" (opcjonalne, max ~2000 znaków) — pod polem daty urodzenia.
+### 2.6 Triggery
+- `on_auth_user_created` AFTER INSERT ON `auth.users` → `handle_new_user()`.
+- `set_created_by_before_insert` BEFORE INSERT ON `public.appointments` → `set_appointment_created_by()`.
 
-Walidacja telefonu:
-- Unikalność sprawdzana przeciw pacjentom o innym `id` niż edytowany. Jeśli kolizja, błąd: `"Ten numer należy już do: {imię nazwisko}"` (zamiast obecnego ogólnego komunikatu).
+## 3. Seed (w migracji)
+- `visit_labels`: Masaż leczniczy, Terapia manualna, Kinesiotaping, Rehabilitacja pourazowa, Konsultacja.
+- `message_templates` (nowe placeholdery, w tym `reminder_2h`).
+- `app_settings`: pojedynczy wiersz z domyślnymi wartościami + pusta `allowed_emails`.
+- **Bez** seedu pacjentów/wizyt/notatek/messages/proposals.
 
-Zgody:
-- Porównać stan checkboxów z wartościami z `patient` (lub `undefined` przy tworzeniu). Dla każdej zgody, której stan się zmienił, ustawić `*_consent_changed_at = now`. `*_consent_at` = `now` gdy włączona, `undefined` gdy wyłączona (przy tworzeniu — jak dziś, tylko z now dla wyrażonej).
+## 4. Autentykacja i bramka
+- Włączyć e-mail+hasło. W build mode zapytam o e-mail(e) terapeuty do allowlist (stała w `is_allowed_email`).
+- Po utworzeniu konta terapeuty: wyłączyć publiczny signup przez `supabase--configure_auth` (jeśli dostępne). Awaryjnie ukryć zakładkę „Zarejestruj" w UI. Allowlist chroni bazę niezależnie.
+- `src/routes/auth.tsx`: `supabase.auth.signInWithPassword` + tymczasowy signup do bootstrapowania.
+- Managed `_authenticated/route.tsx` (ssr:false, redirect `/auth`). Przemianowanie plików `_layout.*` → `_authenticated.*` (URL bez zmian — pathless). Komponenty stron nietknięte.
+- W `_authenticated` po zalogowaniu: pobierz `profiles` po `user_id`. Brak profilu ⇒ `signOut()` + toast „Konto bez uprawnień." + redirect `/auth`. To druga linia obrony obok RLS.
+- Root `onAuthStateChange` → `router.invalidate()` + selektywne `queryClient.invalidateQueries()` (bez `SIGNED_OUT`).
+- Sign-out w Ustawieniach (dyskretny przycisk).
 
-Zapis:
-- Tryb tworzenia: `addPatient(...)`.
-- Tryb edycji: `updatePatient(patient.id, patch)` z pełnym patchem (w tym `general_note`, obie daty zgód, `*_changed_at`).
+## 5. Warstwa danych — zachowanie API `useStore`
 
-## Karta pacjenta (`_layout.pacjenci.$id.tsx`)
+Wybór: **zustand jako in-memory cache (bez `persist`), hydratowany z Supabase.**
 
-Nagłówek/nagłówki akcji:
-- Przycisk `Edytuj` (obok istniejącego `ArrowLeft` po prawej albo w sekcji Dane) → otwiera `AddPatientDialog` z przekazanym `patient`.
-- Przycisk `Archiwizuj` (widoczny gdy nie zarchiwizowany) → otwiera `AlertDialog` z tekstem: "Pacjent zniknie z listy, ale historia wizyt zostaje.". Potwierdzenie wywołuje `archivePatient(id)`, toast "Zarchiwizowano.", `router.navigate({ to: "/pacjenci" })`.
-- Gdy pacjent jest zarchiwizowany: baner informacyjny + przycisk `Przywróć` w miejscu `Archiwizuj`.
+- `src/lib/supabase-queries.ts` — `queryKeys` + `useQuery` per tabela + helpery mutacji.
+- `src/components/data-sync.tsx` — montowany w `_authenticated/route.tsx`; odpala zapytania i zapisuje wyniki do zustand po każdej zmianie. Realtime na `patients`, `appointments`, `visit_labels`, `messages_log`, `marketing_proposals` → invaliduje odpowiednie query keys.
+- `src/lib/store.ts` — przepisany:
+  - Ten sam kształt (`useStore((s) => s.patients)` itd.).
+  - Metody mutujące wywołują Supabase (helpery) i invalidują RQ; sygnatury bez zmian.
+  - `addAppointment` **nie** przekazuje `created_by` (trigger).
+  - `reset()` → no-op.
+- Usunięcie `src/lib/mock-data.ts` i jego importów (seed jest w SQL).
 
-W zakładce "Dane" pokazać zgodę z datą:
-- `Wyrażona {fmtDate(service_consent_at)}` gdy obecna.
-- Gdy `service_consent_at` brak, ale `service_consent_changed_at` obecne → `Wycofana {fmtDate(service_consent_changed_at)}`.
-- Gdy brak obu → `Brak` (jak dziś).
-- Analogicznie dla marketingowej.
+## 6. Kolejność wykonania (build mode)
+1. `supabase--enable` (UE).
+2. Zapytanie o e-mail(e) terapeuty na allowlistę.
+3. Migracja: enum, tabele, granty, RLS (`has_role('therapist')`), funkcje, triggery, indexy.
+4. Insert: labels, templates, app_settings.
+5. Edycja `src/lib/types.ts`.
+6. Bootstrap konta terapeuty przez `/auth` signup → wyłączenie publicznego signup.
+7. Przemianowanie tras + managed `_authenticated/route.tsx` z gate „no profile → signOut".
+8. Przepisanie `/auth`.
+9. `supabase-queries.ts`, `DataSync`, przepisany `store.ts`.
+10. Usunięcie `mock-data.ts`.
+11. Sign-out w Ustawieniach, root `onAuthStateChange`.
+12. Weryfikacja: build; test logowania; test że drugie konto (spoza allowlist) po zalogowaniu jest wylogowywane i nic nie widzi; CRUD pacjenta; dodanie wizyty → `created_by = auth.uid()`.
 
-Dodać wiersz z `general_note` (jeśli obecna) — pełnej szerokości pod ostatnią zgodą, w karcie z etykietą "Notatka ogólna".
-
-## Lista pacjentów (`_layout.pacjenci.tsx`)
-
-- Filtrować `patients` po `!archived_at` domyślnie.
-- Nad polem wyszukiwania (lub obok, po prawej) dyskretny `Switch` z etykietą "Pokaż zarchiwizowanych" (użyć `@/components/ui/switch`, jeśli nie zaimportowany).
-- Gdy włączony: pokazuj wszystkich; przy każdym zarchiwizowanym `Badge variant="outline"` "Zarchiwizowany" oraz przycisk `Przywróć` (np. mały `Button` obok badge). Kliknięcie `Przywróć` wywołuje `restorePatient(id)` i toast.
-- Licznik w podtytule pokazuje tylko aktywnych ("N osób w kartotece"); w trybie z zarchiwizowanymi doprecyzować: "N aktywnych • M zarchiwizowanych".
-
-## Wybór pacjenta w "Nowy wpis" (`add-appointment-dialog.tsx`)
-
-- W liście `<Select>` filtrować `patients.filter(p => !p.archived_at)`. Zarchiwizowani nie pojawiają się jako opcje.
-- Istniejące wizyty (w tym powiązane z zarchiwizowanym pacjentem) pozostają w kalendarzu bez zmian — nie modyfikujemy `appointments`.
-
-## Poza zakresem
-
-- Fizyczne usuwanie pacjentów — nie dodajemy.
-- Kalendarz, `day-timeline.tsx`, `availability-strip.tsx`, wiadomości, ekran Dzisiaj — bez zmian.
-- Wizyty archiwizowanych pacjentów w kalendarzu wyświetlane normalnie (można w przyszłej iteracji dodać oznaczenie, teraz brak wymogu).
+## Ryzyka
+- Krótkie okno otwartego signup podczas bootstrapu — allowlist + RLS `has_role('therapist')` zapobiegają odczytowi danych, nawet gdyby ktoś się zarejestrował.
+- `has_role` czyta `profiles.role`; w kroku B, jeśli wprowadzimy wielorolowość, przeniesiemy źródło do `user_roles` zachowując sygnaturę funkcji.
+- Managed `_authenticated` używa `ssr:false` — akceptowalne dla chronionych ekranów.

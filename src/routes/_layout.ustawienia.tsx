@@ -162,15 +162,35 @@ function SettingsPage() {
         <Section title="Konto rodzinne">
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm text-foreground">
-              Zaproś żonę do wglądu w kalendarz. Wizyty pacjentów zobaczy tylko
-              jako anonimowe bloki „Zajęte".
+              Utwórz konto rodzinne (login <code>magda</code>). Zobaczy tylko
+              anonimowe bloki „Zajęte" i własne wpisy rodzinne w kalendarzu.
             </p>
-            <Button className="mt-3 w-full" variant="outline" disabled>
+            <Button
+              className="mt-3 w-full"
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const { seedFamilyAccount } = await import(
+                    "@/lib/admin-seed.functions"
+                  );
+                  const res = await seedFamilyAccount();
+                  if (res.status === "created") {
+                    toast.success("Konto rodzinne utworzone.");
+                  } else {
+                    toast("Konto rodzinne już istnieje.");
+                  }
+                } catch (e) {
+                  toast.error(
+                    e instanceof Error ? e.message : "Nie udało się utworzyć konta.",
+                  );
+                }
+              }}
+            >
               <Mail className="mr-2 h-4 w-4" />
-              Zaproś e-mailem
+              Utwórz konto rodzinne
             </Button>
             <p className="mt-2 text-xs text-muted-foreground">
-              Wymaga włączenia Cloud (kolejna iteracja).
+              Hasło startowe otrzymasz od twórcy aplikacji do przekazania.
             </p>
           </div>
         </Section>

@@ -15,6 +15,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
 import { Route as LayoutWiadomosciRouteImport } from './routes/_layout.wiadomosci'
 import { Route as LayoutUstawieniaRouteImport } from './routes/_layout.ustawienia'
+import { Route as LayoutPacjenciRouteImport } from './routes/_layout.pacjenci'
 import { Route as LayoutOAplikacjiRouteImport } from './routes/_layout.o-aplikacji'
 import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -52,6 +53,11 @@ const LayoutUstawieniaRoute = LayoutUstawieniaRouteImport.update({
   path: '/ustawienia',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPacjenciRoute = LayoutPacjenciRouteImport.update({
+  id: '/pacjenci',
+  path: '/pacjenci',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutOAplikacjiRoute = LayoutOAplikacjiRouteImport.update({
   id: '/o-aplikacji',
   path: '/o-aplikacji',
@@ -75,14 +81,14 @@ const Char91DotmcpChar93ListToolsRoute =
     getParentRoute: () => rootRouteImport,
   } as any)
 const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
-  id: '/pacjenci/',
-  path: '/pacjenci/',
-  getParentRoute: () => LayoutRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutPacjenciRoute,
 } as any)
 const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
-  id: '/pacjenci/$id',
-  path: '/pacjenci/$id',
-  getParentRoute: () => LayoutRoute,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LayoutPacjenciRoute,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
+  '/pacjenci': typeof LayoutPacjenciRouteWithChildren
   '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -128,6 +135,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
   '/_layout/o-aplikacji': typeof LayoutOAplikacjiRoute
+  '/_layout/pacjenci': typeof LayoutPacjenciRouteWithChildren
   '/_layout/ustawienia': typeof LayoutUstawieniaRoute
   '/_layout/wiadomosci': typeof LayoutWiadomosciRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -145,6 +153,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/kalendarz'
     | '/o-aplikacji'
+    | '/pacjenci'
     | '/ustawienia'
     | '/wiadomosci'
     | '/.mcp/invoke-tool/$tool'
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_layout/kalendarz'
     | '/_layout/o-aplikacji'
+    | '/_layout/pacjenci'
     | '/_layout/ustawienia'
     | '/_layout/wiadomosci'
     | '/_layout/'
@@ -234,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUstawieniaRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/pacjenci': {
+      id: '/_layout/pacjenci'
+      path: '/pacjenci'
+      fullPath: '/pacjenci'
+      preLoaderRoute: typeof LayoutPacjenciRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/o-aplikacji': {
       id: '/_layout/o-aplikacji'
       path: '/o-aplikacji'
@@ -264,17 +281,17 @@ declare module '@tanstack/react-router' {
     }
     '/_layout/pacjenci/': {
       id: '/_layout/pacjenci/'
-      path: '/pacjenci'
+      path: '/'
       fullPath: '/pacjenci/'
       preLoaderRoute: typeof LayoutPacjenciIndexRouteImport
-      parentRoute: typeof LayoutRoute
+      parentRoute: typeof LayoutPacjenciRoute
     }
     '/_layout/pacjenci/$id': {
       id: '/_layout/pacjenci/$id'
-      path: '/pacjenci/$id'
+      path: '/$id'
       fullPath: '/pacjenci/$id'
       preLoaderRoute: typeof LayoutPacjenciIdRouteImport
-      parentRoute: typeof LayoutRoute
+      parentRoute: typeof LayoutPacjenciRoute
     }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
@@ -286,24 +303,36 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface LayoutPacjenciRouteChildren {
+  LayoutPacjenciIdRoute: typeof LayoutPacjenciIdRoute
+  LayoutPacjenciIndexRoute: typeof LayoutPacjenciIndexRoute
+}
+
+const LayoutPacjenciRouteChildren: LayoutPacjenciRouteChildren = {
+  LayoutPacjenciIdRoute: LayoutPacjenciIdRoute,
+  LayoutPacjenciIndexRoute: LayoutPacjenciIndexRoute,
+}
+
+const LayoutPacjenciRouteWithChildren = LayoutPacjenciRoute._addFileChildren(
+  LayoutPacjenciRouteChildren,
+)
+
 interface LayoutRouteChildren {
   LayoutKalendarzRoute: typeof LayoutKalendarzRoute
   LayoutOAplikacjiRoute: typeof LayoutOAplikacjiRoute
+  LayoutPacjenciRoute: typeof LayoutPacjenciRouteWithChildren
   LayoutUstawieniaRoute: typeof LayoutUstawieniaRoute
   LayoutWiadomosciRoute: typeof LayoutWiadomosciRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
-  LayoutPacjenciIdRoute: typeof LayoutPacjenciIdRoute
-  LayoutPacjenciIndexRoute: typeof LayoutPacjenciIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutKalendarzRoute: LayoutKalendarzRoute,
   LayoutOAplikacjiRoute: LayoutOAplikacjiRoute,
+  LayoutPacjenciRoute: LayoutPacjenciRouteWithChildren,
   LayoutUstawieniaRoute: LayoutUstawieniaRoute,
   LayoutWiadomosciRoute: LayoutWiadomosciRoute,
   LayoutIndexRoute: LayoutIndexRoute,
-  LayoutPacjenciIdRoute: LayoutPacjenciIdRoute,
-  LayoutPacjenciIndexRoute: LayoutPacjenciIndexRoute,
 }
 
 const LayoutRouteWithChildren =

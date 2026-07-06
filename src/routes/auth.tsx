@@ -23,8 +23,13 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  function toEmail(raw: string) {
+    const v = raw.trim().toLowerCase();
+    return v.includes("@") ? v : `${v}@fizjoplan.local`;
+  }
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -40,7 +45,7 @@ function AuthPage() {
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: toEmail(username),
           password,
         });
         if (error) {
@@ -50,7 +55,7 @@ function AuthPage() {
         navigate({ to: "/" });
       } else {
         const { error } = await supabase.auth.signUp({
-          email: email.trim(),
+          email: toEmail(username),
           password,
           options: {
             emailRedirectTo: window.location.origin,
@@ -61,7 +66,7 @@ function AuthPage() {
           return;
         }
         toast.success(
-          "Konto utworzone. Jeśli e-mail jest na liście dostępowej, możesz się zalogować.",
+          "Konto utworzone. Jeśli nazwa użytkownika jest na liście dostępowej, możesz się zalogować.",
         );
         setMode("signin");
       }
@@ -92,15 +97,15 @@ function AuthPage() {
           onSubmit={submit}
         >
           <div>
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="username">Nazwa użytkownika</Label>
             <Input
-              id="email"
-              type="email"
-              autoComplete="email"
+              id="username"
+              type="text"
+              autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="jan.kowalski@example.com"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="np. magda"
             />
           </div>
           <div>

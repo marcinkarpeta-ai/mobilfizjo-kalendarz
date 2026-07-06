@@ -50,7 +50,8 @@ export function AddAppointmentDialog({
   defaultStart?: string;
   defaultEnd?: string;
 }) {
-  const patients = useStore((s) => s.patients.filter((p) => !p.archived_at));
+  const allPatients = useStore((s) => s.patients);
+  const patients = useMemo(() => allPatients.filter((p) => !p.archived_at), [allPatients]);
   const labels = useStore((s) => s.labels);
   const appointments = useStore((s) => s.appointments);
   const addAppointment = useStore((s) => s.addAppointment);

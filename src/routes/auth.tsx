@@ -97,15 +97,15 @@ function AuthPage() {
           onSubmit={submit}
         >
           <div>
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="username">Nazwa użytkownika</Label>
             <Input
-              id="email"
-              type="email"
-              autoComplete="email"
+              id="username"
+              type="text"
+              autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="jan.kowalski@example.com"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="np. magda"
             />
           </div>
           <div>

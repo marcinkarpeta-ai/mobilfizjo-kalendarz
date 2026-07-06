@@ -14,9 +14,9 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
 import { Route as LayoutWiadomosciRouteImport } from './routes/_layout.wiadomosci'
 import { Route as LayoutUstawieniaRouteImport } from './routes/_layout.ustawienia'
-import { Route as LayoutPacjenciRouteImport } from './routes/_layout.pacjenci'
 import { Route as LayoutOAplikacjiRouteImport } from './routes/_layout.o-aplikacji'
 import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
+import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -43,11 +43,6 @@ const LayoutUstawieniaRoute = LayoutUstawieniaRouteImport.update({
   path: '/ustawienia',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutPacjenciRoute = LayoutPacjenciRouteImport.update({
-  id: '/pacjenci',
-  path: '/pacjenci',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutOAplikacjiRoute = LayoutOAplikacjiRouteImport.update({
   id: '/o-aplikacji',
   path: '/o-aplikacji',
@@ -58,10 +53,15 @@ const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
   path: '/kalendarz',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
+  id: '/pacjenci/',
+  path: '/pacjenci/',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => LayoutPacjenciRoute,
+  id: '/pacjenci/$id',
+  path: '/pacjenci/$id',
+  getParentRoute: () => LayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -69,20 +69,20 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
-  '/pacjenci': typeof LayoutPacjenciRouteWithChildren
   '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/pacjenci/': typeof LayoutPacjenciIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
-  '/pacjenci': typeof LayoutPacjenciRouteWithChildren
   '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/': typeof LayoutIndexRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/pacjenci': typeof LayoutPacjenciIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -90,11 +90,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
   '/_layout/o-aplikacji': typeof LayoutOAplikacjiRoute
-  '/_layout/pacjenci': typeof LayoutPacjenciRouteWithChildren
   '/_layout/ustawienia': typeof LayoutUstawieniaRoute
   '/_layout/wiadomosci': typeof LayoutWiadomosciRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -103,31 +103,31 @@ export interface FileRouteTypes {
     | '/auth'
     | '/kalendarz'
     | '/o-aplikacji'
-    | '/pacjenci'
     | '/ustawienia'
     | '/wiadomosci'
     | '/pacjenci/$id'
+    | '/pacjenci/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
     | '/kalendarz'
     | '/o-aplikacji'
-    | '/pacjenci'
     | '/ustawienia'
     | '/wiadomosci'
     | '/'
     | '/pacjenci/$id'
+    | '/pacjenci'
   id:
     | '__root__'
     | '/_layout'
     | '/auth'
     | '/_layout/kalendarz'
     | '/_layout/o-aplikacji'
-    | '/_layout/pacjenci'
     | '/_layout/ustawienia'
     | '/_layout/wiadomosci'
     | '/_layout/'
     | '/_layout/pacjenci/$id'
+    | '/_layout/pacjenci/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -172,13 +172,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUstawieniaRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/pacjenci': {
-      id: '/_layout/pacjenci'
-      path: '/pacjenci'
-      fullPath: '/pacjenci'
-      preLoaderRoute: typeof LayoutPacjenciRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/o-aplikacji': {
       id: '/_layout/o-aplikacji'
       path: '/o-aplikacji'
@@ -193,44 +186,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutKalendarzRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/pacjenci/': {
+      id: '/_layout/pacjenci/'
+      path: '/pacjenci'
+      fullPath: '/pacjenci/'
+      preLoaderRoute: typeof LayoutPacjenciIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/pacjenci/$id': {
       id: '/_layout/pacjenci/$id'
-      path: '/$id'
+      path: '/pacjenci/$id'
       fullPath: '/pacjenci/$id'
       preLoaderRoute: typeof LayoutPacjenciIdRouteImport
-      parentRoute: typeof LayoutPacjenciRoute
+      parentRoute: typeof LayoutRoute
     }
   }
 }
 
-interface LayoutPacjenciRouteChildren {
-  LayoutPacjenciIdRoute: typeof LayoutPacjenciIdRoute
-}
-
-const LayoutPacjenciRouteChildren: LayoutPacjenciRouteChildren = {
-  LayoutPacjenciIdRoute: LayoutPacjenciIdRoute,
-}
-
-const LayoutPacjenciRouteWithChildren = LayoutPacjenciRoute._addFileChildren(
-  LayoutPacjenciRouteChildren,
-)
-
 interface LayoutRouteChildren {
   LayoutKalendarzRoute: typeof LayoutKalendarzRoute
   LayoutOAplikacjiRoute: typeof LayoutOAplikacjiRoute
-  LayoutPacjenciRoute: typeof LayoutPacjenciRouteWithChildren
   LayoutUstawieniaRoute: typeof LayoutUstawieniaRoute
   LayoutWiadomosciRoute: typeof LayoutWiadomosciRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutPacjenciIdRoute: typeof LayoutPacjenciIdRoute
+  LayoutPacjenciIndexRoute: typeof LayoutPacjenciIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutKalendarzRoute: LayoutKalendarzRoute,
   LayoutOAplikacjiRoute: LayoutOAplikacjiRoute,
-  LayoutPacjenciRoute: LayoutPacjenciRouteWithChildren,
   LayoutUstawieniaRoute: LayoutUstawieniaRoute,
   LayoutWiadomosciRoute: LayoutWiadomosciRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutPacjenciIdRoute: LayoutPacjenciIdRoute,
+  LayoutPacjenciIndexRoute: LayoutPacjenciIndexRoute,
 }
 
 const LayoutRouteWithChildren =
@@ -243,13 +233,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

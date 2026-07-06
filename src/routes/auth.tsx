@@ -23,8 +23,13 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  function toEmail(raw: string) {
+    const v = raw.trim().toLowerCase();
+    return v.includes("@") ? v : `${v}@fizjoplan.local`;
+  }
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {

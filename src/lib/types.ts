@@ -1,5 +1,4 @@
-// Typy zgodne z docelowym modelem danych (dokument 03).
-// W tej iteracji używane tylko przez mock store — łatwe przejście na Supabase.
+// Typy zgodne z modelem danych FizjoPlan (krok A — Lovable Cloud / Supabase).
 
 export type UserRole = "therapist" | "family";
 
@@ -10,15 +9,15 @@ export interface Patient {
   id: string;
   first_name: string;
   last_name: string;
-  salutation: string; // np. "Panie Januszu"
-  phone: string; // wymagany, unikalny
-  birth_date?: string; // ISO date
-  service_consent_at?: string; // ISO datetime; brak = brak SMS-ów
-  service_consent_changed_at?: string; // ostatnia zmiana stanu zgody
+  salutation: string;
+  phone: string;
+  birth_date?: string;
+  service_consent_at?: string;
+  service_consent_changed_at?: string;
   marketing_consent_at?: string;
   marketing_consent_changed_at?: string;
   general_note?: string;
-  archived_at?: string; // ustawione = zarchiwizowany
+  archived_at?: string;
   created_at: string;
 }
 
@@ -30,13 +29,14 @@ export interface VisitLabel {
 export interface Appointment {
   id: string;
   type: AppointmentType;
-  starts_at: string; // ISO datetime
+  starts_at: string;
   ends_at: string;
   status: AppointmentStatus;
-  patient_id?: string; // wymagane gdy patient_visit
+  patient_id?: string;
   visit_label_id?: string;
-  title?: string; // dla family_event
+  title?: string;
   notes?: string;
+  created_by?: string;
 }
 
 export interface VisitNote {
@@ -50,11 +50,13 @@ export interface VisitNote {
 
 export interface NotePhoto {
   id: string;
-  storage_path: string; // w mocku: nazwa pliku placeholder
+  storage_path: string;
 }
 
+// Placeholdery szablonów: {{salutation}}, {{date}}, {{time}}, {{ics_link}}
 export type MessageKind =
   | "reminder_24h"
+  | "reminder_2h"
   | "confirmation"
   | "cancellation"
   | "marketing_anniversary"
@@ -82,13 +84,13 @@ export interface MarketingProposal {
   reason: MarketingReason;
   body: string;
   created_at: string;
-  approved: boolean | null; // null = oczekuje, true = zatwierdzone, false = odrzucone
+  approved: boolean | null;
 }
 
 export interface MessageTemplate {
   id: string;
   kind: MessageKind;
-  body: string; // z placeholderami {salutation}, {data}, {godzina}
+  body: string;
 }
 
 export interface AppSettings {

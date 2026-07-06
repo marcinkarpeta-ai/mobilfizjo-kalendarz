@@ -45,6 +45,7 @@ export const Route = createFileRoute("/_layout/pacjenci/$id")({
 function PatientDetail() {
   const { id } = Route.useParams();
   const patient = useStore((s) => s.patients.find((p) => p.id === id));
+  const hydrated = useStore((s) => s._hydrated);
   const allAppointments = useStore((s) => s.appointments);
   const labels = useStore((s) => s.labels);
   const allNotes = useStore((s) => s.notes);
@@ -58,6 +59,9 @@ function PatientDetail() {
   const [archiveOpen, setArchiveOpen] = useState(false);
 
   if (!patient) {
+    if (!hydrated) {
+      return <div className="min-h-[60vh]" aria-hidden />;
+    }
     throw notFound();
   }
   const patientData = patient;

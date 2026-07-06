@@ -14,16 +14,383 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          allowed_emails: string[]
+          clinic_name: string
+          id: string
+          therapist_name: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_emails?: string[]
+          clinic_name?: string
+          id?: string
+          therapist_name?: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_emails?: string[]
+          clinic_name?: string
+          id?: string
+          therapist_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      appointments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string
+          id: string
+          notes: string | null
+          patient_id: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["appointment_status"]
+          title: string | null
+          type: Database["public"]["Enums"]["appointment_type"]
+          visit_label_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          title?: string | null
+          type: Database["public"]["Enums"]["appointment_type"]
+          visit_label_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          title?: string | null
+          type?: Database["public"]["Enums"]["appointment_type"]
+          visit_label_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_visit_label_id_fkey"
+            columns: ["visit_label_id"]
+            isOneToOne: false
+            referencedRelation: "visit_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_proposals: {
+        Row: {
+          approved: boolean | null
+          body: string
+          created_at: string
+          id: string
+          patient_id: string
+          reason: Database["public"]["Enums"]["marketing_reason"]
+        }
+        Insert: {
+          approved?: boolean | null
+          body: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          reason: Database["public"]["Enums"]["marketing_reason"]
+        }
+        Update: {
+          approved?: boolean | null
+          body?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          reason?: Database["public"]["Enums"]["marketing_reason"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_proposals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          body: string
+          id: string
+          kind: Database["public"]["Enums"]["message_kind"]
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          id?: string
+          kind: Database["public"]["Enums"]["message_kind"]
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["message_kind"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_log: {
+        Row: {
+          appointment_id: string | null
+          body: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: Database["public"]["Enums"]["message_kind"]
+          patient_id: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["message_status"]
+        }
+        Insert: {
+          appointment_id?: string | null
+          body: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["message_kind"]
+          patient_id: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+        }
+        Update: {
+          appointment_id?: string | null
+          body?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["message_kind"]
+          patient_id?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_log_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_log_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_photos: {
+        Row: {
+          created_at: string
+          id: string
+          note_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_photos_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "visit_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          archived_at: string | null
+          birth_date: string | null
+          created_at: string
+          first_name: string
+          general_note: string | null
+          id: string
+          last_name: string
+          marketing_consent_at: string | null
+          marketing_consent_changed_at: string | null
+          phone: string
+          salutation: string
+          service_consent_at: string | null
+          service_consent_changed_at: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          birth_date?: string | null
+          created_at?: string
+          first_name: string
+          general_note?: string | null
+          id?: string
+          last_name: string
+          marketing_consent_at?: string | null
+          marketing_consent_changed_at?: string | null
+          phone: string
+          salutation: string
+          service_consent_at?: string | null
+          service_consent_changed_at?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          birth_date?: string | null
+          created_at?: string
+          first_name?: string
+          general_note?: string | null
+          id?: string
+          last_name?: string
+          marketing_consent_at?: string | null
+          marketing_consent_changed_at?: string | null
+          phone?: string
+          salutation?: string
+          service_consent_at?: string | null
+          service_consent_changed_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      visit_labels: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      visit_notes: {
+        Row: {
+          appointment_id: string
+          body: string
+          created_at: string
+          id: string
+          patient_id: string
+        }
+        Insert: {
+          appointment_id: string
+          body: string
+          created_at?: string
+          id?: string
+          patient_id: string
+        }
+        Update: {
+          appointment_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_notes_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_allowed_email: { Args: { _email: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "therapist" | "family"
+      appointment_status: "scheduled" | "completed" | "cancelled"
+      appointment_type: "patient_visit" | "family_event"
+      marketing_reason: "anniversary" | "birthday"
+      message_kind:
+        | "reminder_24h"
+        | "reminder_2h"
+        | "confirmation"
+        | "cancellation"
+        | "marketing_anniversary"
+        | "marketing_birthday"
+      message_status: "pending" | "sent" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +517,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["therapist", "family"],
+      appointment_status: ["scheduled", "completed", "cancelled"],
+      appointment_type: ["patient_visit", "family_event"],
+      marketing_reason: ["anniversary", "birthday"],
+      message_kind: [
+        "reminder_24h",
+        "reminder_2h",
+        "confirmation",
+        "cancellation",
+        "marketing_anniversary",
+        "marketing_birthday",
+      ],
+      message_status: ["pending", "sent", "failed"],
+    },
   },
 } as const

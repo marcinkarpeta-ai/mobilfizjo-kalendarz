@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_layout/wiadomosci")({
 
 const KIND_LABEL: Record<MessageKind, string> = {
   reminder_24h: "Przypomnienie 24h",
+  reminder_2h: "Przypomnienie 2h",
   confirmation: "Potwierdzenie",
   cancellation: "Odwołanie",
   marketing_anniversary: "Marketing · rocznica",

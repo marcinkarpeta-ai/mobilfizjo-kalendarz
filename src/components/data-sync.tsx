@@ -146,6 +146,7 @@ export function DataSync() {
         templates,
         settings,
         _settingsId: settingsRow?.id ?? null,
+        _hydrated: true,
       });
     }
 

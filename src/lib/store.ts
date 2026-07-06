@@ -22,6 +22,7 @@ function newId() {
 // Wewnętrzne pola pomocnicze (nie eksportowane z API store'a)
 interface InternalState {
   _settingsId: string | null;
+  _hydrated: boolean;
 }
 
 interface StoreState extends InternalState {
@@ -128,6 +129,7 @@ function handleError(context: string, error: unknown) {
 
 export const useStore = create<StoreState>()((set, get) => ({
   _settingsId: null,
+  _hydrated: false,
   patients: [],
   labels: [],
   appointments: [],

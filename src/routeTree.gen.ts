@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
@@ -16,9 +17,17 @@ import { Route as LayoutWiadomosciRouteImport } from './routes/_layout.wiadomosc
 import { Route as LayoutUstawieniaRouteImport } from './routes/_layout.ustawienia'
 import { Route as LayoutOAplikacjiRouteImport } from './routes/_layout.o-aplikacji'
 import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -53,6 +62,18 @@ const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
   path: '/kalendarz',
   getParentRoute: () => LayoutRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
   id: '/pacjenci/',
   path: '/pacjenci/',
@@ -63,24 +84,38 @@ const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
   path: '/pacjenci/$id',
   getParentRoute: () => LayoutRoute,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/ustawienia': typeof LayoutUstawieniaRoute
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/': typeof LayoutIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
 }
@@ -88,11 +123,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
   '/_layout/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/_layout/ustawienia': typeof LayoutUstawieniaRoute
   '/_layout/wiadomosci': typeof LayoutWiadomosciRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
 }
@@ -101,31 +140,43 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/kalendarz'
     | '/o-aplikacji'
     | '/ustawienia'
     | '/wiadomosci'
+    | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
     | '/pacjenci/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/kalendarz'
     | '/o-aplikacji'
     | '/ustawienia'
     | '/wiadomosci'
     | '/'
+    | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
     | '/pacjenci'
   id:
     | '__root__'
     | '/_layout'
     | '/auth'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_layout/kalendarz'
     | '/_layout/o-aplikacji'
     | '/_layout/ustawienia'
     | '/_layout/wiadomosci'
     | '/_layout/'
+    | '/.mcp/invoke-tool/$tool'
     | '/_layout/pacjenci/$id'
     | '/_layout/pacjenci/'
   fileRoutesById: FileRoutesById
@@ -133,10 +184,21 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -186,6 +248,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutKalendarzRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_layout/pacjenci/': {
       id: '/_layout/pacjenci/'
       path: '/pacjenci'
@@ -199,6 +275,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pacjenci/$id'
       preLoaderRoute: typeof LayoutPacjenciIdRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -229,6 +312,11 @@ const LayoutRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

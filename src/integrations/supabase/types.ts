@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      allowed_users: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          role: Database["public"]["Enums"]["app_role"]
+          username: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          username?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           allowed_emails: string[]
@@ -369,6 +387,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_busy_blocks: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          ends_at: string
+          starts_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -377,6 +402,10 @@ export type Database = {
         Returns: boolean
       }
       is_allowed_email: { Args: { _email: string }; Returns: boolean }
+      role_for_email: {
+        Args: { _email: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
     }
     Enums: {
       app_role: "therapist" | "family"

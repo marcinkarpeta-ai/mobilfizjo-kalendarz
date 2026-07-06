@@ -84,8 +84,25 @@ function mapPatient(row: Record<string, unknown>): Patient {
   };
 }
 
-function patientToDb(p: Partial<Patient>): Record<string, unknown> {
+function patientToDb(p: Partial<Patient>) {
   return {
+    first_name: p.first_name,
+    last_name: p.last_name,
+    salutation: p.salutation,
+    phone: p.phone,
+    birth_date: p.birth_date ?? null,
+    service_consent_at: p.service_consent_at ?? null,
+    service_consent_changed_at: p.service_consent_changed_at ?? null,
+    marketing_consent_at: p.marketing_consent_at ?? null,
+    marketing_consent_changed_at: p.marketing_consent_changed_at ?? null,
+    general_note: p.general_note ?? null,
+    archived_at: p.archived_at ?? null,
+  };
+}
+
+function patientInsert(id: string, p: Omit<Patient, "id" | "created_at">) {
+  return {
+    id,
     first_name: p.first_name,
     last_name: p.last_name,
     salutation: p.salutation,
@@ -131,7 +148,7 @@ export const useStore = create<StoreState>()((set, get) => ({
     void (async () => {
       const { data, error } = await supabase
         .from("patients")
-        .insert({ id, ...patientToDb(p) })
+        .insert(patientInsert(id, p))
         .select("*")
         .single();
       if (error) {

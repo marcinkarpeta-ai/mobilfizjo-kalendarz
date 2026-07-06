@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Info, Mail, Pencil, Plus, Trash2 } from "lucide-react";
+import { Info, LogOut, Mail, Pencil, Plus, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_layout/ustawienia")({
 });
 
 function SettingsPage() {
+  const navigate = useNavigate();
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const labels = useStore((s) => s.labels);
@@ -184,6 +186,21 @@ function SettingsPage() {
             </span>
             <span className="text-sm text-muted-foreground">→</span>
           </Link>
+        </Section>
+
+        <Section title="Konto">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              toast("Wylogowano.");
+              navigate({ to: "/auth" });
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Wyloguj się
+          </Button>
         </Section>
 
         <PoweredByFooter />

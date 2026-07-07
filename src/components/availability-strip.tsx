@@ -35,13 +35,23 @@ function appointmentDay(a: Appointment) {
   return format(parseISO(a.starts_at), "yyyy-MM-dd");
 }
 
-function computeGaps(items: Appointment[]) {
-  const active = items
-    .filter((a) => a.status !== "cancelled")
-    .map((a) => ({ s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) }))
-    .sort((x, y) => x.s - y.s);
+export interface BusyInterval {
+  starts_at: string;
+  ends_at: string;
+}
+
+function computeGaps(items: Appointment[], extraBusy: BusyInterval[] = []) {
+  const intervals: { s: number; e: number }[] = [];
+  for (const a of items) {
+    if (a.status === "cancelled") continue;
+    intervals.push({ s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) });
+  }
+  for (const b of extraBusy) {
+    intervals.push({ s: minutesOfDay(b.starts_at), e: minutesOfDay(b.ends_at) });
+  }
+  intervals.sort((x, y) => x.s - y.s);
   const busy: { s: number; e: number }[] = [];
-  for (const it of active) {
+  for (const it of intervals) {
     const s = Math.max(it.s, START_MIN);
     const e = Math.min(it.e, END_MIN);
     if (e <= s) continue;
@@ -66,6 +76,7 @@ export function AvailabilityStrip({
   end,
   onRangeChange,
   appointments,
+  extraBusy = [],
 }: {
   date: string;
   onDateChange: (d: string) => void;
@@ -73,10 +84,11 @@ export function AvailabilityStrip({
   end: string;
   onRangeChange: (start: string, end: string) => void;
   appointments: Appointment[];
+  extraBusy?: BusyInterval[];
 }) {
   const dayItems = appointments.filter((a) => appointmentDay(a) === date);
   const active = dayItems.filter((a) => a.status !== "cancelled");
-  const gaps = computeGaps(dayItems);
+  const gaps = computeGaps(dayItems, extraBusy);
 
   const selStart = hhmmToMin(start);
   const selEnd = hhmmToMin(end);

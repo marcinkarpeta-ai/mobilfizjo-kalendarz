@@ -41,6 +41,8 @@ function CalendarPage() {
   const [selected, setSelected] = useState<Date>(new Date());
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<{ start: string; end: string } | null>(null);
+  const [detailsAppt, setDetailsAppt] = useState<Appointment | null>(null);
+  const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
 
 
   const appointments = useStore((s) => s.appointments);

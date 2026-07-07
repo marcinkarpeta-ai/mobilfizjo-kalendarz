@@ -229,18 +229,79 @@ export function AddAppointmentDialog({
             <>
               <div>
                 <Label>Pacjent</Label>
-                <Select value={patientId} onValueChange={setPatientId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Wybierz pacjenta" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patients.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.first_name} {p.last_name} — {p.phone}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={patientPickerOpen} onOpenChange={setPatientPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={patientPickerOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      <span className="truncate text-left">
+                        {selectedPatient
+                          ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                          : "Wybierz pacjenta"}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[--radix-popover-trigger-width] p-0"
+                    align="start"
+                  >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Szukaj pacjenta…"
+                        value={patientQuery}
+                        onValueChange={setPatientQuery}
+                      />
+                      <CommandList className="max-h-64 overflow-y-auto">
+                        <CommandEmpty>
+                          <div className="flex flex-col items-center gap-2 py-2">
+                            <span className="text-sm text-muted-foreground">
+                              Brak pacjentów
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setPatientPickerOpen(false);
+                                setAddPatientOpen(true);
+                              }}
+                            >
+                              Dodaj nowego pacjenta
+                            </Button>
+                          </div>
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {filteredPatients.map((p) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.id}
+                              onSelect={() => {
+                                setPatientId(p.id);
+                                setPatientPickerOpen(false);
+                                setPatientQuery("");
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  patientId === p.id ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <span className="truncate">
+                                {p.last_name} {p.first_name} — {p.phone}
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Etykieta zabiegu</Label>

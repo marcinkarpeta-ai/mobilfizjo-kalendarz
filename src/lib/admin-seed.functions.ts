@@ -40,7 +40,7 @@ export const seedFamilyAccount = createServerFn({ method: "POST" })
       (u) => u.email?.toLowerCase() === email,
     );
     let userId = existing?.id;
-    let status: "created" | "exists" = "exists";
+    let status: "created" | "exists" | "password_reset" = "exists";
     if (!existing) {
       const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -50,6 +50,13 @@ export const seedFamilyAccount = createServerFn({ method: "POST" })
       if (error) throw error;
       userId = created.user?.id;
       status = "created";
+    } else if (userId) {
+      const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        { password },
+      );
+      if (updErr) throw updErr;
+      status = "password_reset";
     }
 
     // Upewnij się, że profil ma display_name "Rodzina".

@@ -176,6 +176,8 @@ function SettingsPage() {
                   const res = await seedFamilyAccount();
                   if (res.status === "created") {
                     toast.success("Konto rodzinne utworzone.");
+                  } else if (res.status === "password_reset") {
+                    toast.success("Hasło konta rodzinnego zresetowane.");
                   } else {
                     toast("Konto rodzinne już istnieje.");
                   }

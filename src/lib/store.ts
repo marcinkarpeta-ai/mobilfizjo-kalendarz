@@ -306,7 +306,12 @@ export const useStore = create<StoreState>()((set, get) => ({
       ),
     }));
     void (async () => {
-      const dbPatch: Record<string, unknown> = {};
+      const dbPatch: {
+        starts_at?: string;
+        ends_at?: string;
+        visit_label_id?: string | null;
+        title?: string | null;
+      } = {};
       if ("starts_at" in patch) dbPatch.starts_at = patch.starts_at;
       if ("ends_at" in patch) dbPatch.ends_at = patch.ends_at;
       if ("visit_label_id" in patch) dbPatch.visit_label_id = patch.visit_label_id ?? null;

@@ -40,6 +40,9 @@ function TodayPage() {
   const role = useStore((s) => s.role);
   const isFamily = role === "family";
 
+  const [detailsAppt, setDetailsAppt] = useState<Appointment | null>(null);
+  const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
+
   const patientById = new Map(patients.map((p) => [p.id, p]));
   const labelById = new Map(labels.map((l) => [l.id, l]));
 

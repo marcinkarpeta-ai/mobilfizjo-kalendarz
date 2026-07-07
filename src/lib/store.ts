@@ -8,6 +8,7 @@ import type {
   MessageLog,
   MessageTemplate,
   Patient,
+  UserRole,
   VisitLabel,
   VisitNote,
 } from "./types";

@@ -100,7 +100,7 @@ function TodayPage() {
                 >
                   Następna wizyta
                 </h2>
-                {renderItem(nextUp, patientById, labelById)}
+                {renderItem(nextUp, patientById, labelById, setDetailsAppt)}
               </section>
             ) : null}
 

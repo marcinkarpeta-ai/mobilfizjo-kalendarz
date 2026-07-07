@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { CalendarX2, Clock } from "lucide-react";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
 import { fmtTime } from "@/lib/format";
@@ -10,11 +9,13 @@ export function AppointmentCard({
   patient,
   label,
   familyView = false,
+  onSelect,
 }: {
   appt: Appointment;
   patient?: Patient;
   label?: VisitLabel;
   familyView?: boolean;
+  onSelect?: (appt: Appointment) => void;
 }) {
   const cancelled = appt.status === "cancelled";
   const completed = appt.status === "completed";
@@ -91,11 +92,17 @@ export function AppointmentCard({
     </article>
   );
 
-  if (familyView || !isPatient || !patient) return inner;
+  const interactive = onSelect && !(familyView && isPatient);
+  if (!interactive) return inner;
 
   return (
-    <Link to="/pacjenci/$id" params={{ id: patient.id }} className="block">
+    <button
+      type="button"
+      onClick={() => onSelect?.(appt)}
+      className="block w-full text-left"
+    >
       {inner}
-    </Link>
+    </button>
   );
 }
+

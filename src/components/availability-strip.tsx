@@ -217,6 +217,21 @@ export function AvailabilityStrip({
             );
           })}
 
+        {/* Extra busy (family blocks) */}
+        {extraBusy.map((b, idx) => {
+          const s = minutesOfDay(b.starts_at);
+          const e = minutesOfDay(b.ends_at);
+          if (e <= START_MIN || s >= END_MIN) return null;
+          return (
+            <div
+              key={`eb-${idx}-${b.starts_at}`}
+              title={`Zajęte ${minToHHMM(s)}–${minToHHMM(e)}`}
+              className="pointer-events-none absolute top-2 bottom-2 z-20 rounded-md bg-muted-foreground/40"
+              style={{ left: `${pctLeft(s)}%`, width: `${pctWidth(s, e)}%` }}
+            />
+          );
+        })}
+
         {/* Collision overlays: intersect selected range with each active block */}
         {active.map((a) => {
           const s = minutesOfDay(a.starts_at);

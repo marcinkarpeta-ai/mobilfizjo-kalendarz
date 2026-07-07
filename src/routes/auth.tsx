@@ -22,18 +22,16 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
 
   function toEmail(raw: string) {
     const v = raw.trim().toLowerCase();
     return v.includes("@") ? v : `${v}@fizjoplan.local`;
   }
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    // Jeżeli już zalogowany — wskocz od razu na start.
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) navigate({ to: "/" });
     });
@@ -43,33 +41,15 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: toEmail(username),
-          password,
-        });
-        if (error) {
-          toast.error(error.message);
-          return;
-        }
-        navigate({ to: "/" });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email: toEmail(username),
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) {
-          toast.error(error.message);
-          return;
-        }
-        toast.success(
-          "Konto utworzone. Jeśli nazwa użytkownika jest na liście dostępowej, możesz się zalogować.",
-        );
-        setMode("signin");
+      const { error } = await supabase.auth.signInWithPassword({
+        email: toEmail(username),
+        password,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
       }
+      navigate({ to: "/" });
     } finally {
       setBusy(false);
     }
@@ -86,9 +66,7 @@ function AuthPage() {
             FizjoPlan
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin"
-              ? "Zaloguj się do swojego gabinetu"
-              : "Utwórz konto terapeuty"}
+            Zaloguj się do swojego gabinetu
           </p>
         </div>
 
@@ -105,7 +83,7 @@ function AuthPage() {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="np. magda"
+              placeholder="Wpisz nazwę użytkownika"
             />
           </div>
           <div>
@@ -113,7 +91,7 @@ function AuthPage() {
             <Input
               id="pw"
               type="password"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              autoComplete="current-password"
               required
               minLength={6}
               value={password}
@@ -122,21 +100,8 @@ function AuthPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={busy}>
-            {busy
-              ? "Chwileczkę…"
-              : mode === "signin"
-                ? "Zaloguj"
-                : "Utwórz konto"}
+            {busy ? "Chwileczkę…" : "Zaloguj"}
           </Button>
-          <button
-            type="button"
-            className="w-full pt-1 text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
-            onClick={() => setMode((m) => (m === "signin" ? "signup" : "signin"))}
-          >
-            {mode === "signin"
-              ? "Nie masz konta? Zarejestruj się"
-              : "Masz konto? Zaloguj się"}
-          </button>
         </form>
       </div>
       <PoweredByFooter />

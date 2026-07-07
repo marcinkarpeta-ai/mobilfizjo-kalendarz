@@ -225,7 +225,19 @@ export function DayTimeline({
           <button
             key={`gap-${g.start}`}
             type="button"
-            onClick={() => onGapClick(startLabel, endLabel)}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const offsetPx = e.clientY - rect.top;
+              const clickedMin = g.start + Math.floor(offsetPx / PX_PER_MIN);
+              let startMin = Math.floor(clickedMin / 30) * 30;
+              startMin = Math.max(startMin, g.start);
+              let endMin = startMin + 60;
+              if (endMin > g.end) endMin = g.end;
+              if (endMin - startMin < 15) {
+                startMin = Math.max(g.start, endMin - 15);
+              }
+              onGapClick(hhmm(startMin), hhmm(endMin));
+            }}
             aria-label={`Nowy wpis ${startLabel}–${endLabel}`}
             className="group absolute rounded-lg transition-colors hover:bg-accent/10 focus-visible:bg-accent/15 focus-visible:outline-none"
             style={{ top, height, left: GUTTER_PX + 4, right: 0 }}

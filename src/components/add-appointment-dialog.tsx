@@ -43,20 +43,27 @@ export function AddAppointmentDialog({
   defaultDate = new Date(),
   defaultStart,
   defaultEnd,
+  mode = "full",
+  extraBusy,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   defaultDate?: Date;
   defaultStart?: string;
   defaultEnd?: string;
+  mode?: "full" | "family_only";
+  extraBusy?: { starts_at: string; ends_at: string }[];
 }) {
+  const familyOnly = mode === "family_only";
   const allPatients = useStore((s) => s.patients);
   const patients = useMemo(() => allPatients.filter((p) => !p.archived_at), [allPatients]);
   const labels = useStore((s) => s.labels);
   const appointments = useStore((s) => s.appointments);
   const addAppointment = useStore((s) => s.addAppointment);
 
-  const [type, setType] = useState<AppointmentType>("patient_visit");
+  const [type, setType] = useState<AppointmentType>(
+    familyOnly ? "family_event" : "patient_visit",
+  );
   const [date, setDate] = useState(format(defaultDate, "yyyy-MM-dd"));
   const [start, setStart] = useState(defaultStart ?? "09:00");
   const [end, setEnd] = useState(defaultEnd ?? "09:45");

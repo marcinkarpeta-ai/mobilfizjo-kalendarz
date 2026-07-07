@@ -27,6 +27,9 @@ interface InternalState {
 }
 
 interface StoreState extends InternalState {
+  userId: string | null;
+  role: UserRole | null;
+  displayName: string | null;
   patients: Patient[];
   labels: VisitLabel[];
   appointments: Appointment[];
@@ -35,6 +38,8 @@ interface StoreState extends InternalState {
   proposals: MarketingProposal[];
   templates: MessageTemplate[];
   settings: AppSettings;
+
+  _setAuth: (patch: { userId: string; role: UserRole; displayName: string | null }) => void;
 
   // Hydratacja z DataSync — nie używane bezpośrednio przez UI
   _hydrate: (patch: Partial<Omit<StoreState, "_hydrate">>) => void;

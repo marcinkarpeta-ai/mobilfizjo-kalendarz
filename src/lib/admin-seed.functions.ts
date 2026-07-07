@@ -17,19 +17,50 @@ export const seedFamilyAccount = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
-    const email = "magda@fizjoplan.local";
+    const email = "family1@fizjoplan.local";
+    const legacyEmail = "magda@fizjoplan.local";
 
     const { data: list, error: listErr } =
       await supabaseAdmin.auth.admin.listUsers();
     if (listErr) throw listErr;
-    if (list?.users.some((u) => u.email?.toLowerCase() === email)) {
-      return { status: "exists" as const, email };
+
+    // Usuń stare konto magda@fizjoplan.local (jeśli istnieje) wraz z profilem.
+    const legacy = list?.users.find(
+      (u) => u.email?.toLowerCase() === legacyEmail,
+    );
+    if (legacy) {
+      await supabaseAdmin.from("profiles").delete().eq("user_id", legacy.id);
+      const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(
+        legacy.id,
+      );
+      if (delErr) throw delErr;
     }
-    const { error } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
-    if (error) throw error;
-    return { status: "created" as const, email };
+
+    const existing = list?.users.find(
+      (u) => u.email?.toLowerCase() === email,
+    );
+    let userId = existing?.id;
+    let status: "created" | "exists" = "exists";
+    if (!existing) {
+      const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
+      if (error) throw error;
+      userId = created.user?.id;
+      status = "created";
+    }
+
+    // Upewnij się, że profil ma display_name "Rodzina".
+    if (userId) {
+      await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          { user_id: userId, display_name: "Rodzina", role: "family" },
+          { onConflict: "user_id" },
+        );
+    }
+
+    return { status, email };
   });

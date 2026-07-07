@@ -222,6 +222,10 @@ function CalendarPage() {
               setPreset({ start, end });
               setOpen(true);
             }}
+            onSelectAppointment={(a) => {
+              if (isFamily && a.type !== "family_event") return;
+              setDetailsAppt(a);
+            }}
           />
         </section>
           </>

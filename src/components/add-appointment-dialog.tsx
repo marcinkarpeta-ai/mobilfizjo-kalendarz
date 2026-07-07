@@ -138,9 +138,10 @@ export function AddAppointmentDialog({
     return appointments.some(
       (a) =>
         a.status !== "cancelled" &&
+        (!editing || a.id !== editing.id) &&
         overlaps(a.starts_at, a.ends_at, startISO, endISO),
     );
-  }, [appointments, startISO, endISO]);
+  }, [appointments, startISO, endISO, editing]);
 
   const selectedPatient = patients.find((p) => p.id === patientId);
   const noServiceConsent =
@@ -160,7 +161,7 @@ export function AddAppointmentDialog({
       toast.error("Uzupełnij wymagane pola.");
       return;
     }
-    if (type === "patient_visit" && !patientId) {
+    if (!isEdit && type === "patient_visit" && !patientId) {
       toast.error("Wybierz pacjenta.");
       return;
     }
@@ -168,16 +169,26 @@ export function AddAppointmentDialog({
       toast.error("Godzina zakończenia musi być po godzinie rozpoczęcia.");
       return;
     }
-    addAppointment({
-      type,
-      starts_at: new Date(startISO).toISOString(),
-      ends_at: new Date(endISO).toISOString(),
-      status: "scheduled",
-      patient_id: type === "patient_visit" ? patientId : undefined,
-      visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
-      title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
-    });
-    toast.success("Wpis dodany.");
+    if (isEdit && editing) {
+      updateAppointment(editing.id, {
+        starts_at: new Date(startISO).toISOString(),
+        ends_at: new Date(endISO).toISOString(),
+        visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
+        title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+      });
+      toast.success("Wpis zapisany.");
+    } else {
+      addAppointment({
+        type,
+        starts_at: new Date(startISO).toISOString(),
+        ends_at: new Date(endISO).toISOString(),
+        status: "scheduled",
+        patient_id: type === "patient_visit" ? patientId : undefined,
+        visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
+        title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+      });
+      toast.success("Wpis dodany.");
+    }
     onOpenChange(false);
   }
 
@@ -185,13 +196,15 @@ export function AddAppointmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Nowy wpis</DialogTitle>
+          <DialogTitle>{isEdit ? "Edytuj wpis" : "Nowy wpis"}</DialogTitle>
           <DialogDescription>
-            Dodaj wizytę pacjenta lub wydarzenie rodzinne.
+            {isEdit
+              ? "Zmień termin lub dane wpisu."
+              : "Dodaj wizytę pacjenta lub wydarzenie rodzinne."}
           </DialogDescription>
         </DialogHeader>
 
-        {familyOnly ? null : (
+        {familyOnly || isEdit ? null : (
           <Tabs value={type} onValueChange={(v) => setType(v as AppointmentType)}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="patient_visit">Wizyta pacjenta</TabsTrigger>

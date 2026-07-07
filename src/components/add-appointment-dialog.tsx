@@ -353,6 +353,7 @@ export function AddAppointmentDialog({
                   </PopoverContent>
                 </Popover>
               </div>
+              )}
               <div>
                 <Label>Etykieta zabiegu</Label>
                 <Select value={labelId} onValueChange={setLabelId}>

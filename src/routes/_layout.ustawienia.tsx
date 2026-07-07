@@ -40,6 +40,7 @@ export const Route = createFileRoute("/_layout/ustawienia")({
 
 function SettingsPage() {
   const navigate = useNavigate();
+  const role = useStore((s) => s.role);
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const labels = useStore((s) => s.labels);
@@ -52,6 +53,10 @@ function SettingsPage() {
   const [newLabel, setNewLabel] = useState("");
   const [editingLabel, setEditingLabel] = useState<{ id: string; name: string } | null>(null);
   const [editingTpl, setEditingTpl] = useState<{ id: string; body: string; kind: MessageKind } | null>(null);
+
+  if (role === "family") {
+    return <FamilySettings navigate={navigate} />;
+  }
 
   return (
     <>

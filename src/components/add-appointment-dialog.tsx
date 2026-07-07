@@ -138,12 +138,14 @@ export function AddAppointmentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={type} onValueChange={(v) => setType(v as AppointmentType)}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="patient_visit">Wizyta pacjenta</TabsTrigger>
-            <TabsTrigger value="family_event">Wydarzenie rodzinne</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {familyOnly ? null : (
+          <Tabs value={type} onValueChange={(v) => setType(v as AppointmentType)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="patient_visit">Wizyta pacjenta</TabsTrigger>
+              <TabsTrigger value="family_event">Wydarzenie rodzinne</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
 
         <div className="grid gap-3">
           <div className="grid grid-cols-3 gap-2">

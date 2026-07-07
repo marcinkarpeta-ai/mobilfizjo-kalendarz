@@ -37,7 +37,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
-import type { AppointmentType } from "@/lib/types";
+import type { Appointment, AppointmentType } from "@/lib/types";
 import { overlaps } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

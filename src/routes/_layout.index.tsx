@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { endOfDay, parseISO, startOfDay } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { AppointmentCard } from "@/components/appointment-card";
 import { BusyBlockCard } from "@/components/busy-block-card";
+import { AppointmentDetailsSheet } from "@/components/appointment-details-sheet";
+import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { fmtDateLong, isSameLocalDay } from "@/lib/format";
 import { useMounted } from "@/hooks/use-mounted";
 import { useBusyBlocks } from "@/hooks/use-busy-blocks";
+import type { Appointment } from "@/lib/types";
 
 export const Route = createFileRoute("/_layout/")({
   head: () => ({

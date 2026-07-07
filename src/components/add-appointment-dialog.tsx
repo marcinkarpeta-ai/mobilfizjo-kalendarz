@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
 import { z } from "zod";
 import {
   Dialog,
@@ -20,12 +20,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityStrip } from "@/components/availability-strip";
+import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
 import type { AppointmentType } from "@/lib/types";
 import { overlaps } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+function normalizeText(s: string) {
+  return s
+    .toLocaleLowerCase("pl")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
 
 const schema = z.object({
   type: z.enum(["patient_visit", "family_event"]),
@@ -70,6 +92,17 @@ export function AddAppointmentDialog({
   const [patientId, setPatientId] = useState<string>("");
   const [labelId, setLabelId] = useState<string>("");
   const [title, setTitle] = useState("");
+  const [patientPickerOpen, setPatientPickerOpen] = useState(false);
+  const [patientQuery, setPatientQuery] = useState("");
+  const [addPatientOpen, setAddPatientOpen] = useState(false);
+
+  const filteredPatients = useMemo(() => {
+    const q = normalizeText(patientQuery.trim());
+    if (!q) return patients;
+    return patients.filter((p) =>
+      normalizeText(`${p.first_name} ${p.last_name} ${p.phone ?? ""}`).includes(q),
+    );
+  }, [patients, patientQuery]);
 
   useEffect(() => {
     if (!open) return;
@@ -196,18 +229,79 @@ export function AddAppointmentDialog({
             <>
               <div>
                 <Label>Pacjent</Label>
-                <Select value={patientId} onValueChange={setPatientId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Wybierz pacjenta" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patients.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.first_name} {p.last_name} — {p.phone}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={patientPickerOpen} onOpenChange={setPatientPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={patientPickerOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      <span className="truncate text-left">
+                        {selectedPatient
+                          ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                          : "Wybierz pacjenta"}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[--radix-popover-trigger-width] p-0"
+                    align="start"
+                  >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Szukaj pacjenta…"
+                        value={patientQuery}
+                        onValueChange={setPatientQuery}
+                      />
+                      <CommandList className="max-h-64 overflow-y-auto">
+                        <CommandEmpty>
+                          <div className="flex flex-col items-center gap-2 py-2">
+                            <span className="text-sm text-muted-foreground">
+                              Brak pacjentów
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setPatientPickerOpen(false);
+                                setAddPatientOpen(true);
+                              }}
+                            >
+                              Dodaj nowego pacjenta
+                            </Button>
+                          </div>
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {filteredPatients.map((p) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.id}
+                              onSelect={() => {
+                                setPatientId(p.id);
+                                setPatientPickerOpen(false);
+                                setPatientQuery("");
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  patientId === p.id ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <span className="truncate">
+                                {p.last_name} {p.first_name} — {p.phone}
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Etykieta zabiegu</Label>
@@ -263,6 +357,14 @@ export function AddAppointmentDialog({
           <Button onClick={submit}>Zapisz</Button>
         </DialogFooter>
       </DialogContent>
+      <AddPatientDialog
+        open={addPatientOpen}
+        onOpenChange={setAddPatientOpen}
+        onCreated={(p) => {
+          setPatientId(p.id);
+          setPatientQuery("");
+        }}
+      />
     </Dialog>
   );
 }

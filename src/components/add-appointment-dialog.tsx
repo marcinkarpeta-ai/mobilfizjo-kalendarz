@@ -188,6 +188,7 @@ export function AddAppointmentDialog({
               setEnd(e);
             }}
             appointments={appointments}
+            extraBusy={extraBusy}
           />
 
 

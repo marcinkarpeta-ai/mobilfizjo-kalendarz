@@ -8,6 +8,7 @@ import {
 import { BottomNav } from "@/components/bottom-nav";
 import { DataSync } from "@/components/data-sync";
 import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_layout")({

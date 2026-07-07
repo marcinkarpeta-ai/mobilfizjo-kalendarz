@@ -253,6 +253,23 @@ function CalendarPage() {
         mode={isFamily ? "family_only" : "full"}
         extraBusy={isFamily ? selectedBusy : undefined}
       />
+
+      <AddAppointmentDialog
+        open={!!editingAppt}
+        onOpenChange={(v) => !v && setEditingAppt(null)}
+        editing={editingAppt}
+        mode={editingAppt?.type === "family_event" ? "family_only" : "full"}
+        extraBusy={isFamily ? selectedBusy : undefined}
+      />
+
+      <AppointmentDetailsSheet
+        appt={detailsAppt}
+        onOpenChange={(v) => !v && setDetailsAppt(null)}
+        onEdit={(a) => {
+          setDetailsAppt(null);
+          setEditingAppt(a);
+        }}
+      />
     </>
   );
 }

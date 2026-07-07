@@ -92,6 +92,17 @@ export function AddAppointmentDialog({
   const [patientId, setPatientId] = useState<string>("");
   const [labelId, setLabelId] = useState<string>("");
   const [title, setTitle] = useState("");
+  const [patientPickerOpen, setPatientPickerOpen] = useState(false);
+  const [patientQuery, setPatientQuery] = useState("");
+  const [addPatientOpen, setAddPatientOpen] = useState(false);
+
+  const filteredPatients = useMemo(() => {
+    const q = normalizeText(patientQuery.trim());
+    if (!q) return patients;
+    return patients.filter((p) =>
+      normalizeText(`${p.first_name} ${p.last_name} ${p.phone ?? ""}`).includes(q),
+    );
+  }, [patients, patientQuery]);
 
   useEffect(() => {
     if (!open) return;

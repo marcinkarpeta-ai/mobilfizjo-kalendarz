@@ -260,6 +260,23 @@ export function AddAppointmentDialog({
 
           {type === "patient_visit" ? (
             <>
+              {isEdit ? (
+                <div>
+                  <Label>Pacjent</Label>
+                  <Input
+                    readOnly
+                    value={
+                      selectedPatient
+                        ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                        : ""
+                    }
+                    className="cursor-not-allowed bg-muted"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Pomyłka w pacjencie? Odwołaj wizytę i umów nową.
+                  </p>
+                </div>
+              ) : (
               <div>
                 <Label>Pacjent</Label>
                 <Popover open={patientPickerOpen} onOpenChange={setPatientPickerOpen}>

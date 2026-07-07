@@ -271,11 +271,15 @@ export function DayTimeline({
 
 
 
+        const isFamilyEvent = appt.type === "family_event";
+        const showFamilyBadge = isFamilyEvent && !familyView && !cancelled;
+
         return (
           <article
             key={`ap-${appt.id}-${idx}`}
             className={cn(
-              "absolute overflow-hidden rounded-2xl border border-border bg-card shadow-sm",
+              "absolute overflow-hidden rounded-2xl border border-border shadow-sm",
+              isFamilyEvent && !cancelled ? "bg-accent/10" : "bg-card",
               cancelled ? "opacity-40 pointer-events-none z-0" : "z-10 hover:border-accent",
               compact ? "p-2" : "p-3",
             )}
@@ -287,6 +291,14 @@ export function DayTimeline({
             }}
           >
             <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
+            {showFamilyBadge ? (
+              <Badge
+                variant="outline"
+                className="pointer-events-none absolute right-1.5 top-1.5 z-20 h-4 px-1.5 text-[10px] font-medium"
+              >
+                Rodzina
+              </Badge>
+            ) : null}
             {isPatient && patient && !familyView && !cancelled ? (
               <Link
                 to="/pacjenci/$id"
@@ -312,6 +324,41 @@ export function DayTimeline({
                 />
               </div>
             )}
+          </article>
+        );
+      })}
+
+      {/* Busy blocks (family role) — non-clickable */}
+      {busyBlocks.map((b, idx) => {
+        const s = minutesOfDay(b.starts_at);
+        const e = minutesOfDay(b.ends_at);
+        const startClamped = Math.max(s, TIMELINE_START);
+        const endClamped = Math.min(e, TIMELINE_END);
+        if (endClamped <= startClamped) return null;
+        const top = (startClamped - TIMELINE_START) * PX_PER_MIN;
+        const height = Math.max(MIN_BLOCK_PX, (endClamped - startClamped) * PX_PER_MIN);
+        const compact = height < 56;
+        const timeText = `${hhmm(s)}–${hhmm(e)}`;
+        return (
+          <article
+            key={`busy-${idx}-${b.starts_at}`}
+            aria-label={`Zajęte ${timeText}`}
+            className={cn(
+              "absolute z-10 overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-sm",
+              compact ? "p-2" : "p-3",
+            )}
+            style={{ top, height, left: GUTTER_PX + 4, right: 0 }}
+          >
+            <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-muted-foreground/40" />
+            <div className="pl-2">
+              <BlockContent
+                compact={compact}
+                time={timeText}
+                title="Zajęte"
+                sublabel={null}
+                cancelled={false}
+              />
+            </div>
           </article>
         );
       })}

@@ -288,13 +288,16 @@ export function DayTimeline({
         const isFamilyEvent = appt.type === "family_event";
         const showFamilyBadge = isFamilyEvent && !familyView && !cancelled;
 
+        const clickable =
+          !!onSelectAppointment && !(familyView && isPatient);
+
         return (
           <article
             key={`ap-${appt.id}-${idx}`}
             className={cn(
               "absolute overflow-hidden rounded-2xl border border-border shadow-sm",
               isFamilyEvent && !cancelled ? "bg-accent/10" : "bg-card",
-              cancelled ? "opacity-40 pointer-events-none z-0" : "z-10 hover:border-accent",
+              cancelled ? "opacity-40 z-0" : "z-10 hover:border-accent",
               compact ? "p-2" : "p-3",
             )}
             style={{
@@ -313,11 +316,11 @@ export function DayTimeline({
                 Rodzina
               </Badge>
             ) : null}
-            {isPatient && patient && !familyView && !cancelled ? (
-              <Link
-                to="/pacjenci/$id"
-                params={{ id: patient.id }}
-                className="absolute inset-0 pl-2"
+            {clickable ? (
+              <button
+                type="button"
+                onClick={() => onSelectAppointment?.(appt)}
+                className="absolute inset-0 pl-2 text-left"
               >
                 <BlockContent
                   compact={compact}
@@ -326,7 +329,7 @@ export function DayTimeline({
                   sublabel={sublabel}
                   cancelled={cancelled}
                 />
-              </Link>
+              </button>
             ) : (
               <div className="pl-2">
                 <BlockContent

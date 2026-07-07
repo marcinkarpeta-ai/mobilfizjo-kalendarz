@@ -170,6 +170,7 @@ export function DayTimeline({
   familyView = false,
   busyBlocks = [],
   onGapClick,
+  onSelectAppointment,
 }: {
   date: Date;
   appointments: Appointment[];
@@ -178,6 +179,7 @@ export function DayTimeline({
   familyView?: boolean;
   busyBlocks?: BusyInterval[];
   onGapClick: (startHHMM: string, endHHMM: string) => void;
+  onSelectAppointment?: (appt: Appointment) => void;
 }) {
   const positioned = layoutColumns(appointments);
   const gaps = computeGaps(appointments, busyBlocks);

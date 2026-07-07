@@ -51,7 +51,12 @@ interface StoreState extends InternalState {
   restorePatient: (id: string) => void;
 
   addAppointment: (a: Omit<Appointment, "id">) => Appointment;
+  updateAppointment: (
+    id: string,
+    patch: Partial<Pick<Appointment, "starts_at" | "ends_at" | "visit_label_id" | "title">>,
+  ) => void;
   cancelAppointment: (id: string) => void;
+  deleteAppointment: (id: string) => void;
 
   addLabel: (name: string) => void;
   renameLabel: (id: string, name: string) => void;

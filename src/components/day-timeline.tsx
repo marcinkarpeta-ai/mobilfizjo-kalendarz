@@ -124,15 +124,23 @@ function layoutColumns(items: Appointment[]): Positioned[] {
   return positioned;
 }
 
-function computeGaps(items: Appointment[]): { start: number; end: number }[] {
-  const active = items
-    .filter((a) => a.status !== "cancelled")
-    .map((a) => ({ s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) }))
-    .sort((x, y) => x.s - y.s);
+function computeGaps(
+  items: Appointment[],
+  extraBusy: BusyInterval[] = [],
+): { start: number; end: number }[] {
+  const intervals: { s: number; e: number }[] = [];
+  for (const a of items) {
+    if (a.status === "cancelled") continue;
+    intervals.push({ s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) });
+  }
+  for (const b of extraBusy) {
+    intervals.push({ s: minutesOfDay(b.starts_at), e: minutesOfDay(b.ends_at) });
+  }
+  intervals.sort((x, y) => x.s - y.s);
 
   // Merge overlaps into busy intervals.
   const busy: { s: number; e: number }[] = [];
-  for (const it of active) {
+  for (const it of intervals) {
     const s = Math.max(it.s, TIMELINE_START);
     const e = Math.min(it.e, TIMELINE_END);
     if (e <= s) continue;
@@ -160,6 +168,7 @@ export function DayTimeline({
   patientById,
   labelById,
   familyView = false,
+  busyBlocks = [],
   onGapClick,
 }: {
   date: Date;
@@ -167,10 +176,11 @@ export function DayTimeline({
   patientById: Map<string, Patient>;
   labelById: Map<string, VisitLabel>;
   familyView?: boolean;
+  busyBlocks?: BusyInterval[];
   onGapClick: (startHHMM: string, endHHMM: string) => void;
 }) {
   const positioned = layoutColumns(appointments);
-  const gaps = computeGaps(appointments);
+  const gaps = computeGaps(appointments, busyBlocks);
   const hours = Array.from({ length: (TIMELINE_END - TIMELINE_START) / 60 + 1 }, (_, i) => TIMELINE_START + i * 60);
 
   return (

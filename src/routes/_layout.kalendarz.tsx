@@ -144,6 +144,7 @@ function CalendarPage() {
               (a) => a.type === "patient_visit" && a.status !== "cancelled",
             );
             const hasFamily = items.some((a) => a.type === "family_event");
+            const hasBusy = (busyByDay.get(key) ?? []).length > 0;
             const inMonth = isSameMonth(d, cursor);
             const isSelected = isSameDay(d, selected);
             const isToday = isSameDay(d, new Date());
@@ -165,15 +166,25 @@ function CalendarPage() {
               >
                 <span>{format(d, "d")}</span>
                 <span className="mt-0.5 flex gap-0.5">
-                  {hasVisit ? (
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "h-1 w-1 rounded-full",
-                        isSelected ? "bg-primary-foreground" : "bg-primary",
+                  {isFamily
+                    ? hasBusy && (
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "h-1 w-1 rounded-full",
+                            isSelected ? "bg-primary-foreground" : "bg-muted-foreground/60",
+                          )}
+                        />
+                      )
+                    : hasVisit && (
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "h-1 w-1 rounded-full",
+                            isSelected ? "bg-primary-foreground" : "bg-primary",
+                          )}
+                        />
                       )}
-                    />
-                  ) : null}
                   {hasFamily ? (
                     <span
                       aria-hidden
@@ -201,6 +212,8 @@ function CalendarPage() {
             appointments={selectedItems}
             patientById={patientById}
             labelById={labelById}
+            familyView={isFamily}
+            busyBlocks={selectedBusy}
             onGapClick={(start, end) => {
               setPreset({ start, end });
               setOpen(true);
@@ -229,6 +242,8 @@ function CalendarPage() {
         defaultDate={selected}
         defaultStart={preset?.start}
         defaultEnd={preset?.end}
+        mode={isFamily ? "family_only" : "full"}
+        extraBusy={isFamily ? selectedBusy : undefined}
       />
     </>
   );

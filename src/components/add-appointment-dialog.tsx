@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
 import { z } from "zod";
 import {
   Dialog,
@@ -20,12 +20,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityStrip } from "@/components/availability-strip";
+import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
 import type { AppointmentType } from "@/lib/types";
 import { overlaps } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+function normalizeText(s: string) {
+  return s
+    .toLocaleLowerCase("pl")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
 
 const schema = z.object({
   type: z.enum(["patient_visit", "family_event"]),

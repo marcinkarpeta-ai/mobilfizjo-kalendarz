@@ -143,6 +143,22 @@ function TodayPage() {
           <Plus className="h-6 w-6" />
         </Link>
       </Button>
+
+      <AppointmentDetailsSheet
+        appt={detailsAppt}
+        onOpenChange={(v) => !v && setDetailsAppt(null)}
+        onEdit={(a) => {
+          setDetailsAppt(null);
+          setEditingAppt(a);
+        }}
+      />
+
+      <AddAppointmentDialog
+        open={!!editingAppt}
+        onOpenChange={(v) => !v && setEditingAppt(null)}
+        editing={editingAppt}
+        mode={editingAppt?.type === "family_event" ? "family_only" : "full"}
+      />
     </>
   );
 }
@@ -151,6 +167,7 @@ function renderItem(
   it: TimelineItem,
   patientById: Map<string, import("@/lib/types").Patient>,
   labelById: Map<string, import("@/lib/types").VisitLabel>,
+  onSelect: (a: Appointment) => void,
 ) {
   if (it.kind === "busy") {
     return <BusyBlockCard starts_at={it.starts_at} ends_at={it.ends_at} />;
@@ -161,8 +178,10 @@ function renderItem(
       appt={a}
       patient={a.patient_id ? patientById.get(a.patient_id) : undefined}
       label={a.visit_label_id ? labelById.get(a.visit_label_id) : undefined}
+      onSelect={onSelect}
     />
   );
+}
 }
 
 function capitalize(s: string) {

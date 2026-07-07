@@ -357,6 +357,14 @@ export function AddAppointmentDialog({
           <Button onClick={submit}>Zapisz</Button>
         </DialogFooter>
       </DialogContent>
+      <AddPatientDialog
+        open={addPatientOpen}
+        onOpenChange={setAddPatientOpen}
+        onCreated={(p) => {
+          setPatientId(p.id);
+          setPatientQuery("");
+        }}
+      />
     </Dialog>
   );
 }

@@ -136,6 +136,9 @@ function handleError(context: string, error: unknown) {
 export const useStore = create<StoreState>()((set, get) => ({
   _settingsId: null,
   _hydrated: false,
+  userId: null,
+  role: null,
+  displayName: null,
   patients: [],
   labels: [],
   appointments: [],
@@ -144,6 +147,9 @@ export const useStore = create<StoreState>()((set, get) => ({
   proposals: [],
   templates: [],
   settings: { therapist_name: "", clinic_name: "" },
+
+  _setAuth: (patch) =>
+    set({ userId: patch.userId, role: patch.role, displayName: patch.displayName }),
 
   _hydrate: (patch) => set(patch as Partial<StoreState>),
 

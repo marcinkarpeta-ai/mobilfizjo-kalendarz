@@ -162,7 +162,7 @@ function SettingsPage() {
         <Section title="Konto rodzinne">
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm text-foreground">
-              Utwórz konto rodzinne (login <code>magda</code>). Zobaczy tylko
+              Utwórz konto rodzinne (login <code>family1</code>). Zobaczy tylko
               anonimowe bloki „Zajęte" i własne wpisy rodzinne w kalendarzu.
             </p>
             <Button

@@ -39,10 +39,12 @@ export function AddPatientDialog({
   open,
   onOpenChange,
   patient,
+  onCreated,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   patient?: Patient;
+  onCreated?: (patient: Patient) => void;
 }) {
   const patients = useStore((s) => s.patients);
   const addPatient = useStore((s) => s.addPatient);

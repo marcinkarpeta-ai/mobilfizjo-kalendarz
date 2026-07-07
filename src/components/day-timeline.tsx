@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { parseISO } from "date-fns";
 import { CalendarX2 } from "lucide-react";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";

@@ -2,7 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { parseISO } from "date-fns";
 import { CalendarX2 } from "lucide-react";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+export interface BusyInterval {
+  starts_at: string;
+  ends_at: string;
+}
 
 const TIMELINE_START = 7 * 60; // 07:00
 const TIMELINE_END = 20 * 60; // 20:00

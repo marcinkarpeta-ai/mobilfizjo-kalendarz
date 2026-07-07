@@ -124,7 +124,7 @@ function TodayPage() {
               ) : (
                 <ul className="space-y-3">
                   {items.map((it) => (
-                    <li key={it.id}>{renderItem(it, patientById, labelById)}</li>
+                    <li key={it.id}>{renderItem(it, patientById, labelById, setDetailsAppt)}</li>
                   ))}
                 </ul>
               )}

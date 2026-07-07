@@ -17,6 +17,8 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { DayTimeline } from "@/components/day-timeline";
 import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
+import { AppointmentDetailsSheet } from "@/components/appointment-details-sheet";
+import type { Appointment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";

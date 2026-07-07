@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { endOfDay, parseISO, startOfDay } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { AppointmentCard } from "@/components/appointment-card";
 import { BusyBlockCard } from "@/components/busy-block-card";
+import { AppointmentDetailsSheet } from "@/components/appointment-details-sheet";
+import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { fmtDateLong, isSameLocalDay } from "@/lib/format";
 import { useMounted } from "@/hooks/use-mounted";
 import { useBusyBlocks } from "@/hooks/use-busy-blocks";
+import type { Appointment } from "@/lib/types";
 
 export const Route = createFileRoute("/_layout/")({
   head: () => ({
@@ -36,6 +39,9 @@ function TodayPage() {
   const labels = useStore((s) => s.labels);
   const role = useStore((s) => s.role);
   const isFamily = role === "family";
+
+  const [detailsAppt, setDetailsAppt] = useState<Appointment | null>(null);
+  const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
   const labelById = new Map(labels.map((l) => [l.id, l]));
@@ -94,7 +100,7 @@ function TodayPage() {
                 >
                   Następna wizyta
                 </h2>
-                {renderItem(nextUp, patientById, labelById)}
+                {renderItem(nextUp, patientById, labelById, setDetailsAppt)}
               </section>
             ) : null}
 
@@ -118,7 +124,7 @@ function TodayPage() {
               ) : (
                 <ul className="space-y-3">
                   {items.map((it) => (
-                    <li key={it.id}>{renderItem(it, patientById, labelById)}</li>
+                    <li key={it.id}>{renderItem(it, patientById, labelById, setDetailsAppt)}</li>
                   ))}
                 </ul>
               )}
@@ -137,6 +143,22 @@ function TodayPage() {
           <Plus className="h-6 w-6" />
         </Link>
       </Button>
+
+      <AppointmentDetailsSheet
+        appt={detailsAppt}
+        onOpenChange={(v) => !v && setDetailsAppt(null)}
+        onEdit={(a) => {
+          setDetailsAppt(null);
+          setEditingAppt(a);
+        }}
+      />
+
+      <AddAppointmentDialog
+        open={!!editingAppt}
+        onOpenChange={(v) => !v && setEditingAppt(null)}
+        editing={editingAppt}
+        mode={editingAppt?.type === "family_event" ? "family_only" : "full"}
+      />
     </>
   );
 }
@@ -145,6 +167,7 @@ function renderItem(
   it: TimelineItem,
   patientById: Map<string, import("@/lib/types").Patient>,
   labelById: Map<string, import("@/lib/types").VisitLabel>,
+  onSelect: (a: Appointment) => void,
 ) {
   if (it.kind === "busy") {
     return <BusyBlockCard starts_at={it.starts_at} ends_at={it.ends_at} />;
@@ -155,6 +178,7 @@ function renderItem(
       appt={a}
       patient={a.patient_id ? patientById.get(a.patient_id) : undefined}
       label={a.visit_label_id ? labelById.get(a.visit_label_id) : undefined}
+      onSelect={onSelect}
     />
   );
 }

@@ -37,7 +37,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
-import type { AppointmentType } from "@/lib/types";
+import type { Appointment, AppointmentType } from "@/lib/types";
 import { overlaps } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -67,6 +67,7 @@ export function AddAppointmentDialog({
   defaultEnd,
   mode = "full",
   extraBusy,
+  editing,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -75,13 +76,16 @@ export function AddAppointmentDialog({
   defaultEnd?: string;
   mode?: "full" | "family_only";
   extraBusy?: { starts_at: string; ends_at: string }[];
+  editing?: Appointment | null;
 }) {
   const familyOnly = mode === "family_only";
+  const isEdit = Boolean(editing);
   const allPatients = useStore((s) => s.patients);
   const patients = useMemo(() => allPatients.filter((p) => !p.archived_at), [allPatients]);
   const labels = useStore((s) => s.labels);
   const appointments = useStore((s) => s.appointments);
   const addAppointment = useStore((s) => s.addAppointment);
+  const updateAppointment = useStore((s) => s.updateAppointment);
 
   const [type, setType] = useState<AppointmentType>(
     familyOnly ? "family_event" : "patient_visit",
@@ -106,10 +110,26 @@ export function AddAppointmentDialog({
 
   useEffect(() => {
     if (!open) return;
-    setDate(format(defaultDate, "yyyy-MM-dd"));
-    if (defaultStart) setStart(defaultStart);
-    if (defaultEnd) setEnd(defaultEnd);
-  }, [open, defaultDate, defaultStart, defaultEnd]);
+    if (editing) {
+      const s = parseISO(editing.starts_at);
+      const e = parseISO(editing.ends_at);
+      setType(editing.type);
+      setDate(format(s, "yyyy-MM-dd"));
+      setStart(format(s, "HH:mm"));
+      setEnd(format(e, "HH:mm"));
+      setPatientId(editing.patient_id ?? "");
+      setLabelId(editing.visit_label_id ?? "");
+      setTitle(editing.title ?? "");
+    } else {
+      setType(familyOnly ? "family_event" : "patient_visit");
+      setDate(format(defaultDate, "yyyy-MM-dd"));
+      setStart(defaultStart ?? "09:00");
+      setEnd(defaultEnd ?? "09:45");
+      setPatientId("");
+      setLabelId("");
+      setTitle("");
+    }
+  }, [open, editing, familyOnly, defaultDate, defaultStart, defaultEnd]);
 
   const startISO = `${date}T${start}:00`;
   const endISO = `${date}T${end}:00`;
@@ -118,9 +138,10 @@ export function AddAppointmentDialog({
     return appointments.some(
       (a) =>
         a.status !== "cancelled" &&
+        (!editing || a.id !== editing.id) &&
         overlaps(a.starts_at, a.ends_at, startISO, endISO),
     );
-  }, [appointments, startISO, endISO]);
+  }, [appointments, startISO, endISO, editing]);
 
   const selectedPatient = patients.find((p) => p.id === patientId);
   const noServiceConsent =
@@ -140,7 +161,7 @@ export function AddAppointmentDialog({
       toast.error("Uzupełnij wymagane pola.");
       return;
     }
-    if (type === "patient_visit" && !patientId) {
+    if (!isEdit && type === "patient_visit" && !patientId) {
       toast.error("Wybierz pacjenta.");
       return;
     }
@@ -148,16 +169,26 @@ export function AddAppointmentDialog({
       toast.error("Godzina zakończenia musi być po godzinie rozpoczęcia.");
       return;
     }
-    addAppointment({
-      type,
-      starts_at: new Date(startISO).toISOString(),
-      ends_at: new Date(endISO).toISOString(),
-      status: "scheduled",
-      patient_id: type === "patient_visit" ? patientId : undefined,
-      visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
-      title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
-    });
-    toast.success("Wpis dodany.");
+    if (isEdit && editing) {
+      updateAppointment(editing.id, {
+        starts_at: new Date(startISO).toISOString(),
+        ends_at: new Date(endISO).toISOString(),
+        visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
+        title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+      });
+      toast.success("Wpis zapisany.");
+    } else {
+      addAppointment({
+        type,
+        starts_at: new Date(startISO).toISOString(),
+        ends_at: new Date(endISO).toISOString(),
+        status: "scheduled",
+        patient_id: type === "patient_visit" ? patientId : undefined,
+        visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
+        title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+      });
+      toast.success("Wpis dodany.");
+    }
     onOpenChange(false);
   }
 
@@ -165,13 +196,15 @@ export function AddAppointmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Nowy wpis</DialogTitle>
+          <DialogTitle>{isEdit ? "Edytuj wpis" : "Nowy wpis"}</DialogTitle>
           <DialogDescription>
-            Dodaj wizytę pacjenta lub wydarzenie rodzinne.
+            {isEdit
+              ? "Zmień termin lub dane wpisu."
+              : "Dodaj wizytę pacjenta lub wydarzenie rodzinne."}
           </DialogDescription>
         </DialogHeader>
 
-        {familyOnly ? null : (
+        {familyOnly || isEdit ? null : (
           <Tabs value={type} onValueChange={(v) => setType(v as AppointmentType)}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="patient_visit">Wizyta pacjenta</TabsTrigger>
@@ -227,6 +260,23 @@ export function AddAppointmentDialog({
 
           {type === "patient_visit" ? (
             <>
+              {isEdit ? (
+                <div>
+                  <Label>Pacjent</Label>
+                  <Input
+                    readOnly
+                    value={
+                      selectedPatient
+                        ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                        : ""
+                    }
+                    className="cursor-not-allowed bg-muted"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Pomyłka w pacjencie? Odwołaj wizytę i umów nową.
+                  </p>
+                </div>
+              ) : (
               <div>
                 <Label>Pacjent</Label>
                 <Popover open={patientPickerOpen} onOpenChange={setPatientPickerOpen}>
@@ -303,6 +353,7 @@ export function AddAppointmentDialog({
                   </PopoverContent>
                 </Popover>
               </div>
+              )}
               <div>
                 <Label>Etykieta zabiegu</Label>
                 <Select value={labelId} onValueChange={setLabelId}>

@@ -17,6 +17,8 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { DayTimeline } from "@/components/day-timeline";
 import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
+import { AppointmentDetailsSheet } from "@/components/appointment-details-sheet";
+import type { Appointment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -39,6 +41,8 @@ function CalendarPage() {
   const [selected, setSelected] = useState<Date>(new Date());
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<{ start: string; end: string } | null>(null);
+  const [detailsAppt, setDetailsAppt] = useState<Appointment | null>(null);
+  const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
 
 
   const appointments = useStore((s) => s.appointments);
@@ -218,6 +222,10 @@ function CalendarPage() {
               setPreset({ start, end });
               setOpen(true);
             }}
+            onSelectAppointment={(a) => {
+              if (isFamily && a.type !== "family_event") return;
+              setDetailsAppt(a);
+            }}
           />
         </section>
           </>
@@ -244,6 +252,23 @@ function CalendarPage() {
         defaultEnd={preset?.end}
         mode={isFamily ? "family_only" : "full"}
         extraBusy={isFamily ? selectedBusy : undefined}
+      />
+
+      <AddAppointmentDialog
+        open={!!editingAppt}
+        onOpenChange={(v) => !v && setEditingAppt(null)}
+        editing={editingAppt}
+        mode={editingAppt?.type === "family_event" ? "family_only" : "full"}
+        extraBusy={isFamily ? selectedBusy : undefined}
+      />
+
+      <AppointmentDetailsSheet
+        appt={detailsAppt}
+        onOpenChange={(v) => !v && setDetailsAppt(null)}
+        onEdit={(a) => {
+          setDetailsAppt(null);
+          setEditingAppt(a);
+        }}
       />
     </>
   );

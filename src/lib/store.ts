@@ -297,6 +297,47 @@ export const useStore = create<StoreState>()((set, get) => ({
     })();
   },
 
+  updateAppointment: (aid, patch) => {
+    const prev = get().appointments.find((a) => a.id === aid);
+    if (!prev) return;
+    set((s) => ({
+      appointments: s.appointments.map((a) =>
+        a.id === aid ? { ...a, ...patch } : a,
+      ),
+    }));
+    void (async () => {
+      const dbPatch: Record<string, unknown> = {};
+      if ("starts_at" in patch) dbPatch.starts_at = patch.starts_at;
+      if ("ends_at" in patch) dbPatch.ends_at = patch.ends_at;
+      if ("visit_label_id" in patch) dbPatch.visit_label_id = patch.visit_label_id ?? null;
+      if ("title" in patch) dbPatch.title = patch.title ?? null;
+      const { error } = await supabase
+        .from("appointments")
+        .update(dbPatch)
+        .eq("id", aid);
+      if (error) {
+        set((s) => ({
+          appointments: s.appointments.map((a) => (a.id === aid ? prev : a)),
+        }));
+        handleError("Zapis wpisu nie powiódł się", error);
+      }
+    })();
+  },
+
+  deleteAppointment: (aid) => {
+    const prev = get().appointments.find((a) => a.id === aid);
+    if (!prev) return;
+    set((s) => ({ appointments: s.appointments.filter((a) => a.id !== aid) }));
+    void (async () => {
+      const { error } = await supabase.from("appointments").delete().eq("id", aid);
+      if (error) {
+        set((s) => ({ appointments: [...s.appointments, prev] }));
+        handleError("Usunięcie wpisu nie powiodło się", error);
+      }
+    })();
+  },
+
+
   addLabel: (name) => {
     const id = newId();
     set((s) => ({ labels: [...s.labels, { id, name }] }));

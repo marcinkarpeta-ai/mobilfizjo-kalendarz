@@ -2,7 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { parseISO } from "date-fns";
 import { CalendarX2 } from "lucide-react";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+export interface BusyInterval {
+  starts_at: string;
+  ends_at: string;
+}
 
 const TIMELINE_START = 7 * 60; // 07:00
 const TIMELINE_END = 20 * 60; // 20:00
@@ -118,15 +124,23 @@ function layoutColumns(items: Appointment[]): Positioned[] {
   return positioned;
 }
 
-function computeGaps(items: Appointment[]): { start: number; end: number }[] {
-  const active = items
-    .filter((a) => a.status !== "cancelled")
-    .map((a) => ({ s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) }))
-    .sort((x, y) => x.s - y.s);
+function computeGaps(
+  items: Appointment[],
+  extraBusy: BusyInterval[] = [],
+): { start: number; end: number }[] {
+  const intervals: { s: number; e: number }[] = [];
+  for (const a of items) {
+    if (a.status === "cancelled") continue;
+    intervals.push({ s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) });
+  }
+  for (const b of extraBusy) {
+    intervals.push({ s: minutesOfDay(b.starts_at), e: minutesOfDay(b.ends_at) });
+  }
+  intervals.sort((x, y) => x.s - y.s);
 
   // Merge overlaps into busy intervals.
   const busy: { s: number; e: number }[] = [];
-  for (const it of active) {
+  for (const it of intervals) {
     const s = Math.max(it.s, TIMELINE_START);
     const e = Math.min(it.e, TIMELINE_END);
     if (e <= s) continue;
@@ -154,6 +168,7 @@ export function DayTimeline({
   patientById,
   labelById,
   familyView = false,
+  busyBlocks = [],
   onGapClick,
 }: {
   date: Date;
@@ -161,10 +176,11 @@ export function DayTimeline({
   patientById: Map<string, Patient>;
   labelById: Map<string, VisitLabel>;
   familyView?: boolean;
+  busyBlocks?: BusyInterval[];
   onGapClick: (startHHMM: string, endHHMM: string) => void;
 }) {
   const positioned = layoutColumns(appointments);
-  const gaps = computeGaps(appointments);
+  const gaps = computeGaps(appointments, busyBlocks);
   const hours = Array.from({ length: (TIMELINE_END - TIMELINE_START) / 60 + 1 }, (_, i) => TIMELINE_START + i * 60);
 
   return (
@@ -255,11 +271,15 @@ export function DayTimeline({
 
 
 
+        const isFamilyEvent = appt.type === "family_event";
+        const showFamilyBadge = isFamilyEvent && !familyView && !cancelled;
+
         return (
           <article
             key={`ap-${appt.id}-${idx}`}
             className={cn(
-              "absolute overflow-hidden rounded-2xl border border-border bg-card shadow-sm",
+              "absolute overflow-hidden rounded-2xl border border-border shadow-sm",
+              isFamilyEvent && !cancelled ? "bg-accent/10" : "bg-card",
               cancelled ? "opacity-40 pointer-events-none z-0" : "z-10 hover:border-accent",
               compact ? "p-2" : "p-3",
             )}
@@ -271,6 +291,14 @@ export function DayTimeline({
             }}
           >
             <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
+            {showFamilyBadge ? (
+              <Badge
+                variant="outline"
+                className="pointer-events-none absolute right-1.5 top-1.5 z-20 h-4 px-1.5 text-[10px] font-medium"
+              >
+                Rodzina
+              </Badge>
+            ) : null}
             {isPatient && patient && !familyView && !cancelled ? (
               <Link
                 to="/pacjenci/$id"
@@ -296,6 +324,41 @@ export function DayTimeline({
                 />
               </div>
             )}
+          </article>
+        );
+      })}
+
+      {/* Busy blocks (family role) — non-clickable */}
+      {busyBlocks.map((b, idx) => {
+        const s = minutesOfDay(b.starts_at);
+        const e = minutesOfDay(b.ends_at);
+        const startClamped = Math.max(s, TIMELINE_START);
+        const endClamped = Math.min(e, TIMELINE_END);
+        if (endClamped <= startClamped) return null;
+        const top = (startClamped - TIMELINE_START) * PX_PER_MIN;
+        const height = Math.max(MIN_BLOCK_PX, (endClamped - startClamped) * PX_PER_MIN);
+        const compact = height < 56;
+        const timeText = `${hhmm(s)}–${hhmm(e)}`;
+        return (
+          <article
+            key={`busy-${idx}-${b.starts_at}`}
+            aria-label={`Zajęte ${timeText}`}
+            className={cn(
+              "absolute z-10 overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-sm",
+              compact ? "p-2" : "p-3",
+            )}
+            style={{ top, height, left: GUTTER_PX + 4, right: 0 }}
+          >
+            <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-muted-foreground/40" />
+            <div className="pl-2">
+              <BlockContent
+                compact={compact}
+                time={timeText}
+                title="Zajęte"
+                sublabel={null}
+                cancelled={false}
+              />
+            </div>
           </article>
         );
       })}

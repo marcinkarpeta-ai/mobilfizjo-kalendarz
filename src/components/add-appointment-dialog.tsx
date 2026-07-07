@@ -43,20 +43,27 @@ export function AddAppointmentDialog({
   defaultDate = new Date(),
   defaultStart,
   defaultEnd,
+  mode = "full",
+  extraBusy,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   defaultDate?: Date;
   defaultStart?: string;
   defaultEnd?: string;
+  mode?: "full" | "family_only";
+  extraBusy?: { starts_at: string; ends_at: string }[];
 }) {
+  const familyOnly = mode === "family_only";
   const allPatients = useStore((s) => s.patients);
   const patients = useMemo(() => allPatients.filter((p) => !p.archived_at), [allPatients]);
   const labels = useStore((s) => s.labels);
   const appointments = useStore((s) => s.appointments);
   const addAppointment = useStore((s) => s.addAppointment);
 
-  const [type, setType] = useState<AppointmentType>("patient_visit");
+  const [type, setType] = useState<AppointmentType>(
+    familyOnly ? "family_event" : "patient_visit",
+  );
   const [date, setDate] = useState(format(defaultDate, "yyyy-MM-dd"));
   const [start, setStart] = useState(defaultStart ?? "09:00");
   const [end, setEnd] = useState(defaultEnd ?? "09:45");
@@ -131,12 +138,14 @@ export function AddAppointmentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={type} onValueChange={(v) => setType(v as AppointmentType)}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="patient_visit">Wizyta pacjenta</TabsTrigger>
-            <TabsTrigger value="family_event">Wydarzenie rodzinne</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {familyOnly ? null : (
+          <Tabs value={type} onValueChange={(v) => setType(v as AppointmentType)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="patient_visit">Wizyta pacjenta</TabsTrigger>
+              <TabsTrigger value="family_event">Wydarzenie rodzinne</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
 
         <div className="grid gap-3">
           <div className="grid grid-cols-3 gap-2">
@@ -179,6 +188,7 @@ export function AddAppointmentDialog({
               setEnd(e);
             }}
             appointments={appointments}
+            extraBusy={extraBusy}
           />
 
 

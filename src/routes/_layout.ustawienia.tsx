@@ -40,6 +40,7 @@ export const Route = createFileRoute("/_layout/ustawienia")({
 
 function SettingsPage() {
   const navigate = useNavigate();
+  const role = useStore((s) => s.role);
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const labels = useStore((s) => s.labels);
@@ -52,6 +53,10 @@ function SettingsPage() {
   const [newLabel, setNewLabel] = useState("");
   const [editingLabel, setEditingLabel] = useState<{ id: string; name: string } | null>(null);
   const [editingTpl, setEditingTpl] = useState<{ id: string; body: string; kind: MessageKind } | null>(null);
+
+  if (role === "family") {
+    return <FamilySettings navigate={navigate} />;
+  }
 
   return (
     <>
@@ -304,5 +309,78 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       </h2>
       {children}
     </section>
+  );
+}
+
+function FamilySettings({
+  navigate,
+}: {
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const userId = useStore((s) => s.userId);
+  const storedName = useStore((s) => s.displayName);
+  const [displayName, setDisplayName] = useState(storedName ?? "");
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!userId) return;
+    const trimmed = displayName.trim();
+    if (!trimmed) {
+      toast.error("Podaj nazwę.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: trimmed })
+      .eq("user_id", userId);
+    setSaving(false);
+    if (error) {
+      toast.error("Nie udało się zapisać.");
+      return;
+    }
+    useStore.setState({ displayName: trimmed });
+    toast.success("Zapisano.");
+  }
+
+  return (
+    <>
+      <AppHeader title="Ustawienia" />
+      <PageContainer className="space-y-6">
+        <Section title="Profil">
+          <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+            <div>
+              <Label htmlFor="f-name">Wyświetlana nazwa</Label>
+              <Input
+                id="f-name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="np. Rodzina"
+              />
+            </div>
+            <Button onClick={save} disabled={saving} className="w-full">
+              Zapisz
+            </Button>
+          </div>
+        </Section>
+
+        <Section title="Konto">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              toast("Wylogowano.");
+              navigate({ to: "/auth" });
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Wyloguj się
+          </Button>
+        </Section>
+
+        <PoweredByFooter />
+      </PageContainer>
+    </>
   );
 }

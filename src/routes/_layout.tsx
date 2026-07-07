@@ -8,6 +8,7 @@ import {
 import { BottomNav } from "@/components/bottom-nav";
 import { DataSync } from "@/components/data-sync";
 import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_layout")({
@@ -38,7 +39,7 @@ function LayoutComponent() {
       }
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("user_id")
+        .select("user_id, role, display_name")
         .eq("user_id", userData.user.id)
         .maybeSingle();
       if (cancelled) return;
@@ -48,6 +49,11 @@ function LayoutComponent() {
         navigate({ to: "/auth" });
         return;
       }
+      useStore.getState()._setAuth({
+        userId: userData.user.id,
+        role: profile.role,
+        displayName: profile.display_name,
+      });
       setReady(true);
     })();
 

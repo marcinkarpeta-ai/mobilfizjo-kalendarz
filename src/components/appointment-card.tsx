@@ -40,10 +40,14 @@ export function AppointmentCard({
       ? "bg-primary"
       : "bg-accent";
 
+  const isFamilyEvent = appt.type === "family_event";
+  const showFamilyBadge = isFamilyEvent && !familyView && !cancelled;
+
   const inner = (
     <article
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors",
+        "relative overflow-hidden rounded-2xl border border-border p-4 shadow-sm transition-colors",
+        isFamilyEvent && !cancelled ? "bg-accent/10" : "bg-card",
         cancelled && "opacity-60",
         !cancelled && "hover:border-accent",
       )}
@@ -70,6 +74,11 @@ export function AppointmentCard({
           ) : null}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
+          {showFamilyBadge ? (
+            <Badge variant="outline" className="text-[10px]">
+              Rodzina
+            </Badge>
+          ) : null}
           {cancelled ? (
             <Badge variant="secondary" className="gap-1">
               <CalendarX2 className="h-3 w-3" aria-hidden /> Odwołana

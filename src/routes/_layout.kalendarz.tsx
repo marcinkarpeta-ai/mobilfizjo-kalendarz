@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/hooks/use-mounted";
+import { useBusyBlocks } from "@/hooks/use-busy-blocks";
 
 export const Route = createFileRoute("/_layout/kalendarz")({
   head: () => ({
@@ -43,6 +44,8 @@ function CalendarPage() {
   const appointments = useStore((s) => s.appointments);
   const patients = useStore((s) => s.patients);
   const labels = useStore((s) => s.labels);
+  const role = useStore((s) => s.role);
+  const isFamily = role === "family";
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
   const labelById = new Map(labels.map((l) => [l.id, l]));
@@ -57,6 +60,27 @@ function CalendarPage() {
     return arr;
   }, [cursor]);
 
+  const monthFromISO = useMemo(
+    () => (isFamily ? days[0].toISOString() : null),
+    [isFamily, days],
+  );
+  const monthToISO = useMemo(
+    () => (isFamily ? new Date(days[days.length - 1].getTime() + 86400000).toISOString() : null),
+    [isFamily, days],
+  );
+  const monthBusy = useBusyBlocks(monthFromISO, monthToISO);
+
+  const busyByDay = useMemo(() => {
+    const map = new Map<string, { starts_at: string; ends_at: string }[]>();
+    for (const b of monthBusy) {
+      const key = format(parseISO(b.starts_at), "yyyy-MM-dd");
+      const arr = map.get(key) ?? [];
+      arr.push(b);
+      map.set(key, arr);
+    }
+    return map;
+  }, [monthBusy]);
+
   const byDay = useMemo(() => {
     const map = new Map<string, typeof appointments>();
     for (const a of appointments) {
@@ -68,9 +92,11 @@ function CalendarPage() {
     return map;
   }, [appointments]);
 
-  const selectedItems = (byDay.get(format(selected, "yyyy-MM-dd")) ?? []).sort(
+  const selectedKey = format(selected, "yyyy-MM-dd");
+  const selectedItems = (byDay.get(selectedKey) ?? []).sort(
     (a, b) => parseISO(a.starts_at).getTime() - parseISO(b.starts_at).getTime(),
   );
+  const selectedBusy = busyByDay.get(selectedKey) ?? [];
 
   const weekdayLabels = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 
@@ -118,6 +144,7 @@ function CalendarPage() {
               (a) => a.type === "patient_visit" && a.status !== "cancelled",
             );
             const hasFamily = items.some((a) => a.type === "family_event");
+            const hasBusy = (busyByDay.get(key) ?? []).length > 0;
             const inMonth = isSameMonth(d, cursor);
             const isSelected = isSameDay(d, selected);
             const isToday = isSameDay(d, new Date());
@@ -139,15 +166,25 @@ function CalendarPage() {
               >
                 <span>{format(d, "d")}</span>
                 <span className="mt-0.5 flex gap-0.5">
-                  {hasVisit ? (
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "h-1 w-1 rounded-full",
-                        isSelected ? "bg-primary-foreground" : "bg-primary",
+                  {isFamily
+                    ? hasBusy && (
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "h-1 w-1 rounded-full",
+                            isSelected ? "bg-primary-foreground" : "bg-muted-foreground/60",
+                          )}
+                        />
+                      )
+                    : hasVisit && (
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "h-1 w-1 rounded-full",
+                            isSelected ? "bg-primary-foreground" : "bg-primary",
+                          )}
+                        />
                       )}
-                    />
-                  ) : null}
                   {hasFamily ? (
                     <span
                       aria-hidden
@@ -175,6 +212,8 @@ function CalendarPage() {
             appointments={selectedItems}
             patientById={patientById}
             labelById={labelById}
+            familyView={isFamily}
+            busyBlocks={selectedBusy}
             onGapClick={(start, end) => {
               setPreset({ start, end });
               setOpen(true);
@@ -203,6 +242,8 @@ function CalendarPage() {
         defaultDate={selected}
         defaultStart={preset?.start}
         defaultEnd={preset?.end}
+        mode={isFamily ? "family_only" : "full"}
+        extraBusy={isFamily ? selectedBusy : undefined}
       />
     </>
   );

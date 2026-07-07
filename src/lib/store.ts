@@ -8,6 +8,7 @@ import type {
   MessageLog,
   MessageTemplate,
   Patient,
+  UserRole,
   VisitLabel,
   VisitNote,
 } from "./types";
@@ -26,6 +27,9 @@ interface InternalState {
 }
 
 interface StoreState extends InternalState {
+  userId: string | null;
+  role: UserRole | null;
+  displayName: string | null;
   patients: Patient[];
   labels: VisitLabel[];
   appointments: Appointment[];
@@ -34,6 +38,8 @@ interface StoreState extends InternalState {
   proposals: MarketingProposal[];
   templates: MessageTemplate[];
   settings: AppSettings;
+
+  _setAuth: (patch: { userId: string; role: UserRole; displayName: string | null }) => void;
 
   // Hydratacja z DataSync — nie używane bezpośrednio przez UI
   _hydrate: (patch: Partial<Omit<StoreState, "_hydrate">>) => void;
@@ -130,6 +136,9 @@ function handleError(context: string, error: unknown) {
 export const useStore = create<StoreState>()((set, get) => ({
   _settingsId: null,
   _hydrated: false,
+  userId: null,
+  role: null,
+  displayName: null,
   patients: [],
   labels: [],
   appointments: [],
@@ -138,6 +147,9 @@ export const useStore = create<StoreState>()((set, get) => ({
   proposals: [],
   templates: [],
   settings: { therapist_name: "", clinic_name: "" },
+
+  _setAuth: (patch) =>
+    set({ userId: patch.userId, role: patch.role, displayName: patch.displayName }),
 
   _hydrate: (patch) => set(patch as Partial<StoreState>),
 

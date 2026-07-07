@@ -1,17 +1,20 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { CalendarDays, Home, MessageSquare, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/lib/store";
 
-const tabs = [
-  { to: "/", label: "Dzisiaj", icon: Home },
-  { to: "/kalendarz", label: "Kalendarz", icon: CalendarDays },
-  { to: "/pacjenci", label: "Pacjenci", icon: Users },
-  { to: "/wiadomosci", label: "Wiadomości", icon: MessageSquare },
-  { to: "/ustawienia", label: "Ustawienia", icon: Settings },
+const allTabs = [
+  { to: "/", label: "Dzisiaj", icon: Home, family: true },
+  { to: "/kalendarz", label: "Kalendarz", icon: CalendarDays, family: true },
+  { to: "/pacjenci", label: "Pacjenci", icon: Users, family: false },
+  { to: "/wiadomosci", label: "Wiadomości", icon: MessageSquare, family: false },
+  { to: "/ustawienia", label: "Ustawienia", icon: Settings, family: true },
 ] as const;
 
 export function BottomNav() {
   const { pathname } = useLocation();
+  const role = useStore((s) => s.role);
+  const tabs = role === "family" ? allTabs.filter((t) => t.family) : allTabs;
 
   return (
     <nav

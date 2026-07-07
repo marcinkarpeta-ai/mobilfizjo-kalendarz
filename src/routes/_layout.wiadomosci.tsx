@@ -1,15 +1,28 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Check, Clock, X } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 import { fmtDate } from "@/lib/format";
 import type { MessageKind, MessageStatus, MarketingReason } from "@/lib/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_layout/wiadomosci")({
+  beforeLoad: async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw redirect({ to: "/auth" });
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (!profile || profile.role === "family") {
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Wiadomości — FizjoPlan" },

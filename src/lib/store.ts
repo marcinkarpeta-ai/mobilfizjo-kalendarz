@@ -122,7 +122,7 @@ function patientInsert(id: string, p: Omit<Patient, "id" | "created_at">) {
     first_name: p.first_name,
     last_name: p.last_name,
     salutation: p.salutation,
-    phone: p.phone,
+    phone: formatPhoneStorage(p.phone),
     birth_date: p.birth_date ?? null,
     service_consent_at: p.service_consent_at ?? null,
     service_consent_changed_at: p.service_consent_changed_at ?? null,

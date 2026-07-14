@@ -66,8 +66,8 @@ export function AddPatientDialog({
   useEffect(() => {
     if (!open) return;
     if (patient) {
-      setFirstName(patient.first_name);
-      setLastName(patient.last_name);
+      setFirstName(patient.first_name ?? "");
+      setLastName(patient.last_name ?? "");
       setSalutation(patient.salutation ?? "");
       setPhone(patient.phone);
       setBirthDate(patient.birth_date ?? "");

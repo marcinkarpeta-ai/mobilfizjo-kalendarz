@@ -9,7 +9,7 @@ export interface Patient {
   id: string;
   first_name: string;
   last_name: string;
-  salutation: string;
+  salutation: string | null;
   phone: string;
   birth_date?: string;
   service_consent_at?: string;

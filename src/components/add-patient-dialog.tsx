@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from "@/lib/store";
 import type { Patient } from "@/lib/types";
+import { canonicalPhone, formatPhoneStorage } from "@/lib/csv";
 
 const phoneRegex = /^\+?\d[\d\s-]{7,17}$/;
 

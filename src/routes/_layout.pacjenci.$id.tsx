@@ -138,7 +138,7 @@ function PatientDetail() {
           </div>
         ) : null}
 
-        <div className="mb-4 flex gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -154,6 +154,14 @@ function PatientDetail() {
             >
               <Archive className="mr-1 h-4 w-4" /> Archiwizuj
             </Button>
+          ) : null}
+          {!isArchived && !patientData.salutation?.trim() ? (
+            <Badge
+              variant="outline"
+              className="ml-auto border-amber-500/50 text-amber-600 dark:text-amber-400"
+            >
+              Uzupełnij formę zwrotu
+            </Badge>
           ) : null}
         </div>
 

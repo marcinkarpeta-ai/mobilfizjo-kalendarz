@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatPhoneStorage } from "./csv";
 import type {
   Appointment,
   AppSettings,
@@ -104,7 +105,7 @@ function patientToDb(p: Partial<Patient>) {
     first_name: p.first_name,
     last_name: p.last_name,
     salutation: p.salutation,
-    phone: p.phone,
+    phone: p.phone ? formatPhoneStorage(p.phone) : p.phone,
     birth_date: p.birth_date ?? null,
     service_consent_at: p.service_consent_at ?? null,
     service_consent_changed_at: p.service_consent_changed_at ?? null,
@@ -121,7 +122,7 @@ function patientInsert(id: string, p: Omit<Patient, "id" | "created_at">) {
     first_name: p.first_name,
     last_name: p.last_name,
     salutation: p.salutation,
-    phone: p.phone,
+    phone: formatPhoneStorage(p.phone),
     birth_date: p.birth_date ?? null,
     service_consent_at: p.service_consent_at ?? null,
     service_consent_changed_at: p.service_consent_changed_at ?? null,
@@ -194,7 +195,15 @@ export const useStore = create<StoreState>()((set, get) => ({
       .insert(rows)
       .select("*");
     if (error) {
-      handleError("Import pacjentów nie powiódł się", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const code = (error as any).code as string | undefined;
+      if (code === "23505") {
+        toast.error(
+          "Import przerwany: numer telefonu już istnieje w bazie (unikat).",
+        );
+      } else {
+        handleError("Import pacjentów nie powiódł się", error);
+      }
       return { inserted: 0, failed: list.length };
     }
     const mapped = (data ?? []).map((r) => mapPatient(r));

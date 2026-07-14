@@ -1,4 +1,4 @@
-import { parseCsv, normalizePhone, isValidPhone, normalizeBirthDate } from "./csv";
+import { parseCsv, isValidPhone, normalizeBirthDate, canonicalPhone, formatPhoneStorage } from "./csv";
 import type { Patient } from "./types";
 
 export type ImportStatus = "new" | "duplicate" | "error";
@@ -74,7 +74,10 @@ export function buildImportPreview(
   if (!hasPhone) missingRequired.push("Telefon");
 
   const byPhone = new Map<string, Patient>();
-  for (const p of existingPatients) byPhone.set(normalizePhone(p.phone), p);
+  for (const p of existingPatients) {
+    const c = canonicalPhone(p.phone);
+    if (c) byPhone.set(c, p);
+  }
 
   const seenInFile = new Map<string, number>();
 
@@ -97,11 +100,12 @@ export function buildImportPreview(
     const salutation = salutationRaw.trim() ? salutationRaw.trim() : null;
     const general_note = noteRaw.trim() ? noteRaw.trim() : null;
     const birth_date = birthRaw ? normalizeBirthDate(birthRaw) : null;
+    const canon = canonicalPhone(phoneRaw);
 
     const data = {
       first_name,
       last_name,
-      phone: normalizePhone(phoneRaw),
+      phone: canon ? formatPhoneStorage(phoneRaw) : phoneRaw.trim(),
       salutation,
       birth_date,
       general_note,
@@ -116,14 +120,14 @@ export function buildImportPreview(
     if (!last_name) {
       return { status: "error", error: "Brak nazwiska.", data, raw };
     }
-    if (!phoneRaw || !isValidPhone(phoneRaw)) {
+    if (!phoneRaw || !isValidPhone(phoneRaw) || !canon) {
       return { status: "error", error: "Nieprawidłowy telefon.", data, raw };
     }
     if (birthRaw && !birth_date) {
       return { status: "error", error: "Nieprawidłowa data urodzenia.", data, raw };
     }
 
-    const existing = byPhone.get(data.phone);
+    const existing = byPhone.get(canon);
     if (existing) {
       return {
         status: "duplicate",
@@ -136,8 +140,8 @@ export function buildImportPreview(
       };
     }
 
-    // duplicate within file
-    const seenIdx = seenInFile.get(data.phone);
+    // duplicate within file (by canonical form)
+    const seenIdx = seenInFile.get(canon);
     if (seenIdx !== undefined) {
       return {
         status: "duplicate",
@@ -146,7 +150,7 @@ export function buildImportPreview(
         duplicateOf: { id: "", name: `wiersz #${seenIdx + 1} w pliku` },
       };
     }
-    seenInFile.set(data.phone, seenInFile.size);
+    seenInFile.set(canon, seenInFile.size);
 
     return { status: "new", data, raw };
   });

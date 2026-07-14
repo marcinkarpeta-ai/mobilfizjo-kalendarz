@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from "@/lib/store";
 import type { Patient } from "@/lib/types";
+import { canonicalPhone, formatPhoneStorage } from "@/lib/csv";
 
 const phoneRegex = /^\+?\d[\d\s-]{7,17}$/;
 
@@ -32,7 +33,7 @@ const schema = z.object({
 });
 
 function normalizePhone(v: string) {
-  return v.replace(/\s+/g, " ").trim();
+  return formatPhoneStorage(v);
 }
 
 export function AddPatientDialog({
@@ -104,8 +105,13 @@ export function AddPatientDialog({
       return;
     }
     const normalizedPhone = normalizePhone(parsed.data.phone);
+    const canon = canonicalPhone(parsed.data.phone);
     const clash = patients.find(
-      (p) => p.id !== patient?.id && normalizePhone(p.phone) === normalizedPhone,
+      (p) =>
+        p.id !== patient?.id &&
+        !p.archived_at &&
+        canon !== null &&
+        canonicalPhone(p.phone) === canon,
     );
     if (clash) {
       setErrors({

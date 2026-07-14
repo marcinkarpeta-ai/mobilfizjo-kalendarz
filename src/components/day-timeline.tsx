@@ -3,6 +3,7 @@ import { CalendarX2 } from "lucide-react";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatPatientName } from "@/lib/format";
 
 export interface BusyInterval {
   starts_at: string;

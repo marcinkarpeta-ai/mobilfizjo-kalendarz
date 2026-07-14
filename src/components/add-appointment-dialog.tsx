@@ -104,7 +104,7 @@ export function AddAppointmentDialog({
     const q = normalizeText(patientQuery.trim());
     if (!q) return patients;
     return patients.filter((p) =>
-      normalizeText(`${p.first_name} ${p.last_name} ${p.phone ?? ""}`).includes(q),
+      normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""} ${p.phone ?? ""}`).includes(q),
     );
   }, [patients, patientQuery]);
 

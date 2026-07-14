@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useStore } from "@/lib/store";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, formatPatientName, isPatientNameIncomplete } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_layout/pacjenci/$id")({

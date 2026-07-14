@@ -1,93 +1,48 @@
-
 ## Zakres
 
-Nowa funkcja na ekranie **Pacjenci**: przycisk „Import" (obok „Dodaj pacjenta") otwierający dwukrokowy dialog — wybór pliku CSV → tabela podglądu ze statusami → zapis. Widoczny tylko dla roli `therapist`. Bez zmian w RLS, bez eksportu, bez vCard.
+Wdrażam zatwierdzony plan importu CSV pacjentów w całości oraz dodaję migrację cofającą niezamówioną zmianę `salutation NOT NULL`.
 
-## UI
+## 1. Migracja bazy
 
-**`src/routes/_layout.pacjenci.index.tsx`**
-- Obok FAB „Dodaj pacjenta" drugi okrągły przycisk (ikona `Upload`) „Import" — otwiera `ImportPatientsDialog`. Renderowany tylko gdy `role === "therapist"` (rola pobierana tak samo jak w pozostałych ekranach ról-świadomych).
-- Na kaflu pacjenta w liście, jeżeli `!salutation`, pokazać dyskretną plakietkę (`Badge variant="outline"`) „Uzupełnij formę zwrotu" — analogicznie do „Brak zgody"/„Marketing".
+Osobna migracja przywracająca NULL:
 
-**`src/routes/_layout.pacjenci.$id.tsx`**
-- W nagłówku karty, gdzie dziś jest `salutation · telefon`, jeżeli `!salutation` wyświetlić plakietkę „Uzupełnij formę zwrotu" (klikalna → otwiera dialog edycji pacjenta, jak istniejący przycisk „Edytuj").
+```sql
+ALTER TABLE public.patients ALTER COLUMN salutation DROP NOT NULL;
+UPDATE public.patients SET salutation = NULL WHERE salutation = '';
+```
 
-**Nowy komponent `src/components/import-patients-dialog.tsx`**
-- Krok 1 — wybór pliku: `<input type="file" accept=".csv,text/csv">`, krótka instrukcja z listą kolumn i informacją, że wymagane są tylko `first_name`, `last_name`, `phone`. Parsowanie w pamięci. Brak nagłówków / brak wymaganych kolumn → toast błędu.
-- Krok 2 — podgląd:
-  - Tabela (przewijana, `max-h-[60vh]`): Lp. · Imię · Nazwisko · Telefon (znormalizowany) · Status.
-  - Statusy jako `Badge`:
-    - **Nowy** (zielony) — trafi do zapisu.
-    - **Duplikat numeru** (szary) — telefon istnieje w kartotece albo powtarza się w pliku; pominięty.
-    - **Błąd** (czerwony) z krótkim opisem: „brak imienia/nazwiska/telefonu", „nieprawidłowy telefon", „nieprawidłowa data urodzenia".
-  - Licznik na górze: `Nowych: X · Duplikatów: Y · Błędów: Z`.
-  - Przyciski: „Anuluj", „Importuj X pacjentów" (disabled gdy X = 0). W trakcie zapisu spinner + blokada.
-- Po zapisie toast: `Dodano X pacjentów. Pominięto Y duplikatów, Z błędów.` i zamknięcie dialogu.
+Bez innych zmian schematu (brak zmian w RLS/GRANT).
 
-## Parsowanie CSV
+## 2. Nowe pliki
 
-Nowy `src/lib/csv.ts` — mały parser inline (bez nowej zależności):
-- Detekcja separatora: pierwsza linia — częstsze `;` czy `,` poza cudzysłowami (fallback `,`).
-- Obsługa pól w cudzysłowach z `""`, CRLF/LF, BOM.
-- Zwraca `{ headers: string[]; rows: string[][] }`.
+- `src/lib/csv.ts` — inline parser CSV: auto-detekcja separatora (`,` / `;`), BOM, cudzysłowy z escape (`""`), CRLF/LF. Normalizacja nagłówków (lowercase, trim). Obsługiwane kolumny: `first_name`, `last_name`, `phone` (wymagane), `salutation`, `birth_date`, `general_note` (opcjonalne). Brak wymaganej kolumny → wyjątek z listą braków.
+- `src/lib/import-patients.ts` — walidacja i normalizacja wiersza + wyznaczanie statusu (`new` / `duplicate` / `error`). Reguły:
+  - `first_name`, `last_name`: trim, wymagane, max 60.
+  - `phone`: usuń spacje/`-`, `00…` → `+…`, 9 cyfr → `+48…`, regex `^\+?\d[\d\s-]{7,17}$`. Wynikowy `phone` znormalizowany.
+  - `salutation`: `trim()`; pusty → `null` (bez fallbacku).
+  - `birth_date`: `YYYY-MM-DD` lub pusty → `null`.
+  - `general_note`: trim, max 2000, pusty → `null`.
+  - Duplikat: znormalizowany telefon pasuje do istniejącego pacjenta (aktywnego lub zarchiwizowanego) lub powtarza się wcześniej w pliku.
+- `src/components/import-patients-dialog.tsx` — dwuetapowy dialog:
+  - Krok 1: `<input type="file" accept=".csv,text/csv">`. Po wybraniu — parsowanie, walidacja, wyliczenie statusów.
+  - Krok 2: nagłówek z licznikami (`Nowych N • Duplikatów M • Błędów K`), tabela `max-h-[60vh] overflow-auto` z kolumnami: Lp., Imię, Nazwisko, Telefon, Status (Badge: Nowy / Duplikat numeru / Błąd + tooltip powodu). Przyciski `Anuluj` i `Importuj N nowych` (disabled gdy 0). Po sukcesie: toast, zamknięcie.
 
-Mapowanie nagłówków: lower-case + trim. Rozpoznawane wyłącznie dokładne nazwy z zadania (`first_name`, `last_name`, `phone`, `salutation`, `birth_date`, `general_note`) — kolejność dowolna, nieznane kolumny ignorowane. Brak którejś z wymaganych trzech kolumn → błąd walidacji pliku w kroku 1.
+## 3. Zmiany istniejące
 
-## Walidacja i normalizacja wierszy
+- `src/lib/store.ts` — dodać `bulkAddPatients(patches: NewPatient[]): Promise<Patient[]>`. Wstawia rekordy przez `supabase.from("patients").insert(rows).select()`; `service_consent_at` i `marketing_consent_at` = `null`; `salutation` z inputu (może być `null`). Optimistic update do listy + rollback przy błędzie. Zwraca utworzone rekordy dla UI toastu.
+- `src/lib/types.ts` — `Patient.salutation: string | null` (zamiast `string`).
+- `src/components/add-patient-dialog.tsx` — formularz nadal wymaga `salutation` (min 1) — zachowane. Wczytywanie edycji: `patient.salutation ?? ""`.
+- `src/routes/_layout.pacjenci.index.tsx`:
+  - Przycisk „Import CSV" (ikona `Upload`) obok FAB „Dodaj pacjenta" (widoczny tylko dla roli `therapist`), otwiera `ImportPatientsDialog`.
+  - Plakietka „Uzupełnij formę zwrotu" (Badge outline) na karcie pacjenta gdy `!p.salutation || p.salutation.trim() === ""` — obok istniejących plakietek zgód. Reaguje więc i na `NULL`, i na pusty string.
+- `src/routes/_layout.pacjenci.$id.tsx` — analogiczna plakietka w nagłówku karty (klik → otwiera dialog edycji). Warunek: `!salutation?.trim()`.
+- Miejsca renderujące `{p.salutation} · {p.phone}` (lista pacjentów, combobox w `add-appointment-dialog`, karta pacjenta) — użyć fallbacku wizualnego typu `{p.salutation || "—"} · {p.phone}` gdzie jest to sensowne, bez zmiany logiki wysyłki SMS.
 
-W dialogu (lub `src/lib/import-patients.ts`):
-- `first_name`, `last_name`: `trim`, wymagane, max 60.
-- `phone`: `trim`, normalizacja:
-  - usunąć spacje, myślniki, nawiasy;
-  - `+` na początku zostaje;
-  - `00` na początku → `+`;
-  - 9 cyfr → prefiks `+48`;
-  - inaczej — błąd „nieprawidłowy telefon".
-  - Finalna walidacja tym samym regexem co w formularzu (`/^\+?\d[\d\s-]{7,17}$/`). Przy okazji wyciągnąć wspólną funkcję `normalizePhone` do `src/lib/format.ts` i użyć jej także w `add-patient-dialog.tsx` (bez zmiany zachowania).
-- `salutation`: opcjonalne. Puste → zapis `null` (bez fallbacku, bez błędu). Zgodne z dzisiejszym typem (`salutation?: string`).
-- `birth_date`: opcjonalne; jeśli podane, musi pasować do `^\d{4}-\d{2}-\d{2}$` i być poprawną datą — inaczej błąd.
-- `general_note`: opcjonalne, max 2000.
-- Status wiersza:
-  1. walidacja nie przechodzi → `error`;
-  2. znormalizowany telefon = telefon dowolnego istniejącego pacjenta (aktywnego lub zarchiwizowanego — baza ma unique) → `duplicate`;
-  3. znormalizowany telefon już wystąpił we wcześniejszym wierszu tego pliku → `duplicate`;
-  4. w przeciwnym razie → `new`.
+## 4. Poza zakresem
 
-## Zapis
+Eksport, vCard, undo importu, mapowanie zgód z CSV, import wizyt/notatek, zmiany RLS/GRANT.
 
-W `src/lib/store.ts` dodać `bulkAddPatients(patches)`:
-- Jedno `supabase.from("patients").insert(rows).select()` (RLS terapeuty pozwala).
-- `service_consent_at`, `marketing_consent_at` — pozostają `null`; użytkownik uzupełni w karcie (istniejąca plakietka „Brak zgody").
-- `salutation` puste zapisywane jako `null`.
-- Po sukcesie doklejenie zwróconych wierszy do lokalnego stanu (analogicznie do `addPatient`).
-- Zwraca `{ inserted: number }`; błąd Supabase (np. race na unique) łapie dialog i pokazuje toast.
+## Kolejność wykonania
 
-## Ograniczenie do roli
-
-- Przycisk „Import" tylko dla `therapist`.
-- Baza i tak zablokuje wywołanie z innej roli — w razie błędu toast „Brak uprawnień".
-
-## Plakietka „Uzupełnij formę zwrotu"
-
-- Widoczna tylko gdy `!patient.salutation` (`null`/pusty string po `trim`).
-- Miejsca:
-  - kafel na liście (`_layout.pacjenci.index.tsx`) w kolumnie plakietek, obok badge'y zgód;
-  - nagłówek karty pacjenta (`_layout.pacjenci.$id.tsx`) — jako badge obok imienia i nazwiska.
-- Formularz „Edytuj pacjenta" pozostaje bez zmian — `salutation` nadal wymagane przy ręcznej edycji/dodawaniu.
-
-## Poza zakresem
-
-- Eksport, vCard, mapowanie zgód z CSV.
-- Zmiany polityk RLS i migracje.
-- Import wizyt/notatek.
-- Undo importu.
-
-## Pliki
-
-- `src/routes/_layout.pacjenci.index.tsx` — przycisk „Import", mount dialogu, plakietka braku formy zwrotu.
-- `src/routes/_layout.pacjenci.$id.tsx` — plakietka braku formy zwrotu w nagłówku.
-- `src/components/import-patients-dialog.tsx` — nowy komponent (2 kroki + tabela statusów).
-- `src/lib/csv.ts` — parser + detekcja separatora.
-- `src/lib/import-patients.ts` (opc.) — walidacja/normalizacja wierszy.
-- `src/lib/format.ts` — wspólne `normalizePhone` (użyte też w `add-patient-dialog.tsx`).
-- `src/lib/store.ts` — `bulkAddPatients`.
+1. Migracja `DROP NOT NULL` + `UPDATE ... = NULL WHERE = ''` (osobne zatwierdzenie).
+2. Po zatwierdzeniu — reszta zmian frontendu (typy, store, dialog importu, przycisk, plakietka na 2 ekranach).

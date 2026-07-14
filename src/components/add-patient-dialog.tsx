@@ -67,7 +67,7 @@ export function AddPatientDialog({
     if (patient) {
       setFirstName(patient.first_name);
       setLastName(patient.last_name);
-      setSalutation(patient.salutation);
+      setSalutation(patient.salutation ?? "");
       setPhone(patient.phone);
       setBirthDate(patient.birth_date ?? "");
       setGeneralNote(patient.general_note ?? "");

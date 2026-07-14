@@ -33,7 +33,7 @@ const schema = z.object({
 });
 
 function normalizePhone(v: string) {
-  return v.replace(/\s+/g, " ").trim();
+  return formatPhoneStorage(v);
 }
 
 export function AddPatientDialog({

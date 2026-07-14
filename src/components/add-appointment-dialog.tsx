@@ -343,7 +343,7 @@ export function AddAppointmentDialog({
                                 )}
                               />
                               <span className="truncate">
-                                {p.last_name} {p.first_name} — {p.phone}
+                                {formatPatientNameLastFirst(p)} — {p.phone}
                               </span>
                             </CommandItem>
                           ))}

@@ -387,6 +387,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      canonical_phone: { Args: { _phone: string }; Returns: string }
       get_busy_blocks: {
         Args: { _from: string; _to: string }
         Returns: {

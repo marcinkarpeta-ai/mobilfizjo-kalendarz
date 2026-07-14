@@ -1,48 +1,66 @@
-## Zakres
+## Cel
 
-Wdrażam zatwierdzony plan importu CSV pacjentów w całości oraz dodaję migrację cofającą niezamówioną zmianę `salutation NOT NULL`.
+Duplikaty telefonów wykrywane po kanonicznej postaci, tożsamej po stronie JS i SQL. Jedynym strażnikiem unikalności w bazie jest nowy indeks częściowy na wartości kanonicznej — dotychczasowe `UNIQUE (phone)` znika.
 
-## 1. Migracja bazy
+## Kanoniczna postać telefonu — reguła (JS i SQL identycznie)
 
-Osobna migracja przywracająca NULL:
+1. Usuń wszystko poza cyframi.
+2. Jeżeli po oczyszczeniu długość wynosi **dokładnie 11** i zaczyna się od `48` → obetnij pierwsze 2 cyfry.
+3. Jeżeli długość wynosi **dokładnie 13** i zaczyna się od `0048` → obetnij pierwsze 4 cyfry.
+4. W innych przypadkach nic nie obcinaj.
+5. Wynikiem jest `+48` + 9 cyfr, jeżeli końcowa długość to 9. W innych: `+` + same cyfry (numer międzynarodowy inny niż PL) lub `null`, gdy < 7 cyfr.
 
-```sql
-ALTER TABLE public.patients ALTER COLUMN salutation DROP NOT NULL;
-UPDATE public.patients SET salutation = NULL WHERE salutation = '';
-```
+Przykład: `+48 669 863 894` → 11 cyfr zaczynających się od `48` → obcięcie → `669863894` → `+48669863894`. `123456789` (9 cyfr) → nie zaczyna się od `48` po oczyszczeniu → `+48123456789`.
 
-Bez innych zmian schematu (brak zmian w RLS/GRANT).
+## Zmiany w kodzie
 
-## 2. Nowe pliki
+### `src/lib/csv.ts`
 
-- `src/lib/csv.ts` — inline parser CSV: auto-detekcja separatora (`,` / `;`), BOM, cudzysłowy z escape (`""`), CRLF/LF. Normalizacja nagłówków (lowercase, trim). Obsługiwane kolumny: `first_name`, `last_name`, `phone` (wymagane), `salutation`, `birth_date`, `general_note` (opcjonalne). Brak wymaganej kolumny → wyjątek z listą braków.
-- `src/lib/import-patients.ts` — walidacja i normalizacja wiersza + wyznaczanie statusu (`new` / `duplicate` / `error`). Reguły:
-  - `first_name`, `last_name`: trim, wymagane, max 60.
-  - `phone`: usuń spacje/`-`, `00…` → `+…`, 9 cyfr → `+48…`, regex `^\+?\d[\d\s-]{7,17}$`. Wynikowy `phone` znormalizowany.
-  - `salutation`: `trim()`; pusty → `null` (bez fallbacku).
-  - `birth_date`: `YYYY-MM-DD` lub pusty → `null`.
-  - `general_note`: trim, max 2000, pusty → `null`.
-  - Duplikat: znormalizowany telefon pasuje do istniejącego pacjenta (aktywnego lub zarchiwizowanego) lub powtarza się wcześniej w pliku.
-- `src/components/import-patients-dialog.tsx` — dwuetapowy dialog:
-  - Krok 1: `<input type="file" accept=".csv,text/csv">`. Po wybraniu — parsowanie, walidacja, wyliczenie statusów.
-  - Krok 2: nagłówek z licznikami (`Nowych N • Duplikatów M • Błędów K`), tabela `max-h-[60vh] overflow-auto` z kolumnami: Lp., Imię, Nazwisko, Telefon, Status (Badge: Nowy / Duplikat numeru / Błąd + tooltip powodu). Przyciski `Anuluj` i `Importuj N nowych` (disabled gdy 0). Po sukcesie: toast, zamknięcie.
+- `canonicalPhone(v: string): string | null` — implementacja reguły powyżej.
+- `formatPhoneStorage(v: string): string` — canonical + formatowanie: dla PL `+48 XXX XXX XXX`, w innych `+<digits>`.
 
-## 3. Zmiany istniejące
+### `src/lib/import-patients.ts`
 
-- `src/lib/store.ts` — dodać `bulkAddPatients(patches: NewPatient[]): Promise<Patient[]>`. Wstawia rekordy przez `supabase.from("patients").insert(rows).select()`; `service_consent_at` i `marketing_consent_at` = `null`; `salutation` z inputu (może być `null`). Optimistic update do listy + rollback przy błędzie. Zwraca utworzone rekordy dla UI toastu.
-- `src/lib/types.ts` — `Patient.salutation: string | null` (zamiast `string`).
-- `src/components/add-patient-dialog.tsx` — formularz nadal wymaga `salutation` (min 1) — zachowane. Wczytywanie edycji: `patient.salutation ?? ""`.
-- `src/routes/_layout.pacjenci.index.tsx`:
-  - Przycisk „Import CSV" (ikona `Upload`) obok FAB „Dodaj pacjenta" (widoczny tylko dla roli `therapist`), otwiera `ImportPatientsDialog`.
-  - Plakietka „Uzupełnij formę zwrotu" (Badge outline) na karcie pacjenta gdy `!p.salutation || p.salutation.trim() === ""` — obok istniejących plakietek zgód. Reaguje więc i na `NULL`, i na pusty string.
-- `src/routes/_layout.pacjenci.$id.tsx` — analogiczna plakietka w nagłówku karty (klik → otwiera dialog edycji). Warunek: `!salutation?.trim()`.
-- Miejsca renderujące `{p.salutation} · {p.phone}` (lista pacjentów, combobox w `add-appointment-dialog`, karta pacjenta) — użyć fallbacku wizualnego typu `{p.salutation || "—"} · {p.phone}` gdzie jest to sensowne, bez zmiany logiki wysyłki SMS.
+- Mapa `byPhone` bazy i `seenInFile` po `canonicalPhone`.
+- `ImportRow.data.phone` = `formatPhoneStorage(phoneRaw)`.
+- `canonicalPhone === null` → status Błąd „Nieprawidłowy telefon".
 
-## 4. Poza zakresem
+### `src/components/add-patient-dialog.tsx`
 
-Eksport, vCard, undo importu, mapowanie zgód z CSV, import wizyt/notatek, zmiany RLS/GRANT.
+Porównanie duplikatów przez `canonicalPhone`, zapis przez `formatPhoneStorage`.
 
-## Kolejność wykonania
+### `src/lib/store.ts`
 
-1. Migracja `DROP NOT NULL` + `UPDATE ... = NULL WHERE = ''` (osobne zatwierdzenie).
-2. Po zatwierdzeniu — reszta zmian frontendu (typy, store, dialog importu, przycisk, plakietka na 2 ekranach).
+`patientInsert` / `patientToDb` wołają `formatPhoneStorage`. `addPatient` i `bulkAddPatients` łapią kod błędu Postgres `23505` na nowym indeksie i pokazują czytelny toast.
+
+## Migracja bazy (jedna migracja, kolejność krytyczna)
+
+1. **Funkcja** `public.canonical_phone(text) returns text` **IMMUTABLE** — realizuje reguły z sekcji „Kanoniczna postać".
+2. **Wykrycie kolizji wśród aktywnych** (przed jakimikolwiek zmianami danych i schematu):
+   ```sql
+   DO $$
+   DECLARE conflict text;
+   BEGIN
+     SELECT string_agg(canon, ', ')
+       INTO conflict
+       FROM (
+         SELECT public.canonical_phone(phone) AS canon
+         FROM public.patients
+         WHERE archived_at IS NULL AND phone IS NOT NULL
+         GROUP BY 1
+         HAVING count(*) > 1
+       ) t;
+     IF conflict IS NOT NULL THEN
+       RAISE EXCEPTION 'Kolizja telefonów wśród aktywnych pacjentów: %', conflict;
+     END IF;
+   END $$;
+   ```
+   Zakres `WHERE archived_at IS NULL` jest spójny z zakresem nowego indeksu — duplikat, w którym co najmniej jeden rekord jest zarchiwizowany, nie blokuje migracji, bo nowy indeks też by go dopuścił.
+3. **Usunięcie starego constraintu**: `ALTER TABLE public.patients DROP CONSTRAINT patients_phone_key;` (potwierdzone w schemacie). Wykonane przed UPDATE, żeby przejściowe różnice formatu podczas normalizacji nie kolidowały z twardym `UNIQUE (phone)`.
+4. **Normalizacja istniejących numerów**: `UPDATE public.patients SET phone = <sformatowana wersja>` — wszystkie do `+48 XXX XXX XXX` (lub `+<digits>` dla nie-PL); rekordy z `phone IS NULL` lub `canonical_phone(...) IS NULL` pozostają bez zmian.
+5. **Nowy indeks częściowy**: `CREATE UNIQUE INDEX patients_phone_canonical_key ON public.patients (public.canonical_phone(phone)) WHERE archived_at IS NULL;` — jedyny strażnik unikalności; obejmuje wyłącznie aktywnych pacjentów.
+
+## Poza zakresem
+
+- Zmiana formatu wyświetlania numeru w innych ekranach — telefon w bazie i tak będzie już znormalizowany.
+- Międzynarodowe numery inne niż PL — obsługiwane, ale bez formatowania spacjami.

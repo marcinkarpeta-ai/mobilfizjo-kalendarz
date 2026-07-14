@@ -83,7 +83,7 @@ function mapPatient(row: Record<string, unknown>): Patient {
     id: row.id as string,
     first_name: row.first_name as string,
     last_name: row.last_name as string,
-    salutation: row.salutation as string,
+    salutation: (row.salutation as string | null) ?? null,
     phone: row.phone as string,
     birth_date: toUndef(row.birth_date as string | null),
     service_consent_at: toUndef(row.service_consent_at as string | null),

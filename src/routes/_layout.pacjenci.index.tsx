@@ -121,86 +121,112 @@ function PatientsPage() {
           <ul className="space-y-2">
             {filtered.map((p) => {
               const archived = Boolean(p.archived_at);
+              const missingCount =
+                (isPatientNameIncomplete(p) ? 1 : 0) +
+                (!p.salutation?.trim() ? 1 : 0);
+              const stop = (e: React.SyntheticEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+              };
               return (
                 <li key={p.id}>
-                  <div
-                    className={`rounded-2xl border border-border bg-card p-4 transition-colors hover:border-accent ${
+                  <Link
+                    to="/pacjenci/$id"
+                    params={{ id: p.id }}
+                    className={`relative block rounded-2xl border border-border bg-card p-4 pr-20 transition-colors hover:border-accent ${
                       archived ? "opacity-70" : ""
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <Link
-                        to="/pacjenci/$id"
-                        params={{ id: p.id }}
-                        className="min-w-0 flex-1"
+                    <div className="absolute right-2 top-2 flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        aria-label="Edytuj pacjenta"
+                        onClick={(e) => {
+                          stop(e);
+                          setEditingPatient(p);
+                        }}
                       >
-                        <h3 className="truncate text-base font-semibold text-foreground">
-                          {formatPatientName(p)}
-                        </h3>
-                        <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                          {p.salutation?.trim() ? p.salutation : "—"} · {p.phone}
-                        </p>
-                      </Link>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        {!archived && isPatientNameIncomplete(p) ? (
-                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400">
-                            Uzupełnij dane
-                          </Badge>
-                        ) : null}
-                        {!p.salutation?.trim() && !archived ? (
-                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400">
-                            Uzupełnij formę zwrotu
-                          </Badge>
-                        ) : null}
-                        {archived ? (
-                          <Badge variant="outline">Zarchiwizowany</Badge>
-                        ) : !p.service_consent_at ? (
-                          <Badge variant="destructive" className="gap-1">
-                            <ShieldAlert className="h-3 w-3" /> Brak zgody
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">Obsługowa</Badge>
-                        )}
-                        {!archived && p.marketing_consent_at ? (
-                          <Badge variant="outline">Marketing</Badge>
-                        ) : null}
-                        <div className="mt-2 flex flex-wrap justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 px-2 text-xs"
-                            onClick={() => setEditingPatient(p)}
-                          >
-                            <Pencil className="mr-1 h-3 w-3" /> Edytuj
-                          </Button>
-                          {!archived ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 px-2 text-xs"
-                              onClick={() => setArchivingPatient(p)}
-                            >
-                              <Archive className="mr-1 h-3 w-3" /> Archiwizuj
-                            </Button>
-                          ) : null}
-                        </div>
-                        {archived ? (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 text-xs"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              restorePatient(p.id);
-                              toast.success("Pacjent przywrócony.");
-                            }}
-                          >
-                            <RotateCcw className="mr-1 h-3 w-3" /> Przywróć
-                          </Button>
-                        ) : null}
-                      </div>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {archived ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          aria-label="Przywróć pacjenta"
+                          onClick={(e) => {
+                            stop(e);
+                            restorePatient(p.id);
+                            toast.success("Pacjent przywrócony.");
+                          }}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          aria-label="Archiwizuj pacjenta"
+                          onClick={(e) => {
+                            stop(e);
+                            setArchivingPatient(p);
+                          }}
+                        >
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  </div>
+
+                    <h3 className="text-base font-semibold text-foreground break-words [overflow-wrap:anywhere] line-clamp-2">
+                      {formatPatientName(p)}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground break-words [overflow-wrap:anywhere]">
+                      {p.salutation?.trim() ? p.salutation : "—"} · {p.phone}
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {archived ? (
+                        <Badge variant="outline">Zarchiwizowany</Badge>
+                      ) : (
+                        <>
+                          {!p.service_consent_at ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <ShieldAlert className="h-3 w-3" /> Brak zgody
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">Obsługowa</Badge>
+                          )}
+                          {p.marketing_consent_at ? (
+                            <Badge variant="outline">Marketing</Badge>
+                          ) : null}
+                          {missingCount > 0 ? (
+                            <Badge
+                              variant="outline"
+                              role="button"
+                              tabIndex={0}
+                              className="cursor-pointer border-amber-500/50 text-amber-600 dark:text-amber-400"
+                              onClick={(e) => {
+                                stop(e);
+                                setEditingPatient(p);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setEditingPatient(p);
+                                }
+                              }}
+                            >
+                              Uzupełnij braki ({missingCount})
+                            </Badge>
+                          ) : null}
+                        </>
+                      )}
+                    </div>
+                  </Link>
                 </li>
               );
             })}

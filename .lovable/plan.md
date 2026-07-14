@@ -1,56 +1,86 @@
 ## Cel
-Poluzować wymóg nazwiska — pacjent musi mieć co najmniej jedno z pól imię/nazwisko. Dodać plakietkę "Uzupełnij dane" i obsłużyć wyświetlanie bez podwójnych spacji.
+Przebudować kartę pacjenta na liście `/pacjenci` na pionowy układ mobile-first. Zmiany wyłącznie w `src/routes/_layout.pacjenci.index.tsx` (prezentacja). Bez zmian logiki store'a, walidacji, RLS ani innych ekranów.
 
-## 1. Migracja bazy
+## Nowy układ karty (od góry do dołu)
 
-```sql
-ALTER TABLE public.patients ALTER COLUMN first_name DROP NOT NULL;
-ALTER TABLE public.patients ALTER COLUMN last_name  DROP NOT NULL;
-ALTER TABLE public.patients
-  ADD CONSTRAINT patients_name_present_chk
-  CHECK (
-    COALESCE(NULLIF(btrim(first_name), ''), NULLIF(btrim(last_name), '')) IS NOT NULL
-  );
+1. **Wiersz 1 — Imię i nazwisko**: pełna szerokość, `text-base font-semibold`, `break-words`, `line-clamp-2` (bez `truncate`, bez wielokropka jednoliniowego). Dozwolone zawinięcie do dwóch linii.
+2. **Wiersz 2 — Kontekst**: pełna szerokość, `text-sm text-muted-foreground`, `break-words`. Format: `{salutation || "—"} · {phone}`. Bez `truncate`.
+3. **Wiersz 3 — Plakietki statusów** (`flex flex-wrap gap-1 justify-start`):
+   - Kolejność: **Brak zgody** (destructive, jeśli `!service_consent_at` i nie zarchiwizowany) → **Obsługowa** (secondary, jeśli `service_consent_at`) → **Marketing** (outline, jeśli `marketing_consent_at`) → **Zarchiwizowany** (outline, jeśli dotyczy).
+   - Zbiorcza plakietka **Uzupełnij braki (N)** (outline amber) — pokazywana gdy `N > 0`, gdzie N liczy: brak imienia+nazwiska (`isPatientNameIncomplete`) jako 1 brak, brak `salutation` jako 1 brak. Kliknięcie: `onClick` z `e.preventDefault(); e.stopPropagation();` otwiera `setEditingPatient(p)`. `role="button"`, `tabIndex={0}`, obsługa Enter/Space.
+4. **Akcje (ikony)** — w prawym górnym rogu karty, absolutnie pozycjonowane (`absolute top-2 right-2`), aby nie konkurowały z treścią wierszy 1–2:
+   - `Pencil` — `aria-label="Edytuj pacjenta"`, `h-8 w-8` icon button (`variant="ghost" size="icon"`).
+   - `Archive` — `aria-label="Archiwizuj pacjenta"`, analogicznie; ukryty gdy zarchiwizowany.
+   - `RotateCcw` — `aria-label="Przywróć pacjenta"`, tylko dla zarchiwizowanych, zastępuje ikonę Archiwizuj.
+   - Każdy przycisk: `onClick` z `e.preventDefault(); e.stopPropagation();`.
+
+## Klikalność karty
+
+Cała karta staje się linkiem do `/pacjenci/$id`:
+- Owinąć całą treść karty w `<Link to="/pacjenci/$id" params={{ id: p.id }}>` z klasami karty (rounded-2xl, border, bg-card, padding, hover).
+- Przyciski ikon i plakietka „Uzupełnij braki" pozostają wewnątrz linku, ale zatrzymują nawigację przez `preventDefault + stopPropagation`.
+- Zachować `opacity-70` dla zarchiwizowanych.
+
+## Szkic JSX (uproszczony)
+
+```tsx
+<li key={p.id}>
+  <Link
+    to="/pacjenci/$id"
+    params={{ id: p.id }}
+    className="relative block rounded-2xl border border-border bg-card p-4 pr-20 hover:border-accent ..."
+  >
+    {/* akcje w prawym górnym rogu */}
+    <div className="absolute right-2 top-2 flex gap-1">
+      <Button size="icon" variant="ghost" aria-label="Edytuj pacjenta"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingPatient(p); }}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      {archived ? (
+        <Button ... aria-label="Przywróć pacjenta" onClick={... restorePatient(p.id)}>
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+      ) : (
+        <Button ... aria-label="Archiwizuj pacjenta" onClick={... setArchivingPatient(p)}>
+          <Archive className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+
+    {/* 1. imię i nazwisko */}
+    <h3 className="text-base font-semibold text-foreground break-words line-clamp-2">
+      {formatPatientName(p)}
+    </h3>
+
+    {/* 2. forma zwrotu · telefon */}
+    <p className="mt-1 text-sm text-muted-foreground break-words">
+      {p.salutation?.trim() || "—"} · {p.phone}
+    </p>
+
+    {/* 3. plakietki */}
+    <div className="mt-2 flex flex-wrap gap-1">
+      {!archived && !p.service_consent_at && <Badge variant="destructive">Brak zgody</Badge>}
+      {!archived && p.service_consent_at && <Badge variant="secondary">Obsługowa</Badge>}
+      {!archived && p.marketing_consent_at && <Badge variant="outline">Marketing</Badge>}
+      {archived && <Badge variant="outline">Zarchiwizowany</Badge>}
+      {!archived && missingCount > 0 && (
+        <Badge variant="outline"
+          role="button" tabIndex={0}
+          className="cursor-pointer border-amber-500/50 text-amber-600 dark:text-amber-400"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingPatient(p); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditingPatient(p); } }}
+        >
+          Uzupełnij braki ({missingCount})
+        </Badge>
+      )}
+    </div>
+  </Link>
+</li>
 ```
 
-## 2. Typy i store
-
-- `src/lib/types.ts`: `first_name: string | null`, `last_name: string | null`.
-- `src/lib/store.ts`: `mapPatient` toleruje `null`; `addPatient`/`updatePatient`/`bulkAddPatients` zapisują `null` gdy puste (nie pusty string).
-
-## 3. Wyświetlanie imię+nazwisko
-
-Nowy helper `formatPatientName(p)` w `src/lib/format.ts`:
-- składa `[first, last].filter(Boolean).join(" ")`;
-- gdy oba puste → `"(bez nazwiska)"` (fallback dla bezpieczeństwa, nie powinien wystąpić dzięki CHECK).
-
-Zamienić wszystkie miejsca łączenia `${first_name} ${last_name}` na ten helper:
-- `_layout.pacjenci.index.tsx`, `_layout.pacjenci.$id.tsx`
-- `appointment-card.tsx`, `appointment-details-sheet.tsx`
-- `add-appointment-dialog.tsx` (combobox: wyszukiwanie po imieniu, nazwisku, telefonie — zachować diakrytyko-niewrażliwe działanie także na `null`)
-- `import-patients-dialog.tsx` (wiersz podglądu)
-- `import-patients.ts` (komunikat "Już istnieje: …")
-
-## 4. Import CSV (`src/lib/import-patients.ts`)
-
-- Usunąć błędy "Brak imienia" / "Brak nazwiska".
-- Nowa reguła: gdy oba puste → `status: "error"`, `error: "Brak imienia i nazwiska."`.
-- Gdy jedno z pól puste → `status: "new"`, do kolumny Uwagi dopisać `"Dane niekompletne"` (nowe pole `warning?: string` na `ImportRow`, wyświetlane w podglądzie tuż obok/łącznie z `error`/`duplicateOf`).
-- W `data`: puste → `null` (spójne z DB), a nie `""`.
-
-## 5. Formularz ręczny (`src/components/add-patient-dialog.tsx`)
-
-- Zod: `first_name` i `last_name` opcjonalne (`.trim().max(60).optional()`).
-- Po `safeParse`: jeśli oba puste → `setErrors({ first_name: "Podaj imię lub nazwisko.", last_name: " " })` (albo jeden komunikat pod grupą pól).
-- Do zapisu: `first_name: parsed.first_name || null`, `last_name: parsed.last_name || null`.
-
-## 6. Plakietka "Uzupełnij dane"
-
-Analogicznie do istniejącej plakietki formy zwrotu (`salutation` null/empty):
-- warunek: `!p.first_name?.trim() || !p.last_name?.trim()`
-- w `src/routes/_layout.pacjenci.index.tsx` (na wierszu listy)
-- w `src/routes/_layout.pacjenci.$id.tsx` (na karcie pacjenta)
-- ten sam wariant `Badge` co dla formy zwrotu, tekst: „Uzupełnij dane"
+`missingCount = (isPatientNameIncomplete(p) ? 1 : 0) + (!p.salutation?.trim() ? 1 : 0)`.
 
 ## Poza zakresem
-RLS, import zgód, zmiany w day-timeline i innych widokach kalendarza (pokazywanie nazwiska w kartach użyje nowego helpera bez zmian layoutu).
+- Karta szczegółowa `/pacjenci/$id`.
+- Logika archiwizacji, edycji, walidacji, zgód.
+- Inne ekrany, filtry, wyszukiwarka, FAB, dialogi.

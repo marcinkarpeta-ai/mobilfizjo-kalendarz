@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Archive, Pencil, Plus, RotateCcw, Search, ShieldAlert } from "lucide-react";
+import { Archive, Pencil, Plus, RotateCcw, Search, ShieldAlert, Upload } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

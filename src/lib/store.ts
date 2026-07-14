@@ -186,6 +186,22 @@ export const useStore = create<StoreState>()((set, get) => ({
     return patient;
   },
 
+  bulkAddPatients: async (list) => {
+    if (list.length === 0) return { inserted: 0, failed: 0 };
+    const rows = list.map((p) => patientInsert(newId(), p));
+    const { data, error } = await supabase
+      .from("patients")
+      .insert(rows)
+      .select("*");
+    if (error) {
+      handleError("Import pacjentów nie powiódł się", error);
+      return { inserted: 0, failed: list.length };
+    }
+    const mapped = (data ?? []).map((r) => mapPatient(r));
+    set((s) => ({ patients: [...mapped, ...s.patients] }));
+    return { inserted: mapped.length, failed: list.length - mapped.length };
+  },
+
   updatePatient: (pid, patch) => {
     const prev = get().patients.find((p) => p.id === pid);
     set((s) => ({

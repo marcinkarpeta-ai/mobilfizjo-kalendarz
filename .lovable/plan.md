@@ -1,66 +1,56 @@
 ## Cel
+Poluzować wymóg nazwiska — pacjent musi mieć co najmniej jedno z pól imię/nazwisko. Dodać plakietkę "Uzupełnij dane" i obsłużyć wyświetlanie bez podwójnych spacji.
 
-Duplikaty telefonów wykrywane po kanonicznej postaci, tożsamej po stronie JS i SQL. Jedynym strażnikiem unikalności w bazie jest nowy indeks częściowy na wartości kanonicznej — dotychczasowe `UNIQUE (phone)` znika.
+## 1. Migracja bazy
 
-## Kanoniczna postać telefonu — reguła (JS i SQL identycznie)
+```sql
+ALTER TABLE public.patients ALTER COLUMN first_name DROP NOT NULL;
+ALTER TABLE public.patients ALTER COLUMN last_name  DROP NOT NULL;
+ALTER TABLE public.patients
+  ADD CONSTRAINT patients_name_present_chk
+  CHECK (
+    COALESCE(NULLIF(btrim(first_name), ''), NULLIF(btrim(last_name), '')) IS NOT NULL
+  );
+```
 
-1. Usuń wszystko poza cyframi.
-2. Jeżeli po oczyszczeniu długość wynosi **dokładnie 11** i zaczyna się od `48` → obetnij pierwsze 2 cyfry.
-3. Jeżeli długość wynosi **dokładnie 13** i zaczyna się od `0048` → obetnij pierwsze 4 cyfry.
-4. W innych przypadkach nic nie obcinaj.
-5. Wynikiem jest `+48` + 9 cyfr, jeżeli końcowa długość to 9. W innych: `+` + same cyfry (numer międzynarodowy inny niż PL) lub `null`, gdy < 7 cyfr.
+## 2. Typy i store
 
-Przykład: `+48 669 863 894` → 11 cyfr zaczynających się od `48` → obcięcie → `669863894` → `+48669863894`. `123456789` (9 cyfr) → nie zaczyna się od `48` po oczyszczeniu → `+48123456789`.
+- `src/lib/types.ts`: `first_name: string | null`, `last_name: string | null`.
+- `src/lib/store.ts`: `mapPatient` toleruje `null`; `addPatient`/`updatePatient`/`bulkAddPatients` zapisują `null` gdy puste (nie pusty string).
 
-## Zmiany w kodzie
+## 3. Wyświetlanie imię+nazwisko
 
-### `src/lib/csv.ts`
+Nowy helper `formatPatientName(p)` w `src/lib/format.ts`:
+- składa `[first, last].filter(Boolean).join(" ")`;
+- gdy oba puste → `"(bez nazwiska)"` (fallback dla bezpieczeństwa, nie powinien wystąpić dzięki CHECK).
 
-- `canonicalPhone(v: string): string | null` — implementacja reguły powyżej.
-- `formatPhoneStorage(v: string): string` — canonical + formatowanie: dla PL `+48 XXX XXX XXX`, w innych `+<digits>`.
+Zamienić wszystkie miejsca łączenia `${first_name} ${last_name}` na ten helper:
+- `_layout.pacjenci.index.tsx`, `_layout.pacjenci.$id.tsx`
+- `appointment-card.tsx`, `appointment-details-sheet.tsx`
+- `add-appointment-dialog.tsx` (combobox: wyszukiwanie po imieniu, nazwisku, telefonie — zachować diakrytyko-niewrażliwe działanie także na `null`)
+- `import-patients-dialog.tsx` (wiersz podglądu)
+- `import-patients.ts` (komunikat "Już istnieje: …")
 
-### `src/lib/import-patients.ts`
+## 4. Import CSV (`src/lib/import-patients.ts`)
 
-- Mapa `byPhone` bazy i `seenInFile` po `canonicalPhone`.
-- `ImportRow.data.phone` = `formatPhoneStorage(phoneRaw)`.
-- `canonicalPhone === null` → status Błąd „Nieprawidłowy telefon".
+- Usunąć błędy "Brak imienia" / "Brak nazwiska".
+- Nowa reguła: gdy oba puste → `status: "error"`, `error: "Brak imienia i nazwiska."`.
+- Gdy jedno z pól puste → `status: "new"`, do kolumny Uwagi dopisać `"Dane niekompletne"` (nowe pole `warning?: string` na `ImportRow`, wyświetlane w podglądzie tuż obok/łącznie z `error`/`duplicateOf`).
+- W `data`: puste → `null` (spójne z DB), a nie `""`.
 
-### `src/components/add-patient-dialog.tsx`
+## 5. Formularz ręczny (`src/components/add-patient-dialog.tsx`)
 
-Porównanie duplikatów przez `canonicalPhone`, zapis przez `formatPhoneStorage`.
+- Zod: `first_name` i `last_name` opcjonalne (`.trim().max(60).optional()`).
+- Po `safeParse`: jeśli oba puste → `setErrors({ first_name: "Podaj imię lub nazwisko.", last_name: " " })` (albo jeden komunikat pod grupą pól).
+- Do zapisu: `first_name: parsed.first_name || null`, `last_name: parsed.last_name || null`.
 
-### `src/lib/store.ts`
+## 6. Plakietka "Uzupełnij dane"
 
-`patientInsert` / `patientToDb` wołają `formatPhoneStorage`. `addPatient` i `bulkAddPatients` łapią kod błędu Postgres `23505` na nowym indeksie i pokazują czytelny toast.
-
-## Migracja bazy (jedna migracja, kolejność krytyczna)
-
-1. **Funkcja** `public.canonical_phone(text) returns text` **IMMUTABLE** — realizuje reguły z sekcji „Kanoniczna postać".
-2. **Wykrycie kolizji wśród aktywnych** (przed jakimikolwiek zmianami danych i schematu):
-   ```sql
-   DO $$
-   DECLARE conflict text;
-   BEGIN
-     SELECT string_agg(canon, ', ')
-       INTO conflict
-       FROM (
-         SELECT public.canonical_phone(phone) AS canon
-         FROM public.patients
-         WHERE archived_at IS NULL AND phone IS NOT NULL
-         GROUP BY 1
-         HAVING count(*) > 1
-       ) t;
-     IF conflict IS NOT NULL THEN
-       RAISE EXCEPTION 'Kolizja telefonów wśród aktywnych pacjentów: %', conflict;
-     END IF;
-   END $$;
-   ```
-   Zakres `WHERE archived_at IS NULL` jest spójny z zakresem nowego indeksu — duplikat, w którym co najmniej jeden rekord jest zarchiwizowany, nie blokuje migracji, bo nowy indeks też by go dopuścił.
-3. **Usunięcie starego constraintu**: `ALTER TABLE public.patients DROP CONSTRAINT patients_phone_key;` (potwierdzone w schemacie). Wykonane przed UPDATE, żeby przejściowe różnice formatu podczas normalizacji nie kolidowały z twardym `UNIQUE (phone)`.
-4. **Normalizacja istniejących numerów**: `UPDATE public.patients SET phone = <sformatowana wersja>` — wszystkie do `+48 XXX XXX XXX` (lub `+<digits>` dla nie-PL); rekordy z `phone IS NULL` lub `canonical_phone(...) IS NULL` pozostają bez zmian.
-5. **Nowy indeks częściowy**: `CREATE UNIQUE INDEX patients_phone_canonical_key ON public.patients (public.canonical_phone(phone)) WHERE archived_at IS NULL;` — jedyny strażnik unikalności; obejmuje wyłącznie aktywnych pacjentów.
+Analogicznie do istniejącej plakietki formy zwrotu (`salutation` null/empty):
+- warunek: `!p.first_name?.trim() || !p.last_name?.trim()`
+- w `src/routes/_layout.pacjenci.index.tsx` (na wierszu listy)
+- w `src/routes/_layout.pacjenci.$id.tsx` (na karcie pacjenta)
+- ten sam wariant `Badge` co dla formy zwrotu, tekst: „Uzupełnij dane"
 
 ## Poza zakresem
-
-- Zmiana formatu wyświetlania numeru w innych ekranach — telefon w bazie i tak będzie już znormalizowany.
-- Międzynarodowe numery inne niż PL — obsługiwane, ale bez formatowania spacjami.
+RLS, import zgód, zmiany w day-timeline i innych widokach kalendarza (pokazywanie nazwiska w kartach użyje nowego helpera bez zmian layoutu).

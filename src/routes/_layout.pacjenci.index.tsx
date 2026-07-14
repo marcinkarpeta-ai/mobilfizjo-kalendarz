@@ -212,6 +212,7 @@ function PatientsPage() {
       </Button>
 
       <AddPatientDialog open={addOpen} onOpenChange={setAddOpen} />
+      <ImportPatientsDialog open={importOpen} onOpenChange={setImportOpen} />
       <AddPatientDialog
         open={Boolean(editingPatient)}
         onOpenChange={(v) => {

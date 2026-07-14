@@ -105,8 +105,13 @@ export function AddPatientDialog({
       return;
     }
     const normalizedPhone = normalizePhone(parsed.data.phone);
+    const canon = canonicalPhone(parsed.data.phone);
     const clash = patients.find(
-      (p) => p.id !== patient?.id && normalizePhone(p.phone) === normalizedPhone,
+      (p) =>
+        p.id !== patient?.id &&
+        !p.archived_at &&
+        canon !== null &&
+        canonicalPhone(p.phone) === canon,
     );
     if (clash) {
       setErrors({

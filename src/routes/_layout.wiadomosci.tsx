@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, formatPatientName } from "@/lib/format";
 import type { MessageKind, MessageStatus, MarketingReason } from "@/lib/types";
 import { toast } from "sonner";
 

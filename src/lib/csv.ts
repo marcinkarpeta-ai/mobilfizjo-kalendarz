@@ -90,6 +90,43 @@ export function isValidPhone(v: string): boolean {
   return PHONE_RE.test(v.trim());
 }
 
+/**
+ * Kanoniczna postać numeru — identyczna z SQL `public.canonical_phone`.
+ * - Usuwa wszystko poza cyframi.
+ * - Obcina "48" gdy całość = 11 cyfr, "0048" gdy całość = 13 cyfr.
+ * - W innych wypadkach nic nie obcina.
+ * - Zwraca "+48XXXXXXXXX" dla 9 cyfr lub "+<cyfry>" dla innych; null gdy < 7.
+ */
+export function canonicalPhone(v: string | null | undefined): string | null {
+  if (v == null) return null;
+  let digits = v.replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("48")) {
+    digits = digits.slice(2);
+  } else if (digits.length === 13 && digits.startsWith("0048")) {
+    digits = digits.slice(4);
+  }
+  if (digits.length < 7) return null;
+  if (digits.length === 9) return `+48${digits}`;
+  return `+${digits}`;
+}
+
+/**
+ * Postać numeru do zapisu i podglądu. Dla polskich 9-cyfrowych
+ * zwraca "+48 XXX XXX XXX", w innych "+<cyfry>". Gdy nie da się
+ * skanonizować, zwraca oryginalny wpis (żeby walidacja mogła go
+ * odrzucić z czytelnym komunikatem, zamiast tracić dane).
+ */
+export function formatPhoneStorage(v: string): string {
+  const canon = canonicalPhone(v);
+  if (!canon) return v.trim();
+  if (canon.startsWith("+48") && canon.length === 12) {
+    const d = canon.slice(3);
+    return `+48 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 9)}`;
+  }
+  return canon;
+}
+
+
 export function normalizeBirthDate(v: string): string | null {
   const s = v.trim();
   if (!s) return null;

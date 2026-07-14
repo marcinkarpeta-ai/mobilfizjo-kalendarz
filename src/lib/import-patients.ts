@@ -86,20 +86,22 @@ export function buildImportPreview(
     const raw: Record<string, string> = {};
     headers.forEach((h, i) => (raw[h] = cols[i] ?? ""));
 
-    const get = (key: keyof ImportRow["data"]): string => {
+    const getCell = (key: "first_name" | "last_name" | "phone" | "salutation" | "birth_date" | "general_note"): string => {
       const idx = mapping.indexOf(key);
       return idx >= 0 ? (cols[idx] ?? "").trim() : "";
     };
 
-    const first_name = get("first_name");
-    const last_name = get("last_name");
-    const phoneRaw = get("phone");
-    const salutationRaw = get("salutation");
-    const birthRaw = get("birth_date");
-    const noteRaw = get("general_note");
+    const firstNameRaw = getCell("first_name");
+    const lastNameRaw = getCell("last_name");
+    const phoneRaw = getCell("phone");
+    const salutationRaw = getCell("salutation");
+    const birthRaw = getCell("birth_date");
+    const noteRaw = getCell("general_note");
 
-    const salutation = salutationRaw.trim() ? salutationRaw.trim() : null;
-    const general_note = noteRaw.trim() ? noteRaw.trim() : null;
+    const first_name = firstNameRaw || null;
+    const last_name = lastNameRaw || null;
+    const salutation = salutationRaw ? salutationRaw : null;
+    const general_note = noteRaw ? noteRaw : null;
     const birth_date = birthRaw ? normalizeBirthDate(birthRaw) : null;
     const canon = canonicalPhone(phoneRaw);
 
@@ -115,11 +117,8 @@ export function buildImportPreview(
     if (missingRequired.length > 0) {
       return { status: "error", error: "Brak wymaganych kolumn.", data, raw };
     }
-    if (!first_name) {
-      return { status: "error", error: "Brak imienia.", data, raw };
-    }
-    if (!last_name) {
-      return { status: "error", error: "Brak nazwiska.", data, raw };
+    if (!first_name && !last_name) {
+      return { status: "error", error: "Brak imienia i nazwiska.", data, raw };
     }
     if (!phoneRaw || !isValidPhone(phoneRaw) || !canon) {
       return { status: "error", error: "Nieprawidłowy telefon.", data, raw };
@@ -128,16 +127,20 @@ export function buildImportPreview(
       return { status: "error", error: "Nieprawidłowa data urodzenia.", data, raw };
     }
 
+    const warning = !first_name || !last_name ? "Dane niekompletne" : undefined;
+
     const existing = byPhone.get(canon);
     if (existing) {
+      const existingName =
+        [existing.first_name, existing.last_name]
+          .map((v) => (v ?? "").trim())
+          .filter(Boolean)
+          .join(" ") || "(bez nazwiska)";
       return {
         status: "duplicate",
         data,
         raw,
-        duplicateOf: {
-          id: existing.id,
-          name: `${existing.first_name} ${existing.last_name}`,
-        },
+        duplicateOf: { id: existing.id, name: existingName },
       };
     }
 
@@ -153,7 +156,7 @@ export function buildImportPreview(
     }
     seenInFile.set(canon, seenInFile.size);
 
-    return { status: "new", data, raw };
+    return { status: "new", data, raw, warning };
   });
 
   return { rows: out, headers, separator, missingRequired };

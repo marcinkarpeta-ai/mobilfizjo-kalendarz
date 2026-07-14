@@ -87,18 +87,29 @@ function PatientsPage() {
           />
         </div>
 
-        <div className="mb-4 flex items-center justify-end gap-2">
-          <Label
-            htmlFor="show-archived"
-            className="text-xs text-muted-foreground"
-          >
-            Pokaż zarchiwizowanych
-          </Label>
-          <Switch
-            id="show-archived"
-            checked={showArchived}
-            onCheckedChange={setShowArchived}
-          />
+        <div className="mb-4 flex items-center justify-between gap-2">
+          {role === "therapist" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportOpen(true)}
+            >
+              <Upload className="mr-1 h-4 w-4" /> Importuj CSV
+            </Button>
+          ) : <span />}
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="show-archived"
+              className="text-xs text-muted-foreground"
+            >
+              Pokaż zarchiwizowanych
+            </Label>
+            <Switch
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+          </div>
         </div>
 
         {filtered.length === 0 ? (

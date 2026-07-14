@@ -20,6 +20,7 @@ import {
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { ImportPatientsDialog } from "@/components/import-patients-dialog";
 import { useStore } from "@/lib/store";
+import { formatPatientName, isPatientNameIncomplete } from "@/lib/format";
 import type { Patient } from "@/lib/types";
 import { toast } from "sonner";
 

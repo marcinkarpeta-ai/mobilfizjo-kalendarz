@@ -124,7 +124,7 @@ function PatientsPage() {
               const missingCount =
                 (isPatientNameIncomplete(p) ? 1 : 0) +
                 (!p.salutation?.trim() ? 1 : 0);
-              const stop = (e: React.SyntheticEvent) => {
+              const stop = (e: { preventDefault: () => void; stopPropagation: () => void }) => {
                 e.preventDefault();
                 e.stopPropagation();
               };

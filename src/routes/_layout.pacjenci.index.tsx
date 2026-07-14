@@ -59,7 +59,7 @@ function PatientsPage() {
       : patients.filter((p) => !p.archived_at);
     if (!query) return base;
     return base.filter((p) =>
-      `${p.first_name} ${p.last_name} ${p.phone}`.toLowerCase().includes(query),
+      `${formatPatientName(p)} ${p.phone}`.toLowerCase().includes(query),
     );
   }, [patients, q, showArchived]);
 

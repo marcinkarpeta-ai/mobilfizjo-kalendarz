@@ -268,7 +268,7 @@ export type Database = {
           marketing_consent_at: string | null
           marketing_consent_changed_at: string | null
           phone: string
-          salutation: string
+          salutation: string | null
           service_consent_at: string | null
           service_consent_changed_at: string | null
         }
@@ -283,7 +283,7 @@ export type Database = {
           marketing_consent_at?: string | null
           marketing_consent_changed_at?: string | null
           phone: string
-          salutation: string
+          salutation?: string | null
           service_consent_at?: string | null
           service_consent_changed_at?: string | null
         }
@@ -298,7 +298,7 @@ export type Database = {
           marketing_consent_at?: string | null
           marketing_consent_changed_at?: string | null
           phone?: string
-          salutation?: string
+          salutation?: string | null
           service_consent_at?: string | null
           service_consent_changed_at?: string | null
         }

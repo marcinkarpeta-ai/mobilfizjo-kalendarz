@@ -21,8 +21,8 @@ import { canonicalPhone, formatPhoneStorage } from "@/lib/csv";
 const phoneRegex = /^\+?\d[\d\s-]{7,17}$/;
 
 const schema = z.object({
-  first_name: z.string().trim().min(1, "Imię jest wymagane").max(60),
-  last_name: z.string().trim().min(1, "Nazwisko jest wymagane").max(60),
+  first_name: z.string().trim().max(60).optional(),
+  last_name: z.string().trim().max(60).optional(),
   salutation: z.string().trim().min(1, "Podaj formę grzecznościową").max(60),
   phone: z
     .string()

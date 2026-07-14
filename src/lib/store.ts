@@ -195,7 +195,15 @@ export const useStore = create<StoreState>()((set, get) => ({
       .insert(rows)
       .select("*");
     if (error) {
-      handleError("Import pacjentów nie powiódł się", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const code = (error as any).code as string | undefined;
+      if (code === "23505") {
+        toast.error(
+          "Import przerwany: numer telefonu już istnieje w bazie (unikat).",
+        );
+      } else {
+        handleError("Import pacjentów nie powiódł się", error);
+      }
       return { inserted: 0, failed: list.length };
     }
     const mapped = (data ?? []).map((r) => mapPatient(r));

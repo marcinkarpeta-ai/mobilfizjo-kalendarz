@@ -105,7 +105,7 @@ function PatientDetail() {
     <>
       <AppHeader
         title={`${patientData.first_name} ${patientData.last_name}`}
-        subtitle={patientData.salutation}
+        subtitle={patientData.salutation ?? undefined}
         right={
           <Button asChild variant="ghost" size="icon" aria-label="Wróć do listy">
             <Link to="/pacjenci">

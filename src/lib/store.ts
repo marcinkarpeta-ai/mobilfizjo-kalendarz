@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatPhoneStorage } from "./csv";
 import type {
   Appointment,
   AppSettings,

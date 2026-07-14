@@ -109,7 +109,7 @@ function MessagesPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h3 className="truncate text-sm font-semibold text-foreground">
-                            {p ? `${p.first_name} ${p.last_name}` : "—"}
+                            {p ? formatPatientName(p) : "—"}
                           </h3>
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             {KIND_LABEL[m.kind]} · {fmtDate(m.created_at, "d MMM, HH:mm")}

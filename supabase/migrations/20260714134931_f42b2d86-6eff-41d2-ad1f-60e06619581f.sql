@@ -1,0 +1,1 @@
+ALTER TABLE public.patients ALTER COLUMN salutation DROP NOT NULL;

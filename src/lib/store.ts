@@ -105,7 +105,7 @@ function patientToDb(p: Partial<Patient>) {
     first_name: p.first_name,
     last_name: p.last_name,
     salutation: p.salutation,
-    phone: p.phone,
+    phone: p.phone ? formatPhoneStorage(p.phone) : p.phone,
     birth_date: p.birth_date ?? null,
     service_consent_at: p.service_consent_at ?? null,
     service_consent_changed_at: p.service_consent_changed_at ?? null,

@@ -290,7 +290,7 @@ export function AddAppointmentDialog({
                     >
                       <span className="truncate text-left">
                         {selectedPatient
-                          ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                          ? `${formatPatientNameLastFirst(selectedPatient)} — ${selectedPatient.phone}`
                           : "Wybierz pacjenta"}
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

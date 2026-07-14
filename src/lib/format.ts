@@ -25,3 +25,30 @@ export function isSameLocalDay(iso: string, day: Date) {
 export function overlaps(aStart: string, aEnd: string, bStart: string, bEnd: string) {
   return parseISO(aStart) < parseISO(bEnd) && parseISO(bStart) < parseISO(aEnd);
 }
+
+export function formatPatientName(p: {
+  first_name?: string | null;
+  last_name?: string | null;
+}): string {
+  const parts = [p.first_name, p.last_name]
+    .map((v) => (v ?? "").trim())
+    .filter((v) => v.length > 0);
+  return parts.length > 0 ? parts.join(" ") : "(bez nazwiska)";
+}
+
+export function formatPatientNameLastFirst(p: {
+  first_name?: string | null;
+  last_name?: string | null;
+}): string {
+  const parts = [p.last_name, p.first_name]
+    .map((v) => (v ?? "").trim())
+    .filter((v) => v.length > 0);
+  return parts.length > 0 ? parts.join(" ") : "(bez nazwiska)";
+}
+
+export function isPatientNameIncomplete(p: {
+  first_name?: string | null;
+  last_name?: string | null;
+}): boolean {
+  return !(p.first_name ?? "").trim() || !(p.last_name ?? "").trim();
+}

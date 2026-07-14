@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
+import { ImportPatientsDialog } from "@/components/import-patients-dialog";
 import { useStore } from "@/lib/store";
 import type { Patient } from "@/lib/types";
 import { toast } from "sonner";
@@ -34,10 +35,12 @@ export const Route = createFileRoute("/_layout/pacjenci/")({
 
 function PatientsPage() {
   const patients = useStore((s) => s.patients);
+  const role = useStore((s) => s.role);
   const archivePatient = useStore((s) => s.archivePatient);
   const restorePatient = useStore((s) => s.restorePatient);
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [archivingPatient, setArchivingPatient] = useState<Patient | null>(null);
   const [showArchived, setShowArchived] = useState(false);

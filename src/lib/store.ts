@@ -46,6 +46,9 @@ interface StoreState extends InternalState {
 
   // API zachowane 1:1 z poprzednim store'em
   addPatient: (p: Omit<Patient, "id" | "created_at">) => Patient;
+  bulkAddPatients: (
+    patients: Omit<Patient, "id" | "created_at">[],
+  ) => Promise<{ inserted: number; failed: number }>;
   updatePatient: (id: string, patch: Partial<Patient>) => void;
   archivePatient: (id: string) => void;
   restorePatient: (id: string) => void;

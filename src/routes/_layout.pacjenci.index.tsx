@@ -20,6 +20,7 @@ import {
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { ImportPatientsDialog } from "@/components/import-patients-dialog";
 import { useStore } from "@/lib/store";
+import { formatPatientName, isPatientNameIncomplete } from "@/lib/format";
 import type { Patient } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -58,7 +59,7 @@ function PatientsPage() {
       : patients.filter((p) => !p.archived_at);
     if (!query) return base;
     return base.filter((p) =>
-      `${p.first_name} ${p.last_name} ${p.phone}`.toLowerCase().includes(query),
+      `${formatPatientName(p)} ${p.phone}`.toLowerCase().includes(query),
     );
   }, [patients, q, showArchived]);
 
@@ -134,13 +135,18 @@ function PatientsPage() {
                         className="min-w-0 flex-1"
                       >
                         <h3 className="truncate text-base font-semibold text-foreground">
-                          {p.first_name} {p.last_name}
+                          {formatPatientName(p)}
                         </h3>
                         <p className="mt-0.5 truncate text-sm text-muted-foreground">
                           {p.salutation?.trim() ? p.salutation : "—"} · {p.phone}
                         </p>
                       </Link>
                       <div className="flex shrink-0 flex-col items-end gap-1">
+                        {!archived && isPatientNameIncomplete(p) ? (
+                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400">
+                            Uzupełnij dane
+                          </Badge>
+                        ) : null}
                         {!p.salutation?.trim() && !archived ? (
                           <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400">
                             Uzupełnij formę zwrotu

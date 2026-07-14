@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, formatPatientName } from "@/lib/format";
 import type { MessageKind, MessageStatus, MarketingReason } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -109,7 +109,7 @@ function MessagesPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h3 className="truncate text-sm font-semibold text-foreground">
-                            {p ? `${p.first_name} ${p.last_name}` : "—"}
+                            {p ? formatPatientName(p) : "—"}
                           </h3>
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             {KIND_LABEL[m.kind]} · {fmtDate(m.created_at, "d MMM, HH:mm")}
@@ -140,9 +140,7 @@ function MessagesPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h3 className="truncate text-sm font-semibold text-foreground">
-                            {patient
-                              ? `${patient.first_name} ${patient.last_name}`
-                              : "—"}
+                            {patient ? formatPatientName(patient) : "—"}
                           </h3>
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             {REASON_LABEL[p.reason]}

@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useStore } from "@/lib/store";
-import { fmtTime } from "@/lib/format";
+import { fmtTime, formatPatientName } from "@/lib/format";
 import type { Appointment } from "@/lib/types";
 
 export function AppointmentDetailsSheet({
@@ -55,7 +55,7 @@ export function AppointmentDetailsSheet({
 
   const title = isVisit
     ? patient
-      ? `${patient.first_name} ${patient.last_name}`
+      ? formatPatientName(patient)
       : "Pacjent"
     : appt?.title ?? "Wydarzenie rodzinne";
 

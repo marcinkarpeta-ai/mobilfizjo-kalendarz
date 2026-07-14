@@ -1,6 +1,6 @@
 import { CalendarX2, Clock } from "lucide-react";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
-import { fmtTime } from "@/lib/format";
+import { fmtTime, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,7 +25,7 @@ export function AppointmentCard({
     ? "Zajęte"
     : isPatient
       ? patient
-        ? `${patient.first_name} ${patient.last_name}`
+        ? formatPatientName(patient)
         : "Pacjent"
       : appt.title ?? "Wydarzenie rodzinne";
 

@@ -21,8 +21,8 @@ import { canonicalPhone, formatPhoneStorage } from "@/lib/csv";
 const phoneRegex = /^\+?\d[\d\s-]{7,17}$/;
 
 const schema = z.object({
-  first_name: z.string().trim().min(1, "Imię jest wymagane").max(60),
-  last_name: z.string().trim().min(1, "Nazwisko jest wymagane").max(60),
+  first_name: z.string().trim().max(60).optional(),
+  last_name: z.string().trim().max(60).optional(),
   salutation: z.string().trim().min(1, "Podaj formę grzecznościową").max(60),
   phone: z
     .string()
@@ -66,8 +66,8 @@ export function AddPatientDialog({
   useEffect(() => {
     if (!open) return;
     if (patient) {
-      setFirstName(patient.first_name);
-      setLastName(patient.last_name);
+      setFirstName(patient.first_name ?? "");
+      setLastName(patient.last_name ?? "");
       setSalutation(patient.salutation ?? "");
       setPhone(patient.phone);
       setBirthDate(patient.birth_date ?? "");
@@ -104,6 +104,12 @@ export function AddPatientDialog({
       setErrors(errs);
       return;
     }
+    const fn = (parsed.data.first_name ?? "").trim();
+    const ln = (parsed.data.last_name ?? "").trim();
+    if (!fn && !ln) {
+      setErrors({ first_name: "Podaj imię lub nazwisko." });
+      return;
+    }
     const normalizedPhone = normalizePhone(parsed.data.phone);
     const canon = canonicalPhone(parsed.data.phone);
     const clash = patients.find(
@@ -114,8 +120,12 @@ export function AddPatientDialog({
         canonicalPhone(p.phone) === canon,
     );
     if (clash) {
+      const clashName = [clash.first_name, clash.last_name]
+        .map((v) => (v ?? "").trim())
+        .filter(Boolean)
+        .join(" ") || "(bez nazwiska)";
       setErrors({
-        phone: `Ten numer należy już do: ${clash.first_name} ${clash.last_name}.`,
+        phone: `Ten numer należy już do: ${clashName}.`,
       });
       return;
     }
@@ -129,8 +139,8 @@ export function AddPatientDialog({
       : marketingConsent !== prevMarketing;
 
     const commonPatch = {
-      first_name: parsed.data.first_name,
-      last_name: parsed.data.last_name,
+      first_name: fn || null,
+      last_name: ln || null,
       salutation: parsed.data.salutation,
       phone: normalizedPhone,
       birth_date: parsed.data.birth_date,

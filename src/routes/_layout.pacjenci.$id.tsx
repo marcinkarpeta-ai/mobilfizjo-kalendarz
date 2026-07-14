@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useStore } from "@/lib/store";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, formatPatientName, isPatientNameIncomplete } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_layout/pacjenci/$id")({
@@ -104,7 +104,7 @@ function PatientDetail() {
   return (
     <>
       <AppHeader
-        title={`${patientData.first_name} ${patientData.last_name}`}
+        title={formatPatientName(patientData)}
         subtitle={patientData.salutation ?? undefined}
         right={
           <Button asChild variant="ghost" size="icon" aria-label="Wróć do listy">
@@ -155,10 +155,18 @@ function PatientDetail() {
               <Archive className="mr-1 h-4 w-4" /> Archiwizuj
             </Button>
           ) : null}
-          {!isArchived && !patientData.salutation?.trim() ? (
+          {!isArchived && isPatientNameIncomplete(patientData) ? (
             <Badge
               variant="outline"
               className="ml-auto border-amber-500/50 text-amber-600 dark:text-amber-400"
+            >
+              Uzupełnij dane
+            </Badge>
+          ) : null}
+          {!isArchived && !patientData.salutation?.trim() ? (
+            <Badge
+              variant="outline"
+              className={`${isPatientNameIncomplete(patientData) ? "" : "ml-auto "}border-amber-500/50 text-amber-600 dark:text-amber-400`}
             >
               Uzupełnij formę zwrotu
             </Badge>

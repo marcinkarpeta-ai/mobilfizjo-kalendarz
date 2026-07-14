@@ -174,15 +174,21 @@ export function ImportPatientsDialog({
                         )}
                       </td>
                       <td className="p-2">
-                        {r.data.first_name} {r.data.last_name}
+                        {[r.data.first_name, r.data.last_name]
+                          .map((v) => (v ?? "").trim())
+                          .filter(Boolean)
+                          .join(" ") || "(bez nazwiska)"}
                       </td>
                       <td className="p-2 tabular-nums">{r.data.phone}</td>
                       <td className="p-2 text-muted-foreground">
                         {r.error
                           ? r.error
-                          : r.duplicateOf
-                            ? `Już istnieje: ${r.duplicateOf.name}`
-                            : ""}
+                          : [
+                              r.warning,
+                              r.duplicateOf ? `Już istnieje: ${r.duplicateOf.name}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
                       </td>
                     </tr>
                   ))}

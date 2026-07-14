@@ -261,10 +261,10 @@ export type Database = {
           archived_at: string | null
           birth_date: string | null
           created_at: string
-          first_name: string
+          first_name: string | null
           general_note: string | null
           id: string
-          last_name: string
+          last_name: string | null
           marketing_consent_at: string | null
           marketing_consent_changed_at: string | null
           phone: string
@@ -276,10 +276,10 @@ export type Database = {
           archived_at?: string | null
           birth_date?: string | null
           created_at?: string
-          first_name: string
+          first_name?: string | null
           general_note?: string | null
           id?: string
-          last_name: string
+          last_name?: string | null
           marketing_consent_at?: string | null
           marketing_consent_changed_at?: string | null
           phone: string
@@ -291,10 +291,10 @@ export type Database = {
           archived_at?: string | null
           birth_date?: string | null
           created_at?: string
-          first_name?: string
+          first_name?: string | null
           general_note?: string | null
           id?: string
-          last_name?: string
+          last_name?: string | null
           marketing_consent_at?: string | null
           marketing_consent_changed_at?: string | null
           phone?: string

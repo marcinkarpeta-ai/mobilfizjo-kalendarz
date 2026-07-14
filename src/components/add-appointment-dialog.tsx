@@ -38,7 +38,7 @@ import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
 import type { Appointment, AppointmentType } from "@/lib/types";
-import { overlaps } from "@/lib/format";
+import { overlaps, formatPatientNameLastFirst } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -104,7 +104,7 @@ export function AddAppointmentDialog({
     const q = normalizeText(patientQuery.trim());
     if (!q) return patients;
     return patients.filter((p) =>
-      normalizeText(`${p.first_name} ${p.last_name} ${p.phone ?? ""}`).includes(q),
+      normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""} ${p.phone ?? ""}`).includes(q),
     );
   }, [patients, patientQuery]);
 
@@ -267,7 +267,7 @@ export function AddAppointmentDialog({
                     readOnly
                     value={
                       selectedPatient
-                        ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                        ? `${formatPatientNameLastFirst(selectedPatient)} — ${selectedPatient.phone}`
                         : ""
                     }
                     className="cursor-not-allowed bg-muted"
@@ -290,7 +290,7 @@ export function AddAppointmentDialog({
                     >
                       <span className="truncate text-left">
                         {selectedPatient
-                          ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                          ? `${formatPatientNameLastFirst(selectedPatient)} — ${selectedPatient.phone}`
                           : "Wybierz pacjenta"}
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -343,7 +343,7 @@ export function AddAppointmentDialog({
                                 )}
                               />
                               <span className="truncate">
-                                {p.last_name} {p.first_name} — {p.phone}
+                                {formatPatientNameLastFirst(p)} — {p.phone}
                               </span>
                             </CommandItem>
                           ))}

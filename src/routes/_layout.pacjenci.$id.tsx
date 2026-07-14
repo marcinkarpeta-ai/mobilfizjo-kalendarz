@@ -155,10 +155,18 @@ function PatientDetail() {
               <Archive className="mr-1 h-4 w-4" /> Archiwizuj
             </Button>
           ) : null}
-          {!isArchived && !patientData.salutation?.trim() ? (
+          {!isArchived && isPatientNameIncomplete(patientData) ? (
             <Badge
               variant="outline"
               className="ml-auto border-amber-500/50 text-amber-600 dark:text-amber-400"
+            >
+              Uzupełnij dane
+            </Badge>
+          ) : null}
+          {!isArchived && !patientData.salutation?.trim() ? (
+            <Badge
+              variant="outline"
+              className={`${isPatientNameIncomplete(patientData) ? "" : "ml-auto "}border-amber-500/50 text-amber-600 dark:text-amber-400`}
             >
               Uzupełnij formę zwrotu
             </Badge>

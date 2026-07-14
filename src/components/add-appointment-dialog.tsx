@@ -267,7 +267,7 @@ export function AddAppointmentDialog({
                     readOnly
                     value={
                       selectedPatient
-                        ? `${selectedPatient.last_name} ${selectedPatient.first_name} — ${selectedPatient.phone}`
+                        ? `${formatPatientNameLastFirst(selectedPatient)} — ${selectedPatient.phone}`
                         : ""
                     }
                     className="cursor-not-allowed bg-muted"

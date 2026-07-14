@@ -188,7 +188,7 @@ function PatientDetail() {
 
           <TabsContent value="dane" className="mt-4 space-y-3">
             <DataRow label="Telefon" value={patientData.phone} />
-            <DataRow label="Forma grzecznościowa" value={patientData.salutation} />
+            <DataRow label="Forma grzecznościowa" value={patientData.salutation?.trim() ? patientData.salutation : "—"} />
             <DataRow
               label="Data urodzenia"
               value={patientData.birth_date ? fmtDate(patientData.birth_date) : "—"}

@@ -82,11 +82,16 @@ function toUndef<T>(v: T | null | undefined): T | undefined {
   return v ?? undefined;
 }
 
+function emptyToNull(v: string | null | undefined): string | null {
+  const t = (v ?? "").trim();
+  return t.length > 0 ? t : null;
+}
+
 function mapPatient(row: Record<string, unknown>): Patient {
   return {
     id: row.id as string,
-    first_name: row.first_name as string,
-    last_name: row.last_name as string,
+    first_name: (row.first_name as string | null) ?? null,
+    last_name: (row.last_name as string | null) ?? null,
     salutation: (row.salutation as string | null) ?? null,
     phone: row.phone as string,
     birth_date: toUndef(row.birth_date as string | null),
@@ -102,9 +107,9 @@ function mapPatient(row: Record<string, unknown>): Patient {
 
 function patientToDb(p: Partial<Patient>) {
   return {
-    first_name: p.first_name,
-    last_name: p.last_name,
-    salutation: p.salutation,
+    first_name: emptyToNull(p.first_name),
+    last_name: emptyToNull(p.last_name),
+    salutation: emptyToNull(p.salutation),
     phone: p.phone ? formatPhoneStorage(p.phone) : p.phone,
     birth_date: p.birth_date ?? null,
     service_consent_at: p.service_consent_at ?? null,
@@ -119,9 +124,9 @@ function patientToDb(p: Partial<Patient>) {
 function patientInsert(id: string, p: Omit<Patient, "id" | "created_at">) {
   return {
     id,
-    first_name: p.first_name,
-    last_name: p.last_name,
-    salutation: p.salutation,
+    first_name: emptyToNull(p.first_name),
+    last_name: emptyToNull(p.last_name),
+    salutation: emptyToNull(p.salutation),
     phone: formatPhoneStorage(p.phone),
     birth_date: p.birth_date ?? null,
     service_consent_at: p.service_consent_at ?? null,

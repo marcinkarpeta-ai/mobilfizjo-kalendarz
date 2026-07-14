@@ -6,10 +6,11 @@ export type ImportStatus = "new" | "duplicate" | "error";
 export interface ImportRow {
   status: ImportStatus;
   error?: string;
+  warning?: string;
   duplicateOf?: { id: string; name: string };
   data: {
-    first_name: string;
-    last_name: string;
+    first_name: string | null;
+    last_name: string | null;
     phone: string;
     salutation: string | null;
     birth_date: string | null;

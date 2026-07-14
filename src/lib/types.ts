@@ -7,8 +7,8 @@ export type AppointmentStatus = "scheduled" | "completed" | "cancelled";
 
 export interface Patient {
   id: string;
-  first_name: string;
-  last_name: string;
+  first_name: string | null;
+  last_name: string | null;
   salutation: string | null;
   phone: string;
   birth_date?: string;

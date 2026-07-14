@@ -1,4 +1,4 @@
-import { parseCsv, normalizePhone, isValidPhone, normalizeBirthDate } from "./csv";
+import { parseCsv, isValidPhone, normalizeBirthDate, canonicalPhone, formatPhoneStorage } from "./csv";
 import type { Patient } from "./types";
 
 export type ImportStatus = "new" | "duplicate" | "error";

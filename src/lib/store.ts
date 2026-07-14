@@ -46,6 +46,9 @@ interface StoreState extends InternalState {
 
   // API zachowane 1:1 z poprzednim store'em
   addPatient: (p: Omit<Patient, "id" | "created_at">) => Patient;
+  bulkAddPatients: (
+    patients: Omit<Patient, "id" | "created_at">[],
+  ) => Promise<{ inserted: number; failed: number }>;
   updatePatient: (id: string, patch: Partial<Patient>) => void;
   archivePatient: (id: string) => void;
   restorePatient: (id: string) => void;
@@ -83,7 +86,7 @@ function mapPatient(row: Record<string, unknown>): Patient {
     id: row.id as string,
     first_name: row.first_name as string,
     last_name: row.last_name as string,
-    salutation: row.salutation as string,
+    salutation: (row.salutation as string | null) ?? null,
     phone: row.phone as string,
     birth_date: toUndef(row.birth_date as string | null),
     service_consent_at: toUndef(row.service_consent_at as string | null),
@@ -181,6 +184,22 @@ export const useStore = create<StoreState>()((set, get) => ({
       }));
     })();
     return patient;
+  },
+
+  bulkAddPatients: async (list) => {
+    if (list.length === 0) return { inserted: 0, failed: 0 };
+    const rows = list.map((p) => patientInsert(newId(), p));
+    const { data, error } = await supabase
+      .from("patients")
+      .insert(rows)
+      .select("*");
+    if (error) {
+      handleError("Import pacjentów nie powiódł się", error);
+      return { inserted: 0, failed: list.length };
+    }
+    const mapped = (data ?? []).map((r) => mapPatient(r));
+    set((s) => ({ patients: [...mapped, ...s.patients] }));
+    return { inserted: mapped.length, failed: list.length - mapped.length };
   },
 
   updatePatient: (pid, patch) => {

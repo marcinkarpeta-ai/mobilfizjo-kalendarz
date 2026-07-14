@@ -105,7 +105,7 @@ function PatientDetail() {
     <>
       <AppHeader
         title={`${patientData.first_name} ${patientData.last_name}`}
-        subtitle={patientData.salutation}
+        subtitle={patientData.salutation ?? undefined}
         right={
           <Button asChild variant="ghost" size="icon" aria-label="Wróć do listy">
             <Link to="/pacjenci">
@@ -138,7 +138,7 @@ function PatientDetail() {
           </div>
         ) : null}
 
-        <div className="mb-4 flex gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -154,6 +154,14 @@ function PatientDetail() {
             >
               <Archive className="mr-1 h-4 w-4" /> Archiwizuj
             </Button>
+          ) : null}
+          {!isArchived && !patientData.salutation?.trim() ? (
+            <Badge
+              variant="outline"
+              className="ml-auto border-amber-500/50 text-amber-600 dark:text-amber-400"
+            >
+              Uzupełnij formę zwrotu
+            </Badge>
           ) : null}
         </div>
 
@@ -180,7 +188,7 @@ function PatientDetail() {
 
           <TabsContent value="dane" className="mt-4 space-y-3">
             <DataRow label="Telefon" value={patientData.phone} />
-            <DataRow label="Forma grzecznościowa" value={patientData.salutation} />
+            <DataRow label="Forma grzecznościowa" value={patientData.salutation?.trim() ? patientData.salutation : "—"} />
             <DataRow
               label="Data urodzenia"
               value={patientData.birth_date ? fmtDate(patientData.birth_date) : "—"}

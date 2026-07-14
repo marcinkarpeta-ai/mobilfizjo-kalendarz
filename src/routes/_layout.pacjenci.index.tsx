@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Archive, Pencil, Plus, RotateCcw, Search, ShieldAlert } from "lucide-react";
+import { Archive, Pencil, Plus, RotateCcw, Search, ShieldAlert, Upload } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
+import { ImportPatientsDialog } from "@/components/import-patients-dialog";
 import { useStore } from "@/lib/store";
 import type { Patient } from "@/lib/types";
 import { toast } from "sonner";
@@ -34,10 +35,12 @@ export const Route = createFileRoute("/_layout/pacjenci/")({
 
 function PatientsPage() {
   const patients = useStore((s) => s.patients);
+  const role = useStore((s) => s.role);
   const archivePatient = useStore((s) => s.archivePatient);
   const restorePatient = useStore((s) => s.restorePatient);
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [archivingPatient, setArchivingPatient] = useState<Patient | null>(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -84,18 +87,29 @@ function PatientsPage() {
           />
         </div>
 
-        <div className="mb-4 flex items-center justify-end gap-2">
-          <Label
-            htmlFor="show-archived"
-            className="text-xs text-muted-foreground"
-          >
-            Pokaż zarchiwizowanych
-          </Label>
-          <Switch
-            id="show-archived"
-            checked={showArchived}
-            onCheckedChange={setShowArchived}
-          />
+        <div className="mb-4 flex items-center justify-between gap-2">
+          {role === "therapist" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportOpen(true)}
+            >
+              <Upload className="mr-1 h-4 w-4" /> Importuj CSV
+            </Button>
+          ) : <span />}
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="show-archived"
+              className="text-xs text-muted-foreground"
+            >
+              Pokaż zarchiwizowanych
+            </Label>
+            <Switch
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -123,10 +137,15 @@ function PatientsPage() {
                           {p.first_name} {p.last_name}
                         </h3>
                         <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                          {p.salutation} · {p.phone}
+                          {p.salutation?.trim() ? p.salutation : "—"} · {p.phone}
                         </p>
                       </Link>
                       <div className="flex shrink-0 flex-col items-end gap-1">
+                        {!p.salutation?.trim() && !archived ? (
+                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400">
+                            Uzupełnij formę zwrotu
+                          </Badge>
+                        ) : null}
                         {archived ? (
                           <Badge variant="outline">Zarchiwizowany</Badge>
                         ) : !p.service_consent_at ? (
@@ -193,6 +212,7 @@ function PatientsPage() {
       </Button>
 
       <AddPatientDialog open={addOpen} onOpenChange={setAddOpen} />
+      <ImportPatientsDialog open={importOpen} onOpenChange={setImportOpen} />
       <AddPatientDialog
         open={Boolean(editingPatient)}
         onOpenChange={(v) => {

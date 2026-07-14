@@ -265,7 +265,7 @@ export function DayTimeline({
           ? "Zajęte"
           : isPatient
             ? patient
-              ? `${patient.first_name} ${patient.last_name}`
+              ? formatPatientName(patient)
               : "Pacjent"
             : appt.title ?? "Wydarzenie rodzinne";
         const sublabel = familyView && isPatient

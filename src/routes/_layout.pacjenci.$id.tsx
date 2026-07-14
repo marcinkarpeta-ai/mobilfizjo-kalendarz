@@ -104,7 +104,7 @@ function PatientDetail() {
   return (
     <>
       <AppHeader
-        title={`${patientData.first_name} ${patientData.last_name}`}
+        title={formatPatientName(patientData)}
         subtitle={patientData.salutation ?? undefined}
         right={
           <Button asChild variant="ghost" size="icon" aria-label="Wróć do listy">

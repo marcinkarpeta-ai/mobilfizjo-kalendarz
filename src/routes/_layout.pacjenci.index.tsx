@@ -137,10 +137,15 @@ function PatientsPage() {
                           {p.first_name} {p.last_name}
                         </h3>
                         <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                          {p.salutation} · {p.phone}
+                          {p.salutation?.trim() ? p.salutation : "—"} · {p.phone}
                         </p>
                       </Link>
                       <div className="flex shrink-0 flex-col items-end gap-1">
+                        {!p.salutation?.trim() && !archived ? (
+                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400">
+                            Uzupełnij formę zwrotu
+                          </Badge>
+                        ) : null}
                         {archived ? (
                           <Badge variant="outline">Zarchiwizowany</Badge>
                         ) : !p.service_consent_at ? (

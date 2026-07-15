@@ -102,10 +102,12 @@ export function AddAppointmentDialog({
 
   const filteredPatients = useMemo(() => {
     const q = normalizeText(patientQuery.trim());
-    if (!q) return patients;
-    return patients.filter((p) =>
-      normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""} ${p.phone ?? ""}`).includes(q),
-    );
+    const base = !q
+      ? patients
+      : patients.filter((p) =>
+          normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""} ${p.phone ?? ""}`).includes(q),
+        );
+    return base.slice().sort(comparePatients);
   }, [patients, patientQuery]);
 
   useEffect(() => {

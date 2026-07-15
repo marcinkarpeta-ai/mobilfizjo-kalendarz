@@ -20,7 +20,7 @@ import {
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { ImportPatientsDialog } from "@/components/import-patients-dialog";
 import { useStore } from "@/lib/store";
-import { formatPatientName, isPatientNameIncomplete } from "@/lib/format";
+import { comparePatients, formatPatientName, isPatientNameIncomplete } from "@/lib/format";
 import type { Patient } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -57,10 +57,12 @@ function PatientsPage() {
     const base = showArchived
       ? patients
       : patients.filter((p) => !p.archived_at);
-    if (!query) return base;
-    return base.filter((p) =>
-      `${formatPatientName(p)} ${p.phone}`.toLowerCase().includes(query),
-    );
+    const searched = !query
+      ? base
+      : base.filter((p) =>
+          `${formatPatientName(p)} ${p.phone}`.toLowerCase().includes(query),
+        );
+    return searched.slice().sort(comparePatients);
   }, [patients, q, showArchived]);
 
   return (

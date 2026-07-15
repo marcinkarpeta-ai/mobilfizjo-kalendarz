@@ -52,3 +52,33 @@ export function isPatientNameIncomplete(p: {
 }): boolean {
   return !(p.first_name ?? "").trim() || !(p.last_name ?? "").trim();
 }
+
+const patientCollator = new Intl.Collator("pl", {
+  sensitivity: "base",
+  numeric: true,
+});
+
+export function comparePatients(
+  a: {
+    first_name?: string | null;
+    last_name?: string | null;
+    phone?: string | null;
+  },
+  b: {
+    first_name?: string | null;
+    last_name?: string | null;
+    phone?: string | null;
+  },
+): number {
+  const aLast = (a.last_name ?? "").trim();
+  const aFirst = (a.first_name ?? "").trim();
+  const bLast = (b.last_name ?? "").trim();
+  const bFirst = (b.first_name ?? "").trim();
+  const aKey = aLast || aFirst;
+  const bKey = bLast || bFirst;
+  const primary = patientCollator.compare(aKey, bKey);
+  if (primary !== 0) return primary;
+  const secondary = patientCollator.compare(aFirst, bFirst);
+  if (secondary !== 0) return secondary;
+  return (a.phone ?? "").localeCompare(b.phone ?? "");
+}

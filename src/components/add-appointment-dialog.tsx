@@ -38,7 +38,7 @@ import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
 import type { Appointment, AppointmentType } from "@/lib/types";
-import { overlaps, formatPatientNameLastFirst } from "@/lib/format";
+import { overlaps, formatPatientNameLastFirst, comparePatients } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -102,10 +102,12 @@ export function AddAppointmentDialog({
 
   const filteredPatients = useMemo(() => {
     const q = normalizeText(patientQuery.trim());
-    if (!q) return patients;
-    return patients.filter((p) =>
-      normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""} ${p.phone ?? ""}`).includes(q),
-    );
+    const base = !q
+      ? patients
+      : patients.filter((p) =>
+          normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""} ${p.phone ?? ""}`).includes(q),
+        );
+    return base.slice().sort(comparePatients);
   }, [patients, patientQuery]);
 
   useEffect(() => {

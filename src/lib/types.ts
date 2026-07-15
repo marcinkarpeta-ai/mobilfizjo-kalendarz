@@ -62,7 +62,14 @@ export type MessageKind =
   | "marketing_anniversary"
   | "marketing_birthday";
 
-export type MessageStatus = "pending" | "sent" | "failed";
+export type MessageStatus =
+  | "pending"
+  | "processing"
+  | "sent"
+  | "failed"
+  | "cancelled"
+  | "delivered"
+  | "undelivered";
 
 export interface MessageLog {
   id: string;

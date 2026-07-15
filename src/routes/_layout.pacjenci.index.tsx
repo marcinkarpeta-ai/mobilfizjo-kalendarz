@@ -57,10 +57,12 @@ function PatientsPage() {
     const base = showArchived
       ? patients
       : patients.filter((p) => !p.archived_at);
-    if (!query) return base;
-    return base.filter((p) =>
-      `${formatPatientName(p)} ${p.phone}`.toLowerCase().includes(query),
-    );
+    const searched = !query
+      ? base
+      : base.filter((p) =>
+          `${formatPatientName(p)} ${p.phone}`.toLowerCase().includes(query),
+        );
+    return searched.slice().sort(comparePatients);
   }, [patients, q, showArchived]);
 
   return (

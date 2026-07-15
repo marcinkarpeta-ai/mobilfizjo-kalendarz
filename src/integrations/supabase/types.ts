@@ -181,34 +181,46 @@ export type Database = {
           appointment_id: string | null
           body: string
           created_at: string
+          delivered_at: string | null
           error: string | null
           id: string
           kind: Database["public"]["Enums"]["message_kind"]
           patient_id: string
+          processing_started_at: string | null
+          provider_ref: string | null
+          scheduled_at: string
           sent_at: string | null
-          status: Database["public"]["Enums"]["message_status"]
+          status: string
         }
         Insert: {
           appointment_id?: string | null
           body: string
           created_at?: string
+          delivered_at?: string | null
           error?: string | null
           id?: string
           kind: Database["public"]["Enums"]["message_kind"]
           patient_id: string
+          processing_started_at?: string | null
+          provider_ref?: string | null
+          scheduled_at?: string
           sent_at?: string | null
-          status?: Database["public"]["Enums"]["message_status"]
+          status?: string
         }
         Update: {
           appointment_id?: string | null
           body?: string
           created_at?: string
+          delivered_at?: string | null
           error?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["message_kind"]
           patient_id?: string
+          processing_started_at?: string | null
+          provider_ref?: string | null
+          scheduled_at?: string
           sent_at?: string | null
-          status?: Database["public"]["Enums"]["message_status"]
+          status?: string
         }
         Relationships: [
           {
@@ -388,6 +400,15 @@ export type Database = {
     }
     Functions: {
       canonical_phone: { Args: { _phone: string }; Returns: string }
+      claim_pending_messages: {
+        Args: { _limit: number }
+        Returns: {
+          body: string
+          id: string
+          kind: string
+          phone: string
+        }[]
+      }
       get_busy_blocks: {
         Args: { _from: string; _to: string }
         Returns: {

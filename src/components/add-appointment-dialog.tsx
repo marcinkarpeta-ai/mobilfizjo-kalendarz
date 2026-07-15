@@ -38,7 +38,7 @@ import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
 import type { Appointment, AppointmentType } from "@/lib/types";
-import { overlaps, formatPatientNameLastFirst } from "@/lib/format";
+import { overlaps, formatPatientNameLastFirst, comparePatients } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 

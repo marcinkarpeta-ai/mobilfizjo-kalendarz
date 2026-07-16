@@ -24,6 +24,8 @@ import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjen
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
+import { Route as ApiPublicMessagesLogIdResultRouteImport } from './routes/api/public/messages-log/$id.result'
+import { Route as ApiPublicMessagesLogIdDeliveryRouteImport } from './routes/api/public/messages-log/$id.delivery'
 
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
@@ -103,6 +105,18 @@ const ApiPublicMessagesLogClaimRoute =
     path: '/api/public/messages-log/claim',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMessagesLogIdResultRoute =
+  ApiPublicMessagesLogIdResultRouteImport.update({
+    id: '/api/public/messages-log/$id/result',
+    path: '/api/public/messages-log/$id/result',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMessagesLogIdDeliveryRoute =
+  ApiPublicMessagesLogIdDeliveryRouteImport.update({
+    id: '/api/public/messages-log/$id/delivery',
+    path: '/api/public/messages-log/$id/delivery',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -119,6 +133,8 @@ export interface FileRoutesByFullPath {
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
+  '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
+  '/api/public/messages-log/$id/result': typeof ApiPublicMessagesLogIdResultRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -134,6 +150,8 @@ export interface FileRoutesByTo {
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
+  '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
+  '/api/public/messages-log/$id/result': typeof ApiPublicMessagesLogIdResultRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +170,8 @@ export interface FileRoutesById {
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
+  '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
+  '/api/public/messages-log/$id/result': typeof ApiPublicMessagesLogIdResultRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,6 +190,8 @@ export interface FileRouteTypes {
     | '/pacjenci/$id'
     | '/pacjenci/'
     | '/api/public/messages-log/claim'
+    | '/api/public/messages-log/$id/delivery'
+    | '/api/public/messages-log/$id/result'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -185,6 +207,8 @@ export interface FileRouteTypes {
     | '/pacjenci/$id'
     | '/pacjenci'
     | '/api/public/messages-log/claim'
+    | '/api/public/messages-log/$id/delivery'
+    | '/api/public/messages-log/$id/result'
   id:
     | '__root__'
     | '/_layout'
@@ -202,6 +226,8 @@ export interface FileRouteTypes {
     | '/_layout/pacjenci/$id'
     | '/_layout/pacjenci/'
     | '/api/public/messages-log/claim'
+    | '/api/public/messages-log/$id/delivery'
+    | '/api/public/messages-log/$id/result'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -212,6 +238,8 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicMessagesLogClaimRoute: typeof ApiPublicMessagesLogClaimRoute
+  ApiPublicMessagesLogIdDeliveryRoute: typeof ApiPublicMessagesLogIdDeliveryRoute
+  ApiPublicMessagesLogIdResultRoute: typeof ApiPublicMessagesLogIdResultRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -321,6 +349,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMessagesLogClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/messages-log/$id/result': {
+      id: '/api/public/messages-log/$id/result'
+      path: '/api/public/messages-log/$id/result'
+      fullPath: '/api/public/messages-log/$id/result'
+      preLoaderRoute: typeof ApiPublicMessagesLogIdResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/messages-log/$id/delivery': {
+      id: '/api/public/messages-log/$id/delivery'
+      path: '/api/public/messages-log/$id/delivery'
+      fullPath: '/api/public/messages-log/$id/delivery'
+      preLoaderRoute: typeof ApiPublicMessagesLogIdDeliveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -368,6 +410,8 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicMessagesLogClaimRoute: ApiPublicMessagesLogClaimRoute,
+  ApiPublicMessagesLogIdDeliveryRoute: ApiPublicMessagesLogIdDeliveryRoute,
+  ApiPublicMessagesLogIdResultRoute: ApiPublicMessagesLogIdResultRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

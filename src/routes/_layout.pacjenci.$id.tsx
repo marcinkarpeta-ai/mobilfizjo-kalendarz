@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Archive, ArrowLeft, ImageOff, Pencil, RotateCcw, ShieldAlert } from "lucide-react";
-import { parseISO } from "date-fns";
+import { parseISO, subMonths } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { AppointmentCard } from "@/components/appointment-card";
 import { AddPatientDialog } from "@/components/add-patient-dialog";

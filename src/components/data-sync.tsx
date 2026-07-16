@@ -106,7 +106,7 @@ export function DataSync() {
         appointment_id: u(r.appointment_id),
         patient_id: r.patient_id,
         kind: r.kind,
-        status: r.status,
+        status: r.status as MessageLog["status"],
         body: r.body,
         created_at: r.created_at,
         sent_at: u(r.sent_at),

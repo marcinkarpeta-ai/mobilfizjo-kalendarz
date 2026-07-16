@@ -52,6 +52,7 @@ function TodayPage() {
 
   const dayAppts = appointments
     .filter((a) => isSameLocalDay(a.starts_at, today))
+    .filter((a) => a.status !== "cancelled")
     .filter((a) => (isFamily ? a.type === "family_event" : true));
 
   const items: TimelineItem[] = [

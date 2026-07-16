@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Archive, ArrowLeft, ImageOff, Pencil, RotateCcw, ShieldAlert } from "lucide-react";
-import { parseISO } from "date-fns";
+import { parseISO, subMonths } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { AppointmentCard } from "@/components/appointment-card";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
@@ -82,6 +82,18 @@ function PatientDetail() {
   );
 
   const lastVisit = history.find((a) => a.status !== "cancelled");
+
+  const cancelledStats = useMemo(() => {
+    const cutoff = subMonths(new Date(), 12);
+    let total = 0;
+    let last12 = 0;
+    for (const a of appointments) {
+      if (a.status !== "cancelled") continue;
+      total++;
+      if (parseISO(a.starts_at) >= cutoff) last12++;
+    }
+    return { total, last12 };
+  }, [appointments]);
 
   function saveNote() {
     if (!noteBody.trim()) {
@@ -232,6 +244,10 @@ function PatientDetail() {
                   <Badge variant="outline">Brak</Badge>
                 )
               }
+            />
+            <DataRow
+              label="Odwołane wizyty"
+              value={`${cancelledStats.total} ogółem / ${cancelledStats.last12} w 12 mies.`}
             />
             {patientData.general_note ? (
               <div className="rounded-xl border border-border bg-card px-4 py-3">

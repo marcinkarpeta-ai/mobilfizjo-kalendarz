@@ -245,6 +245,10 @@ function PatientDetail() {
                 )
               }
             />
+            <DataRow
+              label="Odwołane wizyty"
+              value={`${cancelledStats.total} ogółem / ${cancelledStats.last12} w 12 mies.`}
+            />
             {patientData.general_note ? (
               <div className="rounded-xl border border-border bg-card px-4 py-3">
                 <div className="mb-1 text-sm text-muted-foreground">Notatka ogólna</div>

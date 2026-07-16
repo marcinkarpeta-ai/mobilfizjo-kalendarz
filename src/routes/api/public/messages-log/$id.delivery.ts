@@ -31,7 +31,11 @@ export const Route = createFileRoute("/api/public/messages-log/$id/delivery")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const update: Record<string, unknown> = {
+        const update: {
+          status: string;
+          delivered_at: string;
+          error?: string;
+        } = {
           status: payload.status,
           delivered_at: payload.delivered_at ?? new Date().toISOString(),
         };

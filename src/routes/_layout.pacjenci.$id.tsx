@@ -83,6 +83,18 @@ function PatientDetail() {
 
   const lastVisit = history.find((a) => a.status !== "cancelled");
 
+  const cancelledStats = useMemo(() => {
+    const cutoff = subMonths(new Date(), 12);
+    let total = 0;
+    let last12 = 0;
+    for (const a of appointments) {
+      if (a.status !== "cancelled") continue;
+      total++;
+      if (parseISO(a.starts_at) >= cutoff) last12++;
+    }
+    return { total, last12 };
+  }, [appointments]);
+
   function saveNote() {
     if (!noteBody.trim()) {
       toast.error("Notatka nie może być pusta.");

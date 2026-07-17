@@ -109,6 +109,7 @@ export function DataSync() {
         status: r.status as MessageLog["status"],
         body: r.body,
         created_at: r.created_at,
+        scheduled_at: u(r.scheduled_at),
         sent_at: u(r.sent_at),
         error: u(r.error),
       }));

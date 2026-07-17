@@ -49,22 +49,57 @@ const REASON_LABEL: Record<MarketingReason, string> = {
   birthday: "Urodziny",
 };
 
+const STATUS_LABEL: Record<MessageStatus, string> = {
+  pending: "Oczekuje",
+  processing: "W trakcie",
+  sent: "Wysłano",
+  failed: "Błąd",
+  cancelled: "Anulowana",
+  delivered: "Doręczono",
+  undelivered: "Niedoręczona",
+};
+
 function statusBadge(status: MessageStatus) {
+  const label = STATUS_LABEL[status] ?? status;
+  if (status === "delivered")
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <CheckCheck className="h-3 w-3" /> {label}
+      </Badge>
+    );
   if (status === "sent")
     return (
       <Badge variant="secondary" className="gap-1">
-        <Check className="h-3 w-3" /> Wysłano
+        <Check className="h-3 w-3" /> {label}
       </Badge>
     );
   if (status === "pending")
     return (
       <Badge variant="outline" className="gap-1">
-        <Clock className="h-3 w-3" /> Oczekuje
+        <Clock className="h-3 w-3" /> {label}
+      </Badge>
+    );
+  if (status === "processing")
+    return (
+      <Badge variant="outline" className="gap-1">
+        <Loader2 className="h-3 w-3" /> {label}
+      </Badge>
+    );
+  if (status === "cancelled")
+    return (
+      <Badge variant="outline" className="gap-1 text-muted-foreground">
+        <Ban className="h-3 w-3" /> {label}
+      </Badge>
+    );
+  if (status === "undelivered")
+    return (
+      <Badge variant="destructive" className="gap-1">
+        <AlertTriangle className="h-3 w-3" /> {label}
       </Badge>
     );
   return (
     <Badge variant="destructive" className="gap-1">
-      <X className="h-3 w-3" /> Błąd
+      <X className="h-3 w-3" /> {label}
     </Badge>
   );
 }

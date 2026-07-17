@@ -409,6 +409,10 @@ export type Database = {
           phone: string
         }[]
       }
+      enqueue_visit_messages: {
+        Args: { _appointment_id: string }
+        Returns: undefined
+      }
       get_busy_blocks: {
         Args: { _from: string; _to: string }
         Returns: {
@@ -424,6 +428,14 @@ export type Database = {
         Returns: boolean
       }
       is_allowed_email: { Args: { _email: string }; Returns: boolean }
+      render_message_body: {
+        Args: {
+          _kind: Database["public"]["Enums"]["message_kind"]
+          _patient_id: string
+          _starts_at: string
+        }
+        Returns: string
+      }
       role_for_email: {
         Args: { _email: string }
         Returns: Database["public"]["Enums"]["app_role"]

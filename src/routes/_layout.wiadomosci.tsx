@@ -147,7 +147,8 @@ function MessagesPage() {
                             {p ? formatPatientName(p) : "—"}
                           </h3>
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            {KIND_LABEL[m.kind]} · {fmtDate(m.created_at, "d MMM, HH:mm")}
+                            {KIND_LABEL[m.kind]} · zaplanowana{" "}
+                            {fmtDate(m.scheduled_at ?? m.created_at, "d MMM, HH:mm")}
                           </p>
                         </div>
                         {statusBadge(m.status)}

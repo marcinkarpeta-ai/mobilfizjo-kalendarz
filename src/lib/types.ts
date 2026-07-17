@@ -79,6 +79,7 @@ export interface MessageLog {
   status: MessageStatus;
   body: string;
   created_at: string;
+  scheduled_at?: string;
   sent_at?: string;
   error?: string;
 }

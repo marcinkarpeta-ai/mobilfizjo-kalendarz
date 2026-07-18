@@ -21,6 +21,7 @@ import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
+import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
@@ -88,6 +89,11 @@ const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutPacjenciRoute,
 } as any)
+const ApiPublicDailyDigestRoute = ApiPublicDailyDigestRouteImport.update({
+  id: '/api/public/daily-digest',
+  path: '/api/public/daily-digest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
   '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
   '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
   '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/wiadomosci'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/public/daily-digest'
     | '/pacjenci/'
     | '/api/public/messages-log/claim'
     | '/api/public/messages-log/$id/delivery'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/public/daily-digest'
     | '/pacjenci'
     | '/api/public/messages-log/claim'
     | '/api/public/messages-log/$id/delivery'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/.mcp/invoke-tool/$tool'
     | '/_layout/pacjenci/$id'
+    | '/api/public/daily-digest'
     | '/_layout/pacjenci/'
     | '/api/public/messages-log/claim'
     | '/api/public/messages-log/$id/delivery'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicDailyDigestRoute: typeof ApiPublicDailyDigestRoute
   ApiPublicMessagesLogClaimRoute: typeof ApiPublicMessagesLogClaimRoute
   ApiPublicMessagesLogIdDeliveryRoute: typeof ApiPublicMessagesLogIdDeliveryRoute
   ApiPublicMessagesLogIdResultRoute: typeof ApiPublicMessagesLogIdResultRoute
@@ -328,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutPacjenciIndexRouteImport
       parentRoute: typeof LayoutPacjenciRoute
     }
+    '/api/public/daily-digest': {
+      id: '/api/public/daily-digest'
+      path: '/api/public/daily-digest'
+      fullPath: '/api/public/daily-digest'
+      preLoaderRoute: typeof ApiPublicDailyDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_layout/pacjenci/$id': {
       id: '/_layout/pacjenci/$id'
       path: '/$id'
@@ -409,6 +429,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicDailyDigestRoute: ApiPublicDailyDigestRoute,
   ApiPublicMessagesLogClaimRoute: ApiPublicMessagesLogClaimRoute,
   ApiPublicMessagesLogIdDeliveryRoute: ApiPublicMessagesLogIdDeliveryRoute,
   ApiPublicMessagesLogIdResultRoute: ApiPublicMessagesLogIdResultRoute,

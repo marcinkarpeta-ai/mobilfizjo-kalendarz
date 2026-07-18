@@ -1,35 +1,54 @@
+## Cel
+
+Nowy publiczny endpoint dla n8n zwracający dzienne podsumowanie (wizyty + wydarzenia rodzinne) dla wskazanego dnia w strefie Europe/Warsaw.
+
 ## Zakres
 
-Odwołane wizyty znikają z osi dnia i z ekranu "Dzisiaj". Zostają widoczne wyłącznie w historii karty pacjenta (już oznaczone) plus nowy licznik statystyczny. Pasek dostępności, siatka miesiąca (kropki), reguły RLS i logika odwoływania — bez zmian.
+Jeden nowy plik route, bez zmian w RLS, UI, typach ani innych endpointach.
 
-## Zmiany
+- Nowy plik: `src/routes/api/public/daily-digest.ts`
+- Autoryzacja: `verifyN8nBearer` z `@/lib/n8n-auth.server` (identycznie jak w `messages-log/*`)
+- Dostęp do danych: `supabaseAdmin` z `@/integrations/supabase/client.server` ładowany dynamicznie wewnątrz handlera (route pliki są w client-graph)
 
-### 1. `src/components/day-timeline.tsx`
-- Na wejściu odfiltrować `appointments` do `a.status !== "cancelled"` przed `layoutColumns` i `computeGaps`. Dzięki temu luki pod odwołaną wizytą są w pełni widoczne i klikalne jak każde inne.
-- Usunąć gałąź renderującą wyblakłe bloki odwołane (pętla po `items` w `layoutColumns` dokładająca `cancelled` oraz cały path `cancelled` w JSX bloków). `BlockContent` traci nieużywaną prop `cancelled` — uprościć sygnaturę.
-- Zwrócić dodatkowo listę odwołanych z dnia (osobny wynik hooka renderującego) — najprościej: `DayTimeline` przyjmuje pełną listę i wewnętrznie dzieli; renderuje pod osią sekcję "Odwołane" opisaną niżej.
+## Kontrakt
 
-### 2. Sekcja "Odwołane (N)" pod osią (w `DayTimeline`)
-- Pokazywana tylko, gdy dzień zawiera odwołane wizyty (i nie w trybie `familyView`).
-- Zwinięty przycisk `<button>` w stylu dyskretnej linii pod osią: "Odwołane (N)" + chevron; stan otwarcia lokalny (`useState`).
-- Rozwinięta: `<ul>` pozycji `HH:MM–HH:MM · nazwisko/imię pacjenta` z klasą `line-through` i `text-muted-foreground`; każda pozycja to `<button>` który wywołuje istniejące `onSelectAppointment(appt)` (arkusz szczegółów już potrafi obsłużyć odwołane).
-- Sortowanie chronologiczne.
+`GET /api/public/daily-digest?date=YYYY-MM-DD`
 
-### 3. `src/routes/_layout.index.tsx` (Dzisiaj)
-- Dołożyć filtr `a.status !== "cancelled"` do `dayAppts`. To eliminuje odwołane z sekcji "Następna wizyta" i "Plan dnia". Ekran Dzisiaj nie dostaje sekcji "Odwołane (N)" — zgodnie z pytaniem nie ma tam osi dnia, tylko lista; historia jest w karcie pacjenta.
+- Nagłówek: `Authorization: Bearer <N8N_WEBHOOK_SECRET>`
+- `date` opcjonalny; brak parametru → jutro wg `Europe/Warsaw`
+- Walidacja formatu daty (regex `^\d{4}-\d{2}-\d{2}$`); zły format → 400
+- Zły/brak nagłówka → 401 (przez helper)
 
-### 4. `src/routes/_layout.pacjenci.$id.tsx` — statystyki
-- Nad `Tabs` (albo w zakładce "Dane" jako pierwszy blok) dodać sekcję statystyk. Minimalny wariant: jeden `DataRow` "Odwołane wizyty" z wartością `"{ogółem} ogółem / {12m} w 12 mies."`.
-- Liczenie po pełnej `appointments` pacjenta:
-  - `total = appointments.filter(a => a.status === "cancelled").length`
-  - `last12 = appointments.filter(a => a.status === "cancelled" && parseISO(a.starts_at) >= subMonths(now, 12)).length`
-- Jeżeli `total === 0`, i tak wyświetlamy wiersz z `"0 ogółem / 0 w 12 mies."` — spójność z innymi wierszami danych.
+Odpowiedź 200 JSON:
 
-### 5. Weryfikacja historii w karcie pacjenta
-- Historia sortowana `desc` w istniejącym kodzie (linie 80–82) — bez zmian.
-- `AppointmentCard` już renderuje status odwołania widocznie (przekreślenie / plakietka). Zweryfikować i, gdyby oznaczenie było zbyt subtelne, dodać wyraźną plakietkę "Odwołana" (destructive) obok tytułu wizyty. Zmiana wyłącznie prezentacyjna w `src/components/appointment-card.tsx`, tylko jeśli obecny stan nie spełnia "wyraźnie".
+```json
+{
+  "date": "2026-07-19",
+  "visits": [
+    { "starts_at": "...", "ends_at": "...", "patient_name": "Jan Kowalski", "phone": "+48...", "salutation": "Pan Jan", "label": "Terapia manualna" }
+  ],
+  "family_events": [
+    { "starts_at": "...", "ends_at": "...", "title": "..." }
+  ]
+}
+```
 
-## Poza zakresem
-- Logika odwoływania (zapis, powiadomienia), SMS-y, siatka miesiąca (kropki w kalendarzu), RLS, `get_busy_blocks` (i tak pomija odwołane).
-- Pasek dostępności w formularzu — bez zmian.
-- Rola family — bloki "Zajęte" bez zmian (odwołane nie tworzą bloków).
+## Logika
+
+1. Weryfikuj bearer → jeśli błąd, zwróć 401 z helpera.
+2. Wyznacz granice dnia w Europe/Warsaw:
+   - Zakres `[startUtc, endUtc)` obliczony jako `YYYY-MM-DDT00:00:00+02:00`/`+01:00` z uwzględnieniem DST. Realizacja: użyć `Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Warsaw', timeZoneName: 'longOffset' })` do wyznaczenia offsetu dla wskazanej daty, następnie zbudować ISO z offsetem, `+1 day` na koniec.
+   - Domyślne "jutro": bieżąca data w Europe/Warsaw + 1 dzień.
+3. Zapytania przez `supabaseAdmin` (bez RLS):
+   - `appointments` gdzie `status = 'scheduled'`, `starts_at >= start`, `starts_at < end`, kolejność `starts_at asc`, z joinem `patients(first_name,last_name,salutation,phone)` i `visit_labels(name)`.
+   - Filtr po `type`: `patient_visit` → `visits`, `family_event` → `family_events`.
+4. Mapowanie:
+   - `patient_name` = `formatPatientName` (lub inline: `first_name + last_name`, oba mogą być null); telefon i salutacja bez zmian.
+   - `label` = `visit_labels.name` lub `null`.
+   - `title` dla `family_events` = `appointments.title` lub `null`.
+5. `Response.json({ date, visits, family_events })`.
+
+## Bez zmian
+
+- Brak migracji, brak zmian w RLS, w UI, w typach, w istniejących endpointach.
+- Sekret `N8N_WEBHOOK_SECRET` już skonfigurowany.

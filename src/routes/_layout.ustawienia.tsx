@@ -396,7 +396,7 @@ function FamilySettings({
 
   return (
     <>
-      <AppHeader title="Ustawienia" />
+      <AppHeader title="Ustawienia" feedbackScreen="Ustawienia" />
       <PageContainer className="space-y-6">
         <Section title="Profil">
           <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
@@ -413,6 +413,20 @@ function FamilySettings({
               Zapisz
             </Button>
           </div>
+        </Section>
+
+        <Section title="Sugestie">
+          <button
+            type="button"
+            onClick={() => setFeedbackOpen(true)}
+            className="flex w-full items-center justify-between rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-accent"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <MessageSquarePlus className="h-4 w-4" />
+              Zgłoś sugestię
+            </span>
+            <span className="text-sm text-muted-foreground">→</span>
+          </button>
         </Section>
 
         <Section title="Konto">
@@ -432,6 +446,12 @@ function FamilySettings({
 
         <PoweredByFooter />
       </PageContainer>
+
+      <FeedbackSheet
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        screen="Ustawienia"
+      />
     </>
   );
 }

@@ -1,54 +1,61 @@
 ## Cel
+Moduł sugestii rozwojowych: zgłaszanie pomysłów przez terapeutę i rodzinę (z opcjonalnym zdjęciem), plus prosty widok listy w Ustawieniach dla terapeuty.
 
-Nowy publiczny endpoint dla n8n zwracający dzienne podsumowanie (wizyty + wydarzenia rodzinne) dla wskazanego dnia w strefie Europe/Warsaw.
+## 1. Migracja bazy
 
-## Zakres
+Nowa tabela `public.feedback`:
+- `id uuid PK default gen_random_uuid()`
+- `created_by uuid NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE`
+- `screen text NOT NULL`
+- `body text NOT NULL CHECK (length(btrim(body)) > 0)`
+- `photo_path text` (klucz w Storage; nullable)
+- `status text NOT NULL DEFAULT 'new' CHECK (status IN ('new','seen','done'))`
+- `created_at timestamptz NOT NULL DEFAULT now()`
 
-Jeden nowy plik route, bez zmian w RLS, UI, typach ani innych endpointach.
+GRANT: `SELECT, INSERT, UPDATE ON public.feedback TO authenticated; GRANT ALL TO service_role;`
 
-- Nowy plik: `src/routes/api/public/daily-digest.ts`
-- Autoryzacja: `verifyN8nBearer` z `@/lib/n8n-auth.server` (identycznie jak w `messages-log/*`)
-- Dostęp do danych: `supabaseAdmin` z `@/integrations/supabase/client.server` ładowany dynamicznie wewnątrz handlera (route pliki są w client-graph)
+RLS ENABLE + polityki:
+- INSERT: `authenticated`, `WITH CHECK (created_by = auth.uid())`
+- SELECT own: `USING (created_by = auth.uid())`
+- SELECT therapist: `USING (public.has_role(auth.uid(),'therapist'))`
+- UPDATE therapist: `USING (public.has_role(auth.uid(),'therapist')) WITH CHECK (public.has_role(auth.uid(),'therapist'))`
 
-## Kontrakt
+Trigger BEFORE UPDATE (`public.tg_feedback_protect_immutable`, SECURITY DEFINER, `SET search_path = public`): blokuje zmianę `created_by`, `screen`, `body`, `photo_path`, `created_at` przez `RAISE EXCEPTION` — dopuszczalna jest wyłącznie zmiana `status` (walidacja wartości przez CHECK na kolumnie).
 
-`GET /api/public/daily-digest?date=YYYY-MM-DD`
+Storage: prywatny bucket `feedback-photos` (przez `supabase--storage_create_bucket`, `public=false`). Polityki na `storage.objects`:
+- INSERT authenticated do własnego folderu (`bucket_id='feedback-photos' AND (storage.foldername(name))[1] = auth.uid()::text`)
+- SELECT own analogicznie
+- SELECT therapist: `bucket_id='feedback-photos' AND public.has_role(auth.uid(),'therapist')`
 
-- Nagłówek: `Authorization: Bearer <N8N_WEBHOOK_SECRET>`
-- `date` opcjonalny; brak parametru → jutro wg `Europe/Warsaw`
-- Walidacja formatu daty (regex `^\d{4}-\d{2}-\d{2}$`); zły format → 400
-- Zły/brak nagłówka → 401 (przez helper)
+Ścieżka pliku: `{user_id}/{uuid}-{filename}`.
 
-Odpowiedź 200 JSON:
+## 2. Komponent `src/components/feedback-sheet.tsx`
 
-```json
-{
-  "date": "2026-07-19",
-  "visits": [
-    { "starts_at": "...", "ends_at": "...", "patient_name": "Jan Kowalski", "phone": "+48...", "salutation": "Pan Jan", "label": "Terapia manualna" }
-  ],
-  "family_events": [
-    { "starts_at": "...", "ends_at": "...", "title": "..." }
-  ]
-}
-```
+`Sheet` z shadcn (side="bottom"):
+- Props: `open`, `onOpenChange`, `screen: string`.
+- Pola: `Textarea` (placeholder „Co poprawić lub dodać?"), input `file` (accept `image/*`, `capture="environment"`), miniatura po wyborze, przycisk „Wyślij".
+- Wysyłka:
+  1. Jeśli plik: `supabase.storage.from('feedback-photos').upload(...)` do `${userId}/${crypto.randomUUID()}-${file.name}`.
+  2. `supabase.from('feedback').insert({ created_by: userId, screen, body, photo_path })`.
+  3. Toast „Dziękujemy! Sugestia zapisana.", reset, zamknięcie.
+- Walidacja: body wymagane (trim), max ~2000 znaków; obraz max 5 MB.
 
-## Logika
+## 3. Ikona w nagłówku
 
-1. Weryfikuj bearer → jeśli błąd, zwróć 401 z helpera.
-2. Wyznacz granice dnia w Europe/Warsaw:
-   - Zakres `[startUtc, endUtc)` obliczony jako `YYYY-MM-DDT00:00:00+02:00`/`+01:00` z uwzględnieniem DST. Realizacja: użyć `Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Warsaw', timeZoneName: 'longOffset' })` do wyznaczenia offsetu dla wskazanej daty, następnie zbudować ISO z offsetem, `+1 day` na koniec.
-   - Domyślne "jutro": bieżąca data w Europe/Warsaw + 1 dzień.
-3. Zapytania przez `supabaseAdmin` (bez RLS):
-   - `appointments` gdzie `status = 'scheduled'`, `starts_at >= start`, `starts_at < end`, kolejność `starts_at asc`, z joinem `patients(first_name,last_name,salutation,phone)` i `visit_labels(name)`.
-   - Filtr po `type`: `patient_visit` → `visits`, `family_event` → `family_events`.
-4. Mapowanie:
-   - `patient_name` = `formatPatientName` (lub inline: `first_name + last_name`, oba mogą być null); telefon i salutacja bez zmian.
-   - `label` = `visit_labels.name` lub `null`.
-   - `title` dla `family_events` = `appointments.title` lub `null`.
-5. `Response.json({ date, visits, family_events })`.
+`src/components/app-header.tsx`: nowy opcjonalny prop `feedbackScreen?: string`. Gdy podany, po prawej (obok istniejącego `right`) `Button` ikonowy `MessageSquarePlus` otwierający `FeedbackSheet`. Stan `open` wewnątrz `AppHeader`.
 
-## Bez zmian
+Wywołania: dodać `feedbackScreen` w `_layout.index.tsx`, `_layout.kalendarz.tsx`, `_layout.pacjenci.index.tsx`, `_layout.pacjenci.$id.tsx`, `_layout.wiadomosci.tsx`, `_layout.ustawienia.tsx` (oba warianty).
 
-- Brak migracji, brak zmian w RLS, w UI, w typach, w istniejących endpointach.
-- Sekret `N8N_WEBHOOK_SECRET` już skonfigurowany.
+## 4. Pozycja „Zgłoś sugestię" w Ustawieniach
+
+Nowa sekcja w `SettingsPage` i `FamilySettings` — przycisk otwierający `FeedbackSheet` z `screen="Ustawienia"`.
+
+## 5. Widok listy „Sugestie" (tylko terapeuta)
+
+Nowa sekcja w `SettingsPage`, widoczna dla `role === 'therapist'`:
+- Fetch: `supabase.from('feedback').select('*').order('created_at',{ascending:false})`.
+- Karty: data (`dd.MM.yyyy HH:mm`), `screen`, `body` (whitespace-pre-wrap), miniatura (signed URL 60 s przez `storage.from('feedback-photos').createSignedUrl`), `Select` statusu (Nowe / Przejrzane / Zrobione).
+- Zmiana statusu: `update({ status }).eq('id', id)` — trigger pilnuje niezmienności pozostałych pól.
+
+## Poza zakresem
+Powiadomienia, e-maile, edycja treści zgłoszenia, komentarze, filtry/sortowanie poza domyślnym.

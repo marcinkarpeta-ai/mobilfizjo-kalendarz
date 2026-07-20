@@ -25,6 +25,7 @@ import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/da
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
+import { Route as LayoutUstawieniaSugestieIdRouteImport } from './routes/_layout.ustawienia.sugestie.$id'
 import { Route as ApiPublicMessagesLogIdResultRouteImport } from './routes/api/public/messages-log/$id.result'
 import { Route as ApiPublicMessagesLogIdDeliveryRouteImport } from './routes/api/public/messages-log/$id.delivery'
 
@@ -111,6 +112,12 @@ const ApiPublicMessagesLogClaimRoute =
     path: '/api/public/messages-log/claim',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LayoutUstawieniaSugestieIdRoute =
+  LayoutUstawieniaSugestieIdRouteImport.update({
+    id: '/sugestie/$id',
+    path: '/sugestie/$id',
+    getParentRoute: () => LayoutUstawieniaRoute,
+  } as any)
 const ApiPublicMessagesLogIdResultRoute =
   ApiPublicMessagesLogIdResultRouteImport.update({
     id: '/api/public/messages-log/$id/result',
@@ -133,12 +140,13 @@ export interface FileRoutesByFullPath {
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/pacjenci': typeof LayoutPacjenciRouteWithChildren
-  '/ustawienia': typeof LayoutUstawieniaRoute
+  '/ustawienia': typeof LayoutUstawieniaRouteWithChildren
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
+  '/ustawienia/sugestie/$id': typeof LayoutUstawieniaSugestieIdRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
   '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
   '/api/public/messages-log/$id/result': typeof ApiPublicMessagesLogIdResultRoute
@@ -150,13 +158,14 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/kalendarz': typeof LayoutKalendarzRoute
   '/o-aplikacji': typeof LayoutOAplikacjiRoute
-  '/ustawienia': typeof LayoutUstawieniaRoute
+  '/ustawienia': typeof LayoutUstawieniaRouteWithChildren
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
+  '/ustawienia/sugestie/$id': typeof LayoutUstawieniaSugestieIdRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
   '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
   '/api/public/messages-log/$id/result': typeof ApiPublicMessagesLogIdResultRoute
@@ -171,13 +180,14 @@ export interface FileRoutesById {
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
   '/_layout/o-aplikacji': typeof LayoutOAplikacjiRoute
   '/_layout/pacjenci': typeof LayoutPacjenciRouteWithChildren
-  '/_layout/ustawienia': typeof LayoutUstawieniaRoute
+  '/_layout/ustawienia': typeof LayoutUstawieniaRouteWithChildren
   '/_layout/wiadomosci': typeof LayoutWiadomosciRoute
   '/_layout/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
+  '/_layout/ustawienia/sugestie/$id': typeof LayoutUstawieniaSugestieIdRoute
   '/api/public/messages-log/claim': typeof ApiPublicMessagesLogClaimRoute
   '/api/public/messages-log/$id/delivery': typeof ApiPublicMessagesLogIdDeliveryRoute
   '/api/public/messages-log/$id/result': typeof ApiPublicMessagesLogIdResultRoute
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/pacjenci/$id'
     | '/api/public/daily-digest'
     | '/pacjenci/'
+    | '/ustawienia/sugestie/$id'
     | '/api/public/messages-log/claim'
     | '/api/public/messages-log/$id/delivery'
     | '/api/public/messages-log/$id/result'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/pacjenci/$id'
     | '/api/public/daily-digest'
     | '/pacjenci'
+    | '/ustawienia/sugestie/$id'
     | '/api/public/messages-log/claim'
     | '/api/public/messages-log/$id/delivery'
     | '/api/public/messages-log/$id/result'
@@ -237,6 +249,7 @@ export interface FileRouteTypes {
     | '/_layout/pacjenci/$id'
     | '/api/public/daily-digest'
     | '/_layout/pacjenci/'
+    | '/_layout/ustawienia/sugestie/$id'
     | '/api/public/messages-log/claim'
     | '/api/public/messages-log/$id/delivery'
     | '/api/public/messages-log/$id/result'
@@ -369,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMessagesLogClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_layout/ustawienia/sugestie/$id': {
+      id: '/_layout/ustawienia/sugestie/$id'
+      path: '/sugestie/$id'
+      fullPath: '/ustawienia/sugestie/$id'
+      preLoaderRoute: typeof LayoutUstawieniaSugestieIdRouteImport
+      parentRoute: typeof LayoutUstawieniaRoute
+    }
     '/api/public/messages-log/$id/result': {
       id: '/api/public/messages-log/$id/result'
       path: '/api/public/messages-log/$id/result'
@@ -400,11 +420,22 @@ const LayoutPacjenciRouteWithChildren = LayoutPacjenciRoute._addFileChildren(
   LayoutPacjenciRouteChildren,
 )
 
+interface LayoutUstawieniaRouteChildren {
+  LayoutUstawieniaSugestieIdRoute: typeof LayoutUstawieniaSugestieIdRoute
+}
+
+const LayoutUstawieniaRouteChildren: LayoutUstawieniaRouteChildren = {
+  LayoutUstawieniaSugestieIdRoute: LayoutUstawieniaSugestieIdRoute,
+}
+
+const LayoutUstawieniaRouteWithChildren =
+  LayoutUstawieniaRoute._addFileChildren(LayoutUstawieniaRouteChildren)
+
 interface LayoutRouteChildren {
   LayoutKalendarzRoute: typeof LayoutKalendarzRoute
   LayoutOAplikacjiRoute: typeof LayoutOAplikacjiRoute
   LayoutPacjenciRoute: typeof LayoutPacjenciRouteWithChildren
-  LayoutUstawieniaRoute: typeof LayoutUstawieniaRoute
+  LayoutUstawieniaRoute: typeof LayoutUstawieniaRouteWithChildren
   LayoutWiadomosciRoute: typeof LayoutWiadomosciRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
@@ -413,7 +444,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutKalendarzRoute: LayoutKalendarzRoute,
   LayoutOAplikacjiRoute: LayoutOAplikacjiRoute,
   LayoutPacjenciRoute: LayoutPacjenciRouteWithChildren,
-  LayoutUstawieniaRoute: LayoutUstawieniaRoute,
+  LayoutUstawieniaRoute: LayoutUstawieniaRouteWithChildren,
   LayoutWiadomosciRoute: LayoutWiadomosciRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }

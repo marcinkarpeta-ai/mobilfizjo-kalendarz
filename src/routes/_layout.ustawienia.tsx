@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Info, LogOut, Mail, MessageSquarePlus, Pencil, Plus, Trash2 } from "lucide-react";
-import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
@@ -15,34 +14,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PoweredByFooter } from "@/components/powered-by-footer";
 import { FeedbackSheet } from "@/components/feedback-sheet";
+import {
+  FeedbackThreadsList,
+  useFeedbackUnreadCount,
+} from "@/components/feedback-threads-list";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import type { MessageKind } from "@/lib/types";
 
-type FeedbackStatus = "new" | "seen" | "done";
-interface FeedbackRow {
-  id: string;
-  screen: string;
-  body: string;
-  photo_path: string | null;
-  status: FeedbackStatus;
-  created_at: string;
-}
 
-const FEEDBACK_STATUS_LABEL: Record<FeedbackStatus, string> = {
-  new: "Nowe",
-  seen: "Przejrzane",
-  done: "Zrobione",
-};
 
 
 const KIND_LABEL: Record<MessageKind, string> = {
@@ -229,22 +211,8 @@ function SettingsPage() {
           </div>
         </Section>
 
-        <Section title="Sugestie">
-          <button
-            type="button"
-            onClick={() => setFeedbackOpen(true)}
-            className="flex w-full items-center justify-between rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-accent"
-          >
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <MessageSquarePlus className="h-4 w-4" />
-              Zgłoś sugestię
-            </span>
-            <span className="text-sm text-muted-foreground">→</span>
-          </button>
-          <div className="mt-3">
-            <FeedbackList />
-          </div>
-        </Section>
+        <SuggestionsSection onOpen={() => setFeedbackOpen(true)} />
+
 
         <Section title="O aplikacji">
           <Link
@@ -415,19 +383,8 @@ function FamilySettings({
           </div>
         </Section>
 
-        <Section title="Sugestie">
-          <button
-            type="button"
-            onClick={() => setFeedbackOpen(true)}
-            className="flex w-full items-center justify-between rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-accent"
-          >
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <MessageSquarePlus className="h-4 w-4" />
-              Zgłoś sugestię
-            </span>
-            <span className="text-sm text-muted-foreground">→</span>
-          </button>
-        </Section>
+        <SuggestionsSection onOpen={() => setFeedbackOpen(true)} />
+
 
         <Section title="Konto">
           <Button
@@ -456,132 +413,34 @@ function FamilySettings({
   );
 }
 
-function FeedbackList() {
-  const [rows, setRows] = useState<FeedbackRow[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [thumbs, setThumbs] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from("feedback")
-        .select("id, screen, body, photo_path, status, created_at")
-        .order("created_at", { ascending: false });
-      if (cancelled) return;
-      if (error) {
-        setError(error.message);
-        setRows([]);
-        return;
-      }
-      const list = (data ?? []) as FeedbackRow[];
-      setRows(list);
-
-      const withPhotos = list.filter((r) => r.photo_path);
-      if (withPhotos.length > 0) {
-        const map: Record<string, string> = {};
-        await Promise.all(
-          withPhotos.map(async (r) => {
-            const { data: signed } = await supabase.storage
-              .from("feedback-photos")
-              .createSignedUrl(r.photo_path!, 60);
-            if (signed?.signedUrl) map[r.id] = signed.signedUrl;
-          }),
-        );
-        if (!cancelled) setThumbs(map);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  async function changeStatus(id: string, status: FeedbackStatus) {
-    const prev = rows;
-    setRows((r) =>
-      r ? r.map((x) => (x.id === id ? { ...x, status } : x)) : r,
-    );
-    const { error } = await supabase
-      .from("feedback")
-      .update({ status })
-      .eq("id", id);
-    if (error) {
-      setRows(prev);
-      toast.error("Nie udało się zmienić statusu.");
-    }
-  }
-
-  if (rows === null) {
-    return (
-      <p className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
-        Wczytywanie…
-      </p>
-    );
-  }
-  if (error) {
-    return (
-      <p className="rounded-2xl border border-destructive bg-card p-4 text-sm text-destructive">
-        {error}
-      </p>
-    );
-  }
-  if (rows.length === 0) {
-    return (
-      <p className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
-        Brak zgłoszeń.
-      </p>
-    );
-  }
+function SuggestionsSection({ onOpen }: { onOpen: () => void }) {
+  const unread = useFeedbackUnreadCount();
   return (
-    <ul className="space-y-2">
-      {rows.map((r) => (
-        <li
-          key={r.id}
-          className="rounded-2xl border border-border bg-card p-4"
-        >
-          <div className="mb-2 flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">
-                {format(new Date(r.created_at), "dd.MM.yyyy HH:mm")} · {r.screen}
-              </p>
-            </div>
-            <Select
-              value={r.status}
-              onValueChange={(v) => changeStatus(r.id, v as FeedbackStatus)}
-            >
-              <SelectTrigger className="h-8 w-[130px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">Nowe</SelectItem>
-                <SelectItem value="seen">Przejrzane</SelectItem>
-                <SelectItem value="done">Zrobione</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <p className="whitespace-pre-wrap text-sm text-foreground/90">
-            {r.body}
-          </p>
-          {r.photo_path && thumbs[r.id] ? (
-            <a
-              href={thumbs[r.id]}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 block overflow-hidden rounded-xl border border-border"
-            >
-              <img
-                src={thumbs[r.id]}
-                alt="Załączone zdjęcie"
-                className="max-h-48 w-full object-cover"
-              />
-            </a>
-          ) : null}
-          <p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-            Status: {FEEDBACK_STATUS_LABEL[r.status]}
-          </p>
-        </li>
-      ))}
-    </ul>
+    <section>
+      <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Sugestie
+        {unread > 0 ? (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+            {unread}
+          </span>
+        ) : null}
+      </h2>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex w-full items-center justify-between rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-accent"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <MessageSquarePlus className="h-4 w-4" />
+          Zgłoś sugestię
+        </span>
+        <span className="text-sm text-muted-foreground">→</span>
+      </button>
+      <div className="mt-3">
+        <FeedbackThreadsList />
+      </div>
+    </section>
   );
 }
+
 

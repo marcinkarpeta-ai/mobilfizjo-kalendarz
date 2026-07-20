@@ -1,61 +1,82 @@
 ## Cel
-Moduł sugestii rozwojowych: zgłaszanie pomysłów przez terapeutę i rodzinę (z opcjonalnym zdjęciem), plus prosty widok listy w Ustawieniach dla terapeuty.
+Rozbudować moduł sugestii w dwustronny wątek: komentarze pod zgłoszeniem, ekran „Sugestie" dostępny dla każdego zalogowanego, plakietka nieprzeczytanej aktywności (pomijająca aktywność własną).
 
 ## 1. Migracja bazy
 
-Nowa tabela `public.feedback`:
+**Tabela `public.feedback_comments`:**
 - `id uuid PK default gen_random_uuid()`
+- `feedback_id uuid NOT NULL REFERENCES public.feedback(id) ON DELETE CASCADE`
 - `created_by uuid NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE`
-- `screen text NOT NULL`
 - `body text NOT NULL CHECK (length(btrim(body)) > 0)`
-- `photo_path text` (klucz w Storage; nullable)
-- `status text NOT NULL DEFAULT 'new' CHECK (status IN ('new','seen','done'))`
 - `created_at timestamptz NOT NULL DEFAULT now()`
+- Indeks: `(feedback_id, created_at)`
 
-GRANT: `SELECT, INSERT, UPDATE ON public.feedback TO authenticated; GRANT ALL TO service_role;`
+GRANT: `SELECT, INSERT ON public.feedback_comments TO authenticated; GRANT ALL TO service_role;`
 
-RLS ENABLE + polityki:
-- INSERT: `authenticated`, `WITH CHECK (created_by = auth.uid())`
-- SELECT own: `USING (created_by = auth.uid())`
-- SELECT therapist: `USING (public.has_role(auth.uid(),'therapist'))`
-- UPDATE therapist: `USING (public.has_role(auth.uid(),'therapist')) WITH CHECK (public.has_role(auth.uid(),'therapist'))`
+RLS + polityki:
+- INSERT `WITH CHECK (created_by = auth.uid() AND EXISTS (SELECT 1 FROM public.feedback f WHERE f.id = feedback_id AND (f.created_by = auth.uid() OR public.has_role(auth.uid(),'therapist'))))`
+- SELECT `USING (EXISTS (SELECT 1 FROM public.feedback f WHERE f.id = feedback_id AND (f.created_by = auth.uid() OR public.has_role(auth.uid(),'therapist'))))`
 
-Trigger BEFORE UPDATE (`public.tg_feedback_protect_immutable`, SECURITY DEFINER, `SET search_path = public`): blokuje zmianę `created_by`, `screen`, `body`, `photo_path`, `created_at` przez `RAISE EXCEPTION` — dopuszczalna jest wyłącznie zmiana `status` (walidacja wartości przez CHECK na kolumnie).
+Trigger `tg_feedback_comments_protect_immutable` BEFORE UPDATE OR DELETE → `RAISE EXCEPTION` (żadnych edycji ani kasowań komentarzy przez klienta).
 
-Storage: prywatny bucket `feedback-photos` (przez `supabase--storage_create_bucket`, `public=false`). Polityki na `storage.objects`:
-- INSERT authenticated do własnego folderu (`bucket_id='feedback-photos' AND (storage.foldername(name))[1] = auth.uid()::text`)
-- SELECT own analogicznie
-- SELECT therapist: `bucket_id='feedback-photos' AND public.has_role(auth.uid(),'therapist')`
+**Tabela `public.feedback_reads`:**
+- `feedback_id uuid REFERENCES public.feedback(id) ON DELETE CASCADE`
+- `user_id uuid REFERENCES public.profiles(user_id) ON DELETE CASCADE`
+- `read_at timestamptz NOT NULL DEFAULT now()`
+- PK złożony `(feedback_id, user_id)`
 
-Ścieżka pliku: `{user_id}/{uuid}-{filename}`.
+GRANT: `SELECT, INSERT, UPDATE ON public.feedback_reads TO authenticated; GRANT ALL TO service_role;`
 
-## 2. Komponent `src/components/feedback-sheet.tsx`
+RLS + polityki (tylko własne wiersze):
+- SELECT/INSERT/UPDATE `USING/WITH CHECK (user_id = auth.uid())`
 
-`Sheet` z shadcn (side="bottom"):
-- Props: `open`, `onOpenChange`, `screen: string`.
-- Pola: `Textarea` (placeholder „Co poprawić lub dodać?"), input `file` (accept `image/*`, `capture="environment"`), miniatura po wyborze, przycisk „Wyślij".
-- Wysyłka:
-  1. Jeśli plik: `supabase.storage.from('feedback-photos').upload(...)` do `${userId}/${crypto.randomUUID()}-${file.name}`.
-  2. `supabase.from('feedback').insert({ created_by: userId, screen, body, photo_path })`.
-  3. Toast „Dziękujemy! Sugestia zapisana.", reset, zamknięcie.
-- Walidacja: body wymagane (trim), max ~2000 znaków; obraz max 5 MB.
+## 2. Reguła „nowej aktywności"
 
-## 3. Ikona w nagłówku
+Wątek liczy się jako mający nieprzeczytaną aktywność dla użytkownika `U`, gdy istnieje którekolwiek:
+- `feedback.created_by <> U` AND (`read_at` NULL LUB `feedback.created_at > read_at`) — nowe cudze zgłoszenie (dotyczy therapist widzącego cudze);
+- istnieje komentarz w wątku z `created_by <> U` AND (`read_at` NULL LUB `comment.created_at > read_at`) — cudzy nowy komentarz.
 
-`src/components/app-header.tsx`: nowy opcjonalny prop `feedbackScreen?: string`. Gdy podany, po prawej (obok istniejącego `right`) `Button` ikonowy `MessageSquarePlus` otwierający `FeedbackSheet`. Stan `open` wewnątrz `AppHeader`.
+Aktywność własna (własne zgłoszenie, własne komentarze) NIE liczy się do „nowe".
 
-Wywołania: dodać `feedbackScreen` w `_layout.index.tsx`, `_layout.kalendarz.tsx`, `_layout.pacjenci.index.tsx`, `_layout.pacjenci.$id.tsx`, `_layout.wiadomosci.tsx`, `_layout.ustawienia.tsx` (oba warianty).
+Obliczenie po stronie klienta z pobranych: `feedback.created_by`, `feedback.created_at`, `feedback_reads.read_at`, oraz najświeższego cudzego komentarza `max(created_at) WHERE created_by <> U`. To ostatnie pobierzemy jednym dodatkowym zapytaniem: `select feedback_id, max(created_at) from feedback_comments where created_by <> U group by feedback_id` (grupowanie po stronie klienta z pobranej listy `(feedback_id, created_by, created_at)`, jeśli agregacja RPC niedostępna z klienta — prostsze: `select feedback_id, created_by, created_at from feedback_comments in (ids)` i redukcja w JS).
 
-## 4. Pozycja „Zgłoś sugestię" w Ustawieniach
+## 3. Zapisy `feedback_reads`
 
-Nowa sekcja w `SettingsPage` i `FamilySettings` — przycisk otwierający `FeedbackSheet` z `screen="Ustawienia"`.
+- Otwarcie wątku (mount widoku): `upsert({ feedback_id, user_id: U, read_at: now() }, { onConflict: 'feedback_id,user_id' })`.
+- Po pomyślnym wysłaniu własnego komentarza: dokładnie ten sam upsert z `now()` — żeby własny wpis nie zostawał „nowszy" niż read_at.
 
-## 5. Widok listy „Sugestie" (tylko terapeuta)
+## 4. Widok „Sugestie" w Ustawieniach (obie role)
 
-Nowa sekcja w `SettingsPage`, widoczna dla `role === 'therapist'`:
-- Fetch: `supabase.from('feedback').select('*').order('created_at',{ascending:false})`.
-- Karty: data (`dd.MM.yyyy HH:mm`), `screen`, `body` (whitespace-pre-wrap), miniatura (signed URL 60 s przez `storage.from('feedback-photos').createSignedUrl`), `Select` statusu (Nowe / Przejrzane / Zrobione).
-- Zmiana statusu: `update({ status }).eq('id', id)` — trigger pilnuje niezmienności pozostałych pól.
+Zastępujemy obecny `FeedbackList` (therapist-only) nowym `FeedbackThreadsList` widocznym też dla family. W sekcji „Sugestie":
+- Nagłówek pozycji z plakietką liczby wątków z nieprzeczytaną aktywnością (badge liczbowy obok tytułu sekcji).
+- Fetch:
+  - `feedback` `select('id, screen, body, photo_path, status, created_at, created_by, profiles!feedback_created_by_fkey(display_name)')` `order('created_at', desc)` — RLS ograniczy family do własnych.
+  - `feedback_reads` `select('feedback_id, read_at').eq('user_id', U)`.
+  - `feedback_comments` `select('feedback_id, created_by, created_at').in('feedback_id', ids)` — do policzenia (a) licznika komentarzy per wątek, (b) najświeższego cudzego komentarza.
+- Karta pozycji: data · ekran · autor (widoczny dla therapist) · pierwsze linie treści · plakietka statusu (Nowe zielona / Przejrzane niebieska / Zrobione szara) · licznik komentarzy (ikona `MessageSquare`) · kropka „nowe" wg reguły z pkt 2.
+- Klik → `Link` do `/ustawienia/sugestie/$id`.
 
-## Poza zakresem
-Powiadomienia, e-maile, edycja treści zgłoszenia, komentarze, filtry/sortowanie poza domyślnym.
+Zmiana statusu przenosi się z listy do widoku wątku (tylko therapist).
+
+## 5. Widok wątku `src/routes/_layout.ustawienia.sugestie.$id.tsx`
+
+Nowa trasa (flat dot-separated). `ssr: false` dziedziczone z `_layout`.
+- Fetch: pojedyncze zgłoszenie (`select` jak wyżej + `profiles`), komentarze `feedback_comments` `select('id, body, created_at, created_by, profiles!feedback_comments_created_by_fkey(display_name)').eq('feedback_id', id).order('created_at')`, signed URL dla `photo_path` (60 s).
+- Nagłówek: `AppHeader` „Sugestia" z przyciskiem powrotu do `/ustawienia`.
+- Karta zgłoszenia: data, ekran, autor, treść (whitespace-pre-wrap), zdjęcie.
+- Panel statusu — tylko therapist: `Select` (Nowe/Przejrzane/Zrobione) → `update feedback`.
+- Chronologiczna lista komentarzy: bąbelki z `display_name`, datą `dd.MM.yyyy HH:mm`, własne wyrównane w prawo (inne tło).
+- Pole „Dodaj komentarz" (Textarea + Wyślij) widoczne dla `feedback.created_by === U` LUB `role === 'therapist'`. Po insercie: dopisanie do lokalnej listy + upsert `feedback_reads` z `now()`.
+- Mount: upsert `feedback_reads` z `now()`.
+
+Realtime pominięte.
+
+## 6. Poza zakresem
+Powiadomienia push/e-mail, edycja i kasowanie komentarzy, załączniki w komentarzach, realtime, filtry/sortowanie poza domyślnym (najnowsze zgłoszenia u góry).
+
+## Techniczne szczegóły
+
+- Typy Supabase (`src/integrations/supabase/types.ts`) zregenerują się po migracji — kod frontu piszemy po migracji.
+- Nawigacja: `<Link to="/ustawienia/sugestie/$id" params={{ id }}>` — flat routing.
+- Kolizja z istniejącą trasą `/_layout/ustawienia`: dodanie `_layout.ustawienia.sugestie.$id.tsx` obok jest bezpieczne (TanStack file-based, brak layoutu potomnego).
+- `FeedbackSheet` bez zmian.

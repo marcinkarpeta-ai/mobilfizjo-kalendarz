@@ -383,19 +383,8 @@ function FamilySettings({
           </div>
         </Section>
 
-        <Section title="Sugestie">
-          <button
-            type="button"
-            onClick={() => setFeedbackOpen(true)}
-            className="flex w-full items-center justify-between rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-accent"
-          >
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <MessageSquarePlus className="h-4 w-4" />
-              Zgłoś sugestię
-            </span>
-            <span className="text-sm text-muted-foreground">→</span>
-          </button>
-        </Section>
+        <SuggestionsSection onOpen={() => setFeedbackOpen(true)} />
+
 
         <Section title="Konto">
           <Button

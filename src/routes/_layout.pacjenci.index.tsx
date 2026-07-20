@@ -74,6 +74,7 @@ function PatientsPage() {
             ? `${activeCount} aktywnych • ${archivedCount} zarchiwizowanych`
             : `${activeCount} osób w kartotece`
         }
+        feedbackScreen="Pacjenci"
       />
       <PageContainer>
         <div className="relative mb-3">

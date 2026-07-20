@@ -109,6 +109,7 @@ function CalendarPage() {
       <AppHeader
         title="Kalendarz"
         subtitle={capitalize(format(cursor, "LLLL yyyy", { locale: pl }))}
+        feedbackScreen="Kalendarz"
         right={
           <div className="flex items-center gap-1">
             <Button

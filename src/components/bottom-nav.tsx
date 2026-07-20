@@ -2,19 +2,22 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { CalendarDays, Home, MessageSquare, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { isRestrictedCalendarRole } from "@/lib/roles";
 
 const allTabs = [
-  { to: "/", label: "Dzisiaj", icon: Home, family: true },
-  { to: "/kalendarz", label: "Kalendarz", icon: CalendarDays, family: true },
-  { to: "/pacjenci", label: "Pacjenci", icon: Users, family: false },
-  { to: "/wiadomosci", label: "Wiadomości", icon: MessageSquare, family: false },
-  { to: "/ustawienia", label: "Ustawienia", icon: Settings, family: true },
+  { to: "/", label: "Dzisiaj", icon: Home, restricted: true },
+  { to: "/kalendarz", label: "Kalendarz", icon: CalendarDays, restricted: true },
+  { to: "/pacjenci", label: "Pacjenci", icon: Users, restricted: false },
+  { to: "/wiadomosci", label: "Wiadomości", icon: MessageSquare, restricted: false },
+  { to: "/ustawienia", label: "Ustawienia", icon: Settings, restricted: true },
 ] as const;
 
 export function BottomNav() {
   const { pathname } = useLocation();
   const role = useStore((s) => s.role);
-  const tabs = role === "family" ? allTabs.filter((t) => t.family) : allTabs;
+  const tabs = isRestrictedCalendarRole(role)
+    ? allTabs.filter((t) => t.restricted)
+    : allTabs;
 
   return (
     <nav

@@ -68,7 +68,11 @@ function FeedbackThreadPage() {
 
   const canComment = useMemo(() => {
     if (!feedback || !userId) return false;
-    return feedback.created_by === userId || role === "therapist";
+    return (
+      feedback.created_by === userId ||
+      role === "therapist" ||
+      role === "admin"
+    );
   }, [feedback, userId, role]);
 
   async function markRead() {
@@ -241,7 +245,7 @@ function FeedbackThreadPage() {
               ) : null}
             </div>
 
-            {role === "therapist" ? (
+            {role === "therapist" || role === "admin" ? (
               <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
                 <span className="text-sm font-medium text-foreground">
                   Status

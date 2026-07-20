@@ -175,7 +175,7 @@ export function FeedbackThreadsList() {
                     <p className="truncate text-xs text-muted-foreground">
                       {format(new Date(r.created_at), "dd.MM.yyyy HH:mm")} ·{" "}
                       {r.screen}
-                      {role === "therapist" && r.author_name ? (
+                      {(role === "therapist" || role === "admin") && r.author_name ? (
                         <> · {r.author_name}</>
                       ) : null}
                     </p>

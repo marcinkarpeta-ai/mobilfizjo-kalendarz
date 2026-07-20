@@ -42,7 +42,7 @@ export function AppointmentDetailsSheet({
   const cancelAppointment = useStore((s) => s.cancelAppointment);
   const deleteAppointment = useStore((s) => s.deleteAppointment);
 
-  const isFamily = role === "family";
+  const isFamily = role === "family" || role === "admin";
   const open = appt !== null;
 
   const patient = appt?.patient_id ? patients.find((p) => p.id === appt.patient_id) : undefined;

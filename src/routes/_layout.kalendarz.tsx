@@ -49,7 +49,7 @@ function CalendarPage() {
   const patients = useStore((s) => s.patients);
   const labels = useStore((s) => s.labels);
   const role = useStore((s) => s.role);
-  const isFamily = role === "family";
+  const isFamily = role === "family" || role === "admin";
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
   const labelById = new Map(labels.map((l) => [l.id, l]));

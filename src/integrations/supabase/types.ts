@@ -552,7 +552,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "therapist" | "family"
+      app_role: "therapist" | "family" | "admin"
       appointment_status: "scheduled" | "completed" | "cancelled"
       appointment_type: "patient_visit" | "family_event"
       marketing_reason: "anniversary" | "birthday"
@@ -691,7 +691,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["therapist", "family"],
+      app_role: ["therapist", "family", "admin"],
       appointment_status: ["scheduled", "completed", "cancelled"],
       appointment_type: ["patient_visit", "family_event"],
       marketing_reason: ["anniversary", "birthday"],

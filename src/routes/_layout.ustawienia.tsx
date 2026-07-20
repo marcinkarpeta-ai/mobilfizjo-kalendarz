@@ -341,6 +341,12 @@ function SettingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <FeedbackSheet
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        screen="Ustawienia"
+      />
     </>
   );
 }
@@ -365,6 +371,7 @@ function FamilySettings({
   const storedName = useStore((s) => s.displayName);
   const [displayName, setDisplayName] = useState(storedName ?? "");
   const [saving, setSaving] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   async function save() {
     if (!userId) return;

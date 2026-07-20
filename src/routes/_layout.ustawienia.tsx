@@ -79,6 +79,7 @@ function SettingsPage() {
   const [newLabel, setNewLabel] = useState("");
   const [editingLabel, setEditingLabel] = useState<{ id: string; name: string } | null>(null);
   const [editingTpl, setEditingTpl] = useState<{ id: string; body: string; kind: MessageKind } | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   if (role === "family") {
     return <FamilySettings navigate={navigate} />;
@@ -86,7 +87,7 @@ function SettingsPage() {
 
   return (
     <>
-      <AppHeader title="Ustawienia" />
+      <AppHeader title="Ustawienia" feedbackScreen="Ustawienia" />
       <PageContainer className="space-y-6">
         <Section title="Profil">
           <div className="space-y-3 rounded-2xl border border-border bg-card p-4">

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Info, LogOut, Mail, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Info, LogOut, Mail, MessageSquarePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
@@ -14,10 +15,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PoweredByFooter } from "@/components/powered-by-footer";
+import { FeedbackSheet } from "@/components/feedback-sheet";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import type { MessageKind } from "@/lib/types";
+
+type FeedbackStatus = "new" | "seen" | "done";
+interface FeedbackRow {
+  id: string;
+  screen: string;
+  body: string;
+  photo_path: string | null;
+  status: FeedbackStatus;
+  created_at: string;
+}
+
+const FEEDBACK_STATUS_LABEL: Record<FeedbackStatus, string> = {
+  new: "Nowe",
+  seen: "Przejrzane",
+  done: "Zrobione",
+};
+
 
 const KIND_LABEL: Record<MessageKind, string> = {
   reminder_24h: "Przypomnienie 24h",

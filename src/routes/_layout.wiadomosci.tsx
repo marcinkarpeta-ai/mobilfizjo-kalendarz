@@ -114,7 +114,7 @@ function MessagesPage() {
 
   return (
     <>
-      <AppHeader title="Wiadomości" subtitle="Dziennik i propozycje marketingowe" />
+      <AppHeader title="Wiadomości" subtitle="Dziennik i propozycje marketingowe" feedbackScreen="Wiadomości" />
       <PageContainer>
         <Tabs defaultValue="log">
           <TabsList className="grid w-full grid-cols-2">

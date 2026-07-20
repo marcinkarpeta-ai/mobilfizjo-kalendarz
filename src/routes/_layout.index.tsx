@@ -87,6 +87,7 @@ function TodayPage() {
       <AppHeader
         title="Dzisiaj"
         subtitle={mounted ? capitalize(fmtDateLong(today)) : ""}
+        feedbackScreen="Dzisiaj"
       />
       <PageContainer>
         {!mounted ? (

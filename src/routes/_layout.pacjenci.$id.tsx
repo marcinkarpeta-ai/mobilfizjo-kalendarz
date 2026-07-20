@@ -118,6 +118,7 @@ function PatientDetail() {
       <AppHeader
         title={formatPatientName(patientData)}
         subtitle={patientData.salutation ?? undefined}
+        feedbackScreen="Karta pacjenta"
         right={
           <Button asChild variant="ghost" size="icon" aria-label="Wróć do listy">
             <Link to="/pacjenci">

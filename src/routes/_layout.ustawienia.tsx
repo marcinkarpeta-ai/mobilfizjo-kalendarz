@@ -63,8 +63,8 @@ function SettingsPage() {
   const [editingTpl, setEditingTpl] = useState<{ id: string; body: string; kind: MessageKind } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-  if (role === "family") {
-    return <FamilySettings navigate={navigate} />;
+  if (role === "family" || role === "admin") {
+    return <RestrictedSettings navigate={navigate} />;
   }
 
   return (
@@ -211,6 +211,42 @@ function SettingsPage() {
           </div>
         </Section>
 
+        <Section title="Konto opiekuna aplikacji">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-sm text-foreground">
+              Utwórz konto opiekuna aplikacji (login <code>marcin</code>).
+              Widzi anonimowe bloki „Zajęte", zarządza modułem sugestii, bez
+              dostępu do danych pacjentów.
+            </p>
+            <Button
+              className="mt-3 w-full"
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const { seedAdminAccount } = await import(
+                    "@/lib/admin-seed.functions"
+                  );
+                  const res = await seedAdminAccount();
+                  if (res.status === "created") {
+                    toast.success("Konto opiekuna utworzone.");
+                  } else if (res.status === "password_reset") {
+                    toast.success("Hasło konta opiekuna zresetowane.");
+                  } else {
+                    toast("Konto opiekuna już istnieje.");
+                  }
+                } catch (e) {
+                  toast.error(
+                    e instanceof Error ? e.message : "Nie udało się utworzyć konta.",
+                  );
+                }
+              }}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Utwórz konto opiekuna
+            </Button>
+          </div>
+        </Section>
+
         <SuggestionsSection onOpen={() => setFeedbackOpen(true)} />
 
 
@@ -330,7 +366,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function FamilySettings({
+function RestrictedSettings({
   navigate,
 }: {
   navigate: ReturnType<typeof useNavigate>;

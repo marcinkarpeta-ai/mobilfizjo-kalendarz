@@ -120,6 +120,44 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string
+          id: string
+          photo_path: string | null
+          screen: string
+          status: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by: string
+          id?: string
+          photo_path?: string | null
+          screen: string
+          status?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          photo_path?: string | null
+          screen?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       marketing_proposals: {
         Row: {
           approved: boolean | null

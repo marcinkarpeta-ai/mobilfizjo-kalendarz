@@ -1,17 +1,23 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { FeedbackSheet } from "@/components/feedback-sheet";
 
 export function AppHeader({
   title,
   subtitle,
   right,
   className,
+  feedbackScreen,
 }: {
   title: string;
   subtitle?: string;
   right?: ReactNode;
   className?: string;
+  feedbackScreen?: string;
 }) {
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
     <header
       className={cn(
@@ -30,8 +36,27 @@ export function AppHeader({
             </p>
           ) : null}
         </div>
-        {right ? <div className="shrink-0">{right}</div> : null}
+        <div className="flex shrink-0 items-center gap-1">
+          {right}
+          {feedbackScreen ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Zgłoś sugestię"
+              onClick={() => setFeedbackOpen(true)}
+            >
+              <MessageSquarePlus className="h-5 w-5" />
+            </Button>
+          ) : null}
+        </div>
       </div>
+      {feedbackScreen ? (
+        <FeedbackSheet
+          open={feedbackOpen}
+          onOpenChange={setFeedbackOpen}
+          screen={feedbackScreen}
+        />
+      ) : null}
     </header>
   );
 }

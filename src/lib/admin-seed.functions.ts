@@ -71,3 +71,64 @@ export const seedFamilyAccount = createServerFn({ method: "POST" })
 
     return { status, email };
   });
+
+export const seedAdminAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isTherapist, error: roleErr } = await context.supabase.rpc(
+      "has_role",
+      { _user_id: context.userId, _role: "therapist" },
+    );
+    if (roleErr) throw roleErr;
+    if (!isTherapist) throw new Error("Forbidden");
+
+    const password = process.env.ADMIN_SEED_PASSWORD;
+    if (!password) throw new Error("Missing ADMIN_SEED_PASSWORD");
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const email = "marcin@fizjoplan.local";
+
+    const { data: list, error: listErr } =
+      await supabaseAdmin.auth.admin.listUsers();
+    if (listErr) throw listErr;
+
+    const existing = list?.users.find(
+      (u) => u.email?.toLowerCase() === email,
+    );
+    let userId = existing?.id;
+    let status: "created" | "exists" | "password_reset" = "exists";
+    if (!existing) {
+      const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
+      if (error) throw error;
+      userId = created.user?.id;
+      status = "created";
+    } else if (userId) {
+      const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        { password },
+      );
+      if (updErr) throw updErr;
+      status = "password_reset";
+    }
+
+    if (userId) {
+      await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          {
+            user_id: userId,
+            display_name: "Marcin — opiekun aplikacji",
+            role: "admin",
+          },
+          { onConflict: "user_id" },
+        );
+    }
+
+    return { status, email };
+  });

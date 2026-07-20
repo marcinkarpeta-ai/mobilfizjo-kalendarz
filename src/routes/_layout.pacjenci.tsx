@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_layout/pacjenci")({
       .select("role")
       .eq("user_id", userData.user.id)
       .maybeSingle();
-    if (!profile || profile.role === "family") {
+    if (!profile || profile.role === "family" || profile.role === "admin") {
       throw redirect({ to: "/" });
     }
   },

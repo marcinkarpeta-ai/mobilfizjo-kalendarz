@@ -18,7 +18,7 @@ export function useBusyBlocks(fromISO: string | null, toISO: string | null) {
   const toastedRef = useRef(false);
 
   useEffect(() => {
-    if (role !== "family" || !fromISO || !toISO) {
+    if (!(role === "family" || role === "admin") || !fromISO || !toISO) {
       setBlocks([]);
       return;
     }

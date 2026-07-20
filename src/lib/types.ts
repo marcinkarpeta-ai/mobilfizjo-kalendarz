@@ -1,6 +1,6 @@
 // Typy zgodne z modelem danych FizjoPlan (krok A — Lovable Cloud / Supabase).
 
-export type UserRole = "therapist" | "family";
+export type UserRole = "therapist" | "family" | "admin";
 
 export type AppointmentType = "patient_visit" | "family_event";
 export type AppointmentStatus = "scheduled" | "completed" | "cancelled";

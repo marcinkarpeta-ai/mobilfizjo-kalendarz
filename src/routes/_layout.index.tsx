@@ -38,7 +38,7 @@ function TodayPage() {
   const patients = useStore((s) => s.patients);
   const labels = useStore((s) => s.labels);
   const role = useStore((s) => s.role);
-  const isFamily = role === "family";
+  const isFamily = role === "family" || role === "admin";
 
   const [detailsAppt, setDetailsAppt] = useState<Appointment | null>(null);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);

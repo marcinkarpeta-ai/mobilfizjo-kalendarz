@@ -1,82 +1,64 @@
 ## Cel
-Rozbudować moduł sugestii w dwustronny wątek: komentarze pod zgłoszeniem, ekran „Sugestie" dostępny dla każdego zalogowanego, plakietka nieprzeczytanej aktywności (pomijająca aktywność własną).
 
-## 1. Migracja bazy
+Dodać trzecią rolę `admin` (opiekun aplikacji): pełne uprawnienia w module sugestii (jak therapist), kalendarz jak family (wydarzenia rodzinne + anonimowe bloki "Zajęte"), zero dostępu do pacjentów, notatek, wiadomości i marketingu.
 
-**Tabela `public.feedback_comments`:**
-- `id uuid PK default gen_random_uuid()`
-- `feedback_id uuid NOT NULL REFERENCES public.feedback(id) ON DELETE CASCADE`
-- `created_by uuid NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE`
-- `body text NOT NULL CHECK (length(btrim(body)) > 0)`
-- `created_at timestamptz NOT NULL DEFAULT now()`
-- Indeks: `(feedback_id, created_at)`
+## Krok 1 — Migracja A: rozszerzenie enum `app_role`
 
-GRANT: `SELECT, INSERT ON public.feedback_comments TO authenticated; GRANT ALL TO service_role;`
+Osobna migracja (Postgres wymaga, żeby nowa wartość enuma była commitowana przed jej użyciem):
 
-RLS + polityki:
-- INSERT `WITH CHECK (created_by = auth.uid() AND EXISTS (SELECT 1 FROM public.feedback f WHERE f.id = feedback_id AND (f.created_by = auth.uid() OR public.has_role(auth.uid(),'therapist'))))`
-- SELECT `USING (EXISTS (SELECT 1 FROM public.feedback f WHERE f.id = feedback_id AND (f.created_by = auth.uid() OR public.has_role(auth.uid(),'therapist'))))`
+```sql
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'admin';
+```
 
-Trigger `tg_feedback_comments_protect_immutable` BEFORE UPDATE OR DELETE → `RAISE EXCEPTION` (żadnych edycji ani kasowań komentarzy przez klienta).
+Nic więcej w tej migracji.
 
-**Tabela `public.feedback_reads`:**
-- `feedback_id uuid REFERENCES public.feedback(id) ON DELETE CASCADE`
-- `user_id uuid REFERENCES public.profiles(user_id) ON DELETE CASCADE`
-- `read_at timestamptz NOT NULL DEFAULT now()`
-- PK złożony `(feedback_id, user_id)`
+## Krok 2 — Migracja B: użycie wartości `admin`
 
-GRANT: `SELECT, INSERT, UPDATE ON public.feedback_reads TO authenticated; GRANT ALL TO service_role;`
+- Dodać wpis do `allowed_users`: `username='marcin'`, `role='admin'`.
+- Rozszerzyć `public.get_busy_blocks`: zmienić warunek roli z `therapist OR family` na `therapist OR family OR admin`.
+- Rozszerzyć wszystkie polityki RLS, które obecnie sprawdzają `has_role(auth.uid(),'therapist')`, o `OR has_role(auth.uid(),'admin')`, na tabelach:
+  - `public.feedback` (SELECT/UPDATE therapist → therapist OR admin; INSERT bez zmian bo dotyczy właściciela)
+  - `public.feedback_comments` (SELECT/INSERT tam, gdzie therapist widzi wszystkie wątki)
+  - `public.feedback_reads` (analogicznie)
+  - polityki `storage.objects` dla bucketa `feedback-photos` gdzie występuje `has_role(...,'therapist')`
+- Nie dotykamy polityk `patients`, `visit_notes`, `note_photos`, `messages_log`, `marketing_proposals`, `appointments` (admin nie ma tam dostępu — brak polityki = brak dostępu, RLS domyślnie odrzuca).
 
-RLS + polityki (tylko własne wiersze):
-- SELECT/INSERT/UPDATE `USING/WITH CHECK (user_id = auth.uid())`
+## Krok 3 — Konto Auth (server function)
 
-## 2. Reguła „nowej aktywności"
+Rozbudowa `src/lib/admin-seed.functions.ts` (albo dodanie równoległej funkcji `seedAdminAccount`) wzorowanej na `seedFamilyAccount`:
 
-Wątek liczy się jako mający nieprzeczytaną aktywność dla użytkownika `U`, gdy istnieje którekolwiek:
-- `feedback.created_by <> U` AND (`read_at` NULL LUB `feedback.created_at > read_at`) — nowe cudze zgłoszenie (dotyczy therapist widzącego cudze);
-- istnieje komentarz w wątku z `created_by <> U` AND (`read_at` NULL LUB `comment.created_at > read_at`) — cudzy nowy komentarz.
+- Wymaga zalogowanego `therapist`.
+- Czyta `process.env.ADMIN_SEED_PASSWORD` (sekret już istnieje w projekcie).
+- `email='marcin@fizjoplan.local'`, `email_confirm: true`; jeśli konto istnieje — reset hasła.
+- Upsert `profiles`: `display_name='Marcin — opiekun aplikacji'`, `role='admin'`.
+- Wywołanie z Ustawień (pod istniejącym przyciskiem seed rodziny dokładam drugi przycisk „Utwórz/odśwież konto admin").
 
-Aktywność własna (własne zgłoszenie, własne komentarze) NIE liczy się do „nowe".
+Uwaga: trigger `handle_new_user` używa `role_for_email` z `allowed_users`, więc gdyby user został utworzony przez signup, profil powstałby automatycznie — ale seed i tak wykonuje explicit upsert (jak przy family).
 
-Obliczenie po stronie klienta z pobranych: `feedback.created_by`, `feedback.created_at`, `feedback_reads.read_at`, oraz najświeższego cudzego komentarza `max(created_at) WHERE created_by <> U`. To ostatnie pobierzemy jednym dodatkowym zapytaniem: `select feedback_id, max(created_at) from feedback_comments where created_by <> U group by feedback_id` (grupowanie po stronie klienta z pobranej listy `(feedback_id, created_by, created_at)`, jeśli agregacja RPC niedostępna z klienta — prostsze: `select feedback_id, created_by, created_at from feedback_comments in (ids)` i redukcja w JS).
+## Krok 4 — Frontend: typy i checki roli
 
-## 3. Zapisy `feedback_reads`
+- `src/lib/types.ts`: `export type UserRole = "therapist" | "family" | "admin";` (typy Supabase w `integrations/supabase/types.ts` zregenerują się po migracji A).
+- Wprowadzam dwa helpery w `src/lib/store.ts` (lub `src/lib/roles.ts`):
+  - `isRestrictedCalendarRole(role)` = `role === 'family' || role === 'admin'` — używany wszędzie tam, gdzie dziś jest `role === 'family'`.
+  - `canManageFeedback(role)` = `role === 'therapist' || role === 'admin'` — używany wszędzie tam, gdzie dziś jest `role === 'therapist'` w kontekście sugestii.
+- Zamiana wystąpień:
+  - `src/hooks/use-busy-blocks.ts` linia 21: `role !== 'family'` → `!isRestrictedCalendarRole(role)`.
+  - `src/routes/_layout.kalendarz.tsx`, `src/routes/_layout.index.tsx`, `src/components/appointment-details-sheet.tsx`, `src/components/bottom-nav.tsx` — `isFamily`/filtr tabów → `isRestrictedCalendarRole`.
+  - `src/routes/_layout.pacjenci.tsx`, `src/routes/_layout.wiadomosci.tsx`: `profile.role === 'family'` → `isRestrictedCalendarRole(profile.role)` (redirect na `/`), żeby admin też nie miał wstępu.
+  - `src/routes/_layout.ustawienia.tsx` — sekcja ograniczona do therapist; sekcja „Sugestie" dostępna dla wszystkich zostaje; ukrywam admin panele terapeuty (import CSV, seed rodziny, seed admin — widoczne dla therapist).
+  - `src/routes/_layout.pacjenci.index.tsx` linia 95: bez zmian (dotyczy tylko terapeuty).
+  - `src/routes/_layout.ustawienia.sugestie.$id.tsx`: `role === 'therapist'` (canComment, dropdown statusu) → `canManageFeedback(role)`.
+  - `src/components/feedback-threads-list.tsx` linia 178 (widok autora) → `canManageFeedback(role)`. Zapytania listy dla admina używają tego samego kodu co dla terapeuty (pobierają wszystkie wątki) — RLS na to pozwala po Kroku 2.
 
-- Otwarcie wątku (mount widoku): `upsert({ feedback_id, user_id: U, read_at: now() }, { onConflict: 'feedback_id,user_id' })`.
-- Po pomyślnym wysłaniu własnego komentarza: dokładnie ten sam upsert z `now()` — żeby własny wpis nie zostawał „nowszy" niż read_at.
+## Krok 5 — Weryfikacja
 
-## 4. Widok „Sugestie" w Ustawieniach (obie role)
+- Logowanie jako `marcin` — widoczne wyłącznie: Dzisiaj, Kalendarz, Ustawienia; „+" tylko wydarzenie rodzinne; bloki cudzych wizyt anonimowe.
+- Bezpośrednie wejście na `/pacjenci` i `/wiadomosci` → redirect na `/`.
+- Sugestie: admin widzi wszystkie wątki, komentuje pod każdym, zmienia status.
+- Baza: `SELECT * FROM patients` jako admin przez PostgREST → pusto (brak polityki).
 
-Zastępujemy obecny `FeedbackList` (therapist-only) nowym `FeedbackThreadsList` widocznym też dla family. W sekcji „Sugestie":
-- Nagłówek pozycji z plakietką liczby wątków z nieprzeczytaną aktywnością (badge liczbowy obok tytułu sekcji).
-- Fetch:
-  - `feedback` `select('id, screen, body, photo_path, status, created_at, created_by, profiles!feedback_created_by_fkey(display_name)')` `order('created_at', desc)` — RLS ograniczy family do własnych.
-  - `feedback_reads` `select('feedback_id, read_at').eq('user_id', U)`.
-  - `feedback_comments` `select('feedback_id, created_by, created_at').in('feedback_id', ids)` — do policzenia (a) licznika komentarzy per wątek, (b) najświeższego cudzego komentarza.
-- Karta pozycji: data · ekran · autor (widoczny dla therapist) · pierwsze linie treści · plakietka statusu (Nowe zielona / Przejrzane niebieska / Zrobione szara) · licznik komentarzy (ikona `MessageSquare`) · kropka „nowe" wg reguły z pkt 2.
-- Klik → `Link` do `/ustawienia/sugestie/$id`.
+## Poza zakresem
 
-Zmiana statusu przenosi się z listy do widoku wątku (tylko therapist).
-
-## 5. Widok wątku `src/routes/_layout.ustawienia.sugestie.$id.tsx`
-
-Nowa trasa (flat dot-separated). `ssr: false` dziedziczone z `_layout`.
-- Fetch: pojedyncze zgłoszenie (`select` jak wyżej + `profiles`), komentarze `feedback_comments` `select('id, body, created_at, created_by, profiles!feedback_comments_created_by_fkey(display_name)').eq('feedback_id', id).order('created_at')`, signed URL dla `photo_path` (60 s).
-- Nagłówek: `AppHeader` „Sugestia" z przyciskiem powrotu do `/ustawienia`.
-- Karta zgłoszenia: data, ekran, autor, treść (whitespace-pre-wrap), zdjęcie.
-- Panel statusu — tylko therapist: `Select` (Nowe/Przejrzane/Zrobione) → `update feedback`.
-- Chronologiczna lista komentarzy: bąbelki z `display_name`, datą `dd.MM.yyyy HH:mm`, własne wyrównane w prawo (inne tło).
-- Pole „Dodaj komentarz" (Textarea + Wyślij) widoczne dla `feedback.created_by === U` LUB `role === 'therapist'`. Po insercie: dopisanie do lokalnej listy + upsert `feedback_reads` z `now()`.
-- Mount: upsert `feedback_reads` z `now()`.
-
-Realtime pominięte.
-
-## 6. Poza zakresem
-Powiadomienia push/e-mail, edycja i kasowanie komentarzy, załączniki w komentarzach, realtime, filtry/sortowanie poza domyślnym (najnowsze zgłoszenia u góry).
-
-## Techniczne szczegóły
-
-- Typy Supabase (`src/integrations/supabase/types.ts`) zregenerują się po migracji — kod frontu piszemy po migracji.
-- Nawigacja: `<Link to="/ustawienia/sugestie/$id" params={{ id }}>` — flat routing.
-- Kolizja z istniejącą trasą `/_layout/ustawienia`: dodanie `_layout.ustawienia.sugestie.$id.tsx` obok jest bezpieczne (TanStack file-based, brak layoutu potomnego).
-- `FeedbackSheet` bez zmian.
+- Powiadomienia.
+- Modyfikacje uprawnień therapist/family (poza dopisaniem `OR admin`).
+- Nowe UI dla admina poza istniejącym modułem sugestii.

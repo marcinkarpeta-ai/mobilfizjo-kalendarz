@@ -42,7 +42,7 @@ const STATUS_LABEL: Record<Status, string> = {
   done: "Zrobione",
 };
 
-export const Route = createFileRoute("/_layout/ustawienia/sugestie/$id")({
+export const Route = createFileRoute("/_layout/ustawienia_/sugestie/$id")({
   head: () => ({
     meta: [{ title: "Sugestia — FizjoPlan" }],
   }),

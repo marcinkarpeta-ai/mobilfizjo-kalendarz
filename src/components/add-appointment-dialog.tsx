@@ -62,7 +62,7 @@ const schema = z.object({
 export function AddAppointmentDialog({
   open,
   onOpenChange,
-  defaultDate = new Date(),
+  defaultDate,
   defaultStart,
   defaultEnd,
   mode = "full",

@@ -1,8 +1,11 @@
 import { CalendarX2, Clock } from "lucide-react";
+import { parseISO } from "date-fns";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
 import { fmtTime, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useNow } from "@/hooks/use-now";
+
 
 export function AppointmentCard({
   appt,
@@ -20,6 +23,15 @@ export function AppointmentCard({
   const cancelled = appt.status === "cancelled";
   const completed = appt.status === "completed";
 
+  const now = useNow();
+  const endsAt = parseISO(appt.ends_at);
+  const startsAt = parseISO(appt.starts_at);
+  const isPast = !cancelled && endsAt.getTime() <= now.getTime();
+  const isOngoing =
+    !cancelled &&
+    startsAt.getTime() <= now.getTime() &&
+    now.getTime() < endsAt.getTime();
+
   const isPatient = appt.type === "patient_visit";
   const title = familyView && isPatient
     ? "Zajęte"
@@ -35,28 +47,36 @@ export function AppointmentCard({
       ? label?.name ?? "Wizyta"
       : "Wydarzenie rodzinne";
 
+  const isFamilyEvent = appt.type === "family_event";
+
   const accentBar = cancelled
     ? "bg-muted"
-    : isPatient
-      ? "bg-primary"
-      : "bg-accent";
+    : isFamilyEvent
+      ? "bg-family-bar"
+      : "bg-primary";
 
-  const isFamilyEvent = appt.type === "family_event";
   const showFamilyBadge = isFamilyEvent && !familyView && !cancelled;
 
   const inner = (
     <article
       className={cn(
         "relative overflow-hidden rounded-2xl border border-border p-4 shadow-sm transition-colors",
-        isFamilyEvent && !cancelled ? "bg-accent/10" : "bg-card",
+        isFamilyEvent && !cancelled ? "bg-family" : "bg-card",
         cancelled && "opacity-60",
+        isPast && "opacity-60",
+        isOngoing && (isFamilyEvent ? "border-family-bar" : "border-primary"),
         !cancelled && "hover:border-accent",
       )}
     >
       <span
         aria-hidden
-        className={cn("absolute inset-y-0 left-0 w-1", accentBar)}
+        className={cn(
+          "absolute inset-y-0 left-0 w-1",
+          accentBar,
+          isPast && "opacity-60",
+        )}
       />
+
       <div className="flex items-start justify-between gap-3 pl-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -104,4 +104,5 @@ export interface MessageTemplate {
 export interface AppSettings {
   therapist_name: string;
   clinic_name: string;
+  sms_price_net_gr: number;
 }

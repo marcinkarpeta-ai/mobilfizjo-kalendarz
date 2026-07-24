@@ -134,8 +134,9 @@ export function DataSync() {
         ? {
             therapist_name: settingsRow.therapist_name ?? "",
             clinic_name: settingsRow.clinic_name ?? "",
+            sms_price_net_gr: settingsRow.sms_price_net_gr ?? 10,
           }
-        : { therapist_name: "", clinic_name: "" };
+        : { therapist_name: "", clinic_name: "", sms_price_net_gr: 10 };
 
       hydrate({
         patients,

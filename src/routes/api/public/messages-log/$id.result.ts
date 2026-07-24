@@ -6,6 +6,7 @@ const ResultSchema = z.object({
   status: z.enum(["sent", "failed"]),
   provider_ref: z.string().min(1).max(200).optional(),
   error: z.string().max(500).optional(),
+  parts: z.number().int().min(1).max(10).optional(),
 });
 
 export const Route = createFileRoute("/api/public/messages-log/$id/result")({
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/api/public/messages-log/$id/result")({
           error: string | null;
           sent_at?: string;
           provider_ref?: string;
+          parts?: number;
         } = {
           status: payload.status,
           processing_started_at: null,
@@ -43,6 +45,7 @@ export const Route = createFileRoute("/api/public/messages-log/$id/result")({
         };
         if (payload.status === "sent") {
           update.sent_at = new Date().toISOString();
+          update.parts = payload.parts ?? 1;
         }
         if (payload.provider_ref) {
           update.provider_ref = payload.provider_ref;

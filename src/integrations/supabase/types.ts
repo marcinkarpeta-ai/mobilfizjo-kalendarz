@@ -37,6 +37,7 @@ export type Database = {
           allowed_emails: string[]
           clinic_name: string
           id: string
+          sms_price_net_gr: number
           therapist_name: string
           updated_at: string
         }
@@ -44,6 +45,7 @@ export type Database = {
           allowed_emails?: string[]
           clinic_name?: string
           id?: string
+          sms_price_net_gr?: number
           therapist_name?: string
           updated_at?: string
         }
@@ -51,6 +53,7 @@ export type Database = {
           allowed_emails?: string[]
           clinic_name?: string
           id?: string
+          sms_price_net_gr?: number
           therapist_name?: string
           updated_at?: string
         }
@@ -295,6 +298,7 @@ export type Database = {
           error: string | null
           id: string
           kind: Database["public"]["Enums"]["message_kind"]
+          parts: number
           patient_id: string
           processing_started_at: string | null
           provider_ref: string | null
@@ -310,6 +314,7 @@ export type Database = {
           error?: string | null
           id?: string
           kind: Database["public"]["Enums"]["message_kind"]
+          parts?: number
           patient_id: string
           processing_started_at?: string | null
           provider_ref?: string | null
@@ -325,6 +330,7 @@ export type Database = {
           error?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["message_kind"]
+          parts?: number
           patient_id?: string
           processing_started_at?: string | null
           provider_ref?: string | null
@@ -564,6 +570,14 @@ export type Database = {
         Returns: {
           ends_at: string
           starts_at: string
+        }[]
+      }
+      get_sms_monthly_stats: {
+        Args: { _months?: number }
+        Returns: {
+          messages_count: number
+          month: string
+          parts_total: number
         }[]
       }
       has_role: {

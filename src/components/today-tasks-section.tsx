@@ -36,12 +36,95 @@ function sortForToday(a: Task, b: Task) {
   return a.created_at.localeCompare(b.created_at);
 }
 
+interface TaskCardProps {
+  task: Task;
+  today: string;
+  variant: "main" | "upcoming";
+  expanded: boolean;
+  onToggle: () => void;
+  onComplete: () => void;
+}
+
+function TaskCard({
+  task,
+  today,
+  variant,
+  expanded,
+  onToggle,
+  onComplete,
+}: TaskCardProps) {
+  const overdue = task.due_date && task.due_date < today;
+  const hasNote = !!task.note?.trim();
+
+  return (
+    <li
+      className={cn(
+        "flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-3",
+        hasNote && "cursor-pointer",
+      )}
+      onClick={hasNote ? onToggle : undefined}
+      aria-expanded={hasNote ? expanded : undefined}
+    >
+      <Checkbox
+        className="mt-0.5"
+        checked={false}
+        onCheckedChange={onComplete}
+        onClick={(e) => e.stopPropagation()}
+        aria-label={`Oznacz jako wykonane: ${task.title}`}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground">{task.title}</p>
+          {hasNote ? (
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform",
+                expanded && "rotate-180",
+              )}
+              aria-hidden="true"
+            />
+          ) : null}
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+          {variant === "main" ? (
+            <>
+              {overdue ? (
+                <span className="text-destructive">
+                  zaległe od {format(parseISO(task.due_date!), "dd.MM", { locale: pl })}
+                </span>
+              ) : task.due_date ? (
+                <span>dziś</span>
+              ) : (
+                <span>bez terminu</span>
+              )}
+            </>
+          ) : (
+            <>
+              {task.due_date ? (
+                <span>
+                  {format(parseISO(task.due_date), "dd.MM.yyyy", { locale: pl })}
+                </span>
+              ) : null}
+            </>
+          )}
+        </div>
+        {hasNote && expanded ? (
+          <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+            {task.note}
+          </p>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
 export function TodayTasksSection() {
   const tasks = useTasksStore((s) => s.tasks);
   const loaded = useTasksStore((s) => s.loaded);
   const loadTasks = useTasksStore((s) => s.loadTasks);
   const completeTask = useTasksStore((s) => s.completeTask);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     void loadTasks();
@@ -61,6 +144,15 @@ export function TodayTasksSection() {
     return { main, upcoming };
   }, [tasks, today]);
 
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   if (!loaded) return null;
   if (main.length === 0 && upcoming.length === 0) return null;
 
@@ -74,36 +166,17 @@ export function TodayTasksSection() {
       </h2>
       {main.length > 0 ? (
         <ul className="space-y-2">
-          {main.map((t) => {
-            const overdue = t.due_date && t.due_date < today;
-            return (
-              <li
-                key={t.id}
-                className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-3"
-              >
-                <Checkbox
-                  className="mt-0.5"
-                  checked={false}
-                  onCheckedChange={() => void completeTask(t.id)}
-                  aria-label={`Oznacz jako wykonane: ${t.title}`}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">{t.title}</p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                    {overdue ? (
-                      <span className={cn("text-destructive")}>
-                        zaległe od {format(parseISO(t.due_date!), "dd.MM", { locale: pl })}
-                      </span>
-                    ) : t.due_date ? (
-                      <span>dziś</span>
-                    ) : (
-                      <span>bez terminu</span>
-                    )}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
+          {main.map((t) => (
+            <TaskCard
+              key={t.id}
+              task={t}
+              today={today}
+              variant="main"
+              expanded={expanded.has(t.id)}
+              onToggle={() => toggleExpanded(t.id)}
+              onComplete={() => void completeTask(t.id)}
+            />
+          ))}
         </ul>
       ) : null}
 
@@ -125,27 +198,15 @@ export function TodayTasksSection() {
           <CollapsibleContent className="mt-2">
             <ul className="space-y-2">
               {upcoming.map((t) => (
-                <li
+                <TaskCard
                   key={t.id}
-                  className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-3"
-                >
-                  <Checkbox
-                    className="mt-0.5"
-                    checked={false}
-                    onCheckedChange={() => void completeTask(t.id)}
-                    aria-label={`Oznacz jako wykonane: ${t.title}`}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground">{t.title}</p>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                      {t.due_date ? (
-                        <span>
-                          {format(parseISO(t.due_date), "dd.MM.yyyy", { locale: pl })}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </li>
+                  task={t}
+                  today={today}
+                  variant="upcoming"
+                  expanded={expanded.has(t.id)}
+                  onToggle={() => toggleExpanded(t.id)}
+                  onComplete={() => void completeTask(t.id)}
+                />
               ))}
             </ul>
           </CollapsibleContent>

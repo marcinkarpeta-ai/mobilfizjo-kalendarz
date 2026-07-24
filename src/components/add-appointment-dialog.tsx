@@ -90,7 +90,7 @@ export function AddAppointmentDialog({
   const [type, setType] = useState<AppointmentType>(
     familyOnly ? "family_event" : "patient_visit",
   );
-  const [date, setDate] = useState(format(defaultDate, "yyyy-MM-dd"));
+  const [date, setDate] = useState(format(defaultDate ?? new Date(), "yyyy-MM-dd"));
   const [start, setStart] = useState(defaultStart ?? "09:00");
   const [end, setEnd] = useState(defaultEnd ?? "09:45");
   const [patientId, setPatientId] = useState<string>("");
@@ -123,15 +123,19 @@ export function AddAppointmentDialog({
       setLabelId(editing.visit_label_id ?? "");
       setTitle(editing.title ?? "");
     } else {
+      const baseDate = defaultDate ?? new Date();
       setType(familyOnly ? "family_event" : "patient_visit");
-      setDate(format(defaultDate, "yyyy-MM-dd"));
+      setDate(format(baseDate, "yyyy-MM-dd"));
       setStart(defaultStart ?? "09:00");
       setEnd(defaultEnd ?? "09:45");
       setPatientId("");
       setLabelId("");
       setTitle("");
     }
-  }, [open, editing, familyOnly, defaultDate, defaultStart, defaultEnd]);
+    // Inicjalizacja pól ma nastąpić wyłącznie przy otwarciu okna; wartości
+    // początkowe pochodzą z propsów z momentu otwarcia.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const startISO = `${date}T${start}:00`;
   const endISO = `${date}T${end}:00`;

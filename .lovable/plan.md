@@ -1,20 +1,17 @@
-Odczep trasę wątku sugestii od layoutu Ustawień, aby przestała być traktowana jako dziecko `/ustawienia` (które nie renderuje `<Outlet />`).
+Naprawa nadpisywania stanu w formularzu edycji wizyty (`src/components/add-appointment-dialog.tsx`).
 
-## Kroki
+### Problem
+`defaultDate = new Date()` w destrukturyzacji propsów tworzy nowy obiekt przy każdym renderze. Efekt inicjalizujący pola formularza ma `defaultDate` w zależnościach, więc po każdej ręcznej zmianie daty/godziny efekt nadpisuje stan wartościami pierwotnymi.
 
-1. Zmień nazwę pliku:
-   - z `src/routes/_layout.ustawienia.sugestie.$id.tsx`
-   - na `src/routes/_layout.ustawienia_.sugestie.$id.tsx`
-   (podkreślnik po `ustawienia` w TanStack Router wyłącza zagnieżdżanie w rodzicu, zachowując URL `/ustawienia/sugestie/:id`).
+### Zmiany (tylko w `src/components/add-appointment-dialog.tsx`)
+1. Usunąć domyślną wartość `new Date()` z destrukturyzacji propsa `defaultDate`.
+2. Zmienić zależności efektu inicjalizującego na `[open]`.
+   - Wartości `editing`, `defaultDate`, `defaultStart`, `defaultEnd` czytać wewnątrz efektu przez refy lub bezpośrednio z propsów.
+   - Dodać komentarz `// eslint-disable-next-line react-hooks/exhaustive-deps` z uzasadnieniem, że inicjalizacja ma nastąpić tylko przy otwarciu okna.
+   - Fallback `new Date()` zastosować wewnątrz efektu, gdy `defaultDate` nie zostało przekazane.
+3. Zweryfikować, że wyliczanie kolizji (`overlapping`) i komponent `AvailabilityStrip` nadal reagują na zmiany pól formularza.
 
-2. W przemianowanym pliku zaktualizuj wywołanie:
-   ```ts
-   createFileRoute("/_layout/ustawienia_/sugestie/$id")
-   ```
-
-3. `src/routeTree.gen.ts` regeneruje się automatycznie — nie edytujemy go ręcznie.
-
-## Poza zakresem
-
-- Linki `<Link to="/ustawienia/sugestie/$id">` w `feedback-threads-list.tsx` pozostają bez zmian (URL się nie zmienia).
-- Zero zmian w innych plikach, komponentach, RLS ani stylach.
+### Weryfikacja
+- Ręczna zmiana daty/godziny w formularzu edycji pozostaje zmieniona.
+- Otwarcie okna dialogowego nadal wypełnia początkowe wartości.
+- Pasek dostępności i ostrzeżenie o kolizji działają po zmianach.

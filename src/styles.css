@@ -35,6 +35,9 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-family: var(--family);
+  --color-family-bar: var(--family-bar);
+
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -75,6 +78,9 @@
   --muted-foreground: oklch(0.5 0.02 65);
   --accent: oklch(0.82 0.05 80);              /* #c9b99a */
   --accent-foreground: oklch(0.28 0.02 60);
+  --family: oklch(0.88 0.09 70);              /* cieplejsze tło wydarzeń rodzinnych */
+  --family-bar: oklch(0.7 0.14 60);           /* mocniejszy pasek akcentu rodzinnego */
+
   --destructive: oklch(0.55 0.18 25);
   --destructive-foreground: oklch(0.985 0.005 80);
   --success: oklch(0.6 0.11 155);
@@ -114,6 +120,9 @@
   --muted-foreground: oklch(0.72 0.015 75);
   --accent: oklch(0.52 0.045 60);
   --accent-foreground: oklch(0.96 0.008 80);
+  --family: oklch(0.5 0.09 60);
+  --family-bar: oklch(0.72 0.14 65);
+
   --destructive: oklch(0.62 0.19 25);
   --destructive-foreground: oklch(0.96 0.008 80);
   --success: oklch(0.65 0.11 155);

@@ -1,50 +1,66 @@
-Zakres: wyłącznie prezentacja. Bez zmian danych, RLS, store, typów, logiki statusów.
+## Moduł "Sprawy" — wspólna lista zadań
 
-## 1. Nowe tokeny w `src/styles.css`
+### Baza (migracja)
 
-Dodać dwa semantyczne tokeny (light + dark) w `:root` i `.dark`, plus mapowanie w `@theme inline` żeby dostępne były klasy `bg-family` / `bg-family-bar`:
+Tabela `public.tasks`:
+- `id uuid PK default gen_random_uuid()`
+- `created_by uuid NOT NULL` (FK do `profiles.user_id`)
+- `title text NOT NULL CHECK (btrim(title) <> '')`
+- `note text`
+- `due_date date`
+- `status text NOT NULL DEFAULT 'open' CHECK (status IN ('open','done'))`
+- `done_at timestamptz`
+- `done_by uuid` (FK do `profiles.user_id`)
+- `created_at timestamptz NOT NULL DEFAULT now()`
 
-- `--family` — cieplejszy odcień akcentu o wyższym nasyceniu niż obecne `bg-accent/10` (dla tła kart wydarzeń rodzinnych; wciąż w obrębie palety Warm Sand, ale wyraźnie odróżnialny od `--card`).
-- `--family-bar` — mocniejszy wariant do paska akcentu wydarzeń rodzinnych (zamiennik obecnego `bg-accent`).
+GRANT `SELECT, INSERT, UPDATE ON public.tasks TO authenticated`; `GRANT ALL ... TO service_role` (jak feedback, bez DELETE).
 
-W `@theme inline`: `--color-family: var(--family);` i `--color-family-bar: var(--family-bar);`.
+RLS (enable) — polityki dla użytkowników z rolą `therapist`, `family` lub `admin`:
+- SELECT USING `has_role(auth.uid(),'therapist') OR has_role(auth.uid(),'family') OR has_role(auth.uid(),'admin')`
+- INSERT WITH CHECK `created_by = auth.uid() AND (has_role... OR ...)`
+- UPDATE USING (jak SELECT) WITH CHECK (jak SELECT)
+- brak DELETE
 
-## 2. `src/components/appointment-card.tsx` (ekran Dzisiaj)
+Trigger `set_task_created_by` (BEFORE INSERT) domyślnie wypełnia `created_by := auth.uid()` gdy NULL — analogicznie do `set_appointment_created_by`.
 
-- Tło kart rodzinnych: zamiast `bg-accent/10` użyć `bg-family` (tam gdzie nie odwołane).
-- Pasek akcentu rodzinnego: zamiast `bg-accent` użyć `bg-family-bar`.
-- Nowy hook `useNow()` (co 60s przez `setInterval`) — patrz sekcja 5.
-- Wyliczyć `isPast = ends_at < now`, `isOngoing = starts_at <= now < ends_at` (tylko dla `status === "scheduled"`; nie dotyczy `cancelled`, które ma osobną prezentację).
-- `isPast` → dołożyć `opacity-60` do `<article>` i przygasić pasek akcentu (np. `opacity-60` na pasku lub wariant `bg-primary/50` / `bg-family-bar/50`).
-- `isOngoing` → subtelnie mocniejsza ramka: `border-primary/60` (rodzina: `border-[color:var(--family-bar)]/70`).
-- Kliknięcie zachowane; badge „Rodzina" bez zmian.
+Indeksy: `(status, due_date)` dla list.
 
-## 3. `src/components/day-timeline.tsx` (oś dnia w Kalendarzu)
+### Frontend
 
-Ten sam zestaw zmian dla bloków `positioned`:
-- Zamiana `bg-accent/10` → `bg-family` dla `isFamilyEvent`.
-- Zamiana `bg-accent` → `bg-family-bar` w pasku akcentu wydarzeń rodzinnych.
-- Wyliczenie `isPast` / `isOngoing` na podstawie `useNow()` i pól `appt.starts_at` / `ends_at`.
-- `isPast`: `opacity-60` na `<article>` + przygaszony pasek.
-- `isOngoing`: mocniejsza ramka (`border-primary/60` lub `border-[color:var(--family-bar)]/70`).
-- Bloki pozostają klikalne; sekcja „Odwołane" bez zmian; busy-blocks bez zmian (to nie „wpisy zakończone").
+**`src/lib/types.ts`** — dodać typ `Task`.
 
-## 4. `src/components/appointment-details-sheet.tsx` (nagłówek arkusza)
+**`src/lib/tasks-store.ts`** (nowy, poza głównym `useStore` aby nie mieszać kontraktu) — Zustand store z:
+- `tasks: Task[]`, `loaded: boolean`
+- `loadTasks()` (fetch), `addTask({title, note?, due_date?})`, `completeTask(id)`, `reopenTask(id)`, `updateTask(id, patch)`
+- Optymistyczne aktualizacje + toast na błąd (wzorzec z `store.ts`).
+- Ładowanie: przy wejściu na `/sprawy` i przy montowaniu sekcji na `Dzisiaj` (brak realtime — wystarczy odświeżenie przy wejściu).
 
-- Gdy `isFamilyEvent`, w `<SheetHeader>` dodać delikatne tło rodzinne: opakować tytuł+badge w kontener z `bg-family` i zaokrągleniem, żeby na pierwszy rzut oka pokazać typ wpisu. Reszta arkusza bez zmian. (Badge „Zakończona"/„Zaplanowana" pozostaje bez zmian — status arkusza już to komunikuje, wyszarzenie dotyczy kart na liście/osi.)
+**`src/components/today-tasks-section.tsx`** (nowy) — sekcja "Sprawy" pod planem dnia na ekranie Dzisiaj:
+- Filtr: `status='open' AND (due_date IS NULL OR due_date <= today)`.
+- Sort: zaległe (due_date < dziś) → dzisiejsze → bez terminu; wewnątrz grup po `created_at`.
+- Pozycja: checkbox (Radix Checkbox → `completeTask`), tytuł, autor (`display_name` z `profiles` — dołączyć do query), termin. Zaległe: czerwonawy dopisek "zaległe od DD.MM" (`text-destructive`).
+- Ukrywana gdy lista pusta.
+- Stopka: `<Link to="/sprawy">Wszystkie sprawy →</Link>`.
 
-## 5. Nowy hook `src/hooks/use-now.ts`
+Wstawić w `src/routes/_layout.index.tsx` pod `<section aria-labelledby="today-list">`.
 
-```text
-useNow(intervalMs = 60_000): Date
-```
-- `useState<Date>(() => new Date())`, `useEffect` z `setInterval` co 60 s (+ cleanup).
-- Wywoływany w `AppointmentCard` i `DayTimeline` — powoduje re-render co minutę, więc próg `ends_at < now` przelicza się bez przeładowania strony.
+**`src/routes/_layout.sprawy_.index.tsx`** — nowa trasa `/sprawy`, odczepiona od rodzica przez sufiks `_` (jak `_layout.ustawienia_.sugestie.$id.tsx`). Dostępna dla wszystkich zalogowanych ról (już opakowane w `_authenticated` przez `_layout`).
+- `AppHeader` z tytułem "Sprawy" i `feedbackScreen="Sprawy"`.
+- Formularz dodawania u góry (Input tytuł, Textarea notatka, Input type=date) + przycisk "Dodaj".
+- Lista otwartych: sekcje "Zaległe" / "Dziś" / "Bez terminu" / "Nadchodzące" (z widoczną datą). Każda pozycja klikalna → otwiera dolny arkusz edycji.
+- Dolna zwinięta sekcja "Wykonane (30 dni)": Collapsible z listą (data wykonania, `display_name` odhaczającego, akcja "Przywróć" → `reopenTask`).
+- Pobiera `tasks` przy mount (`loadTasks`).
 
-## Rola family/admin
-Renderują dokładnie te same komponenty (`AppointmentCard`, `DayTimeline`) — zmiany 2–3 obejmują je automatycznie. Zajęte anonimowe bloki (busy) nie mają statusu i pozostają nietknięte.
+**`src/components/task-edit-sheet.tsx`** (nowy) — dolny arkusz (`Sheet`) z polami tytuł/notatka/termin, przyciskiem Zapisz. Dostępny dla każdej roli.
 
-## Poza zakresem (nie ruszamy)
-- Wizyty odwołane (mają własną prezentację i sekcję „Odwołane").
-- `availability-strip.tsx`, „Wiadomości", „Sugestie", siatka miesiąca.
-- Logika statusów (`completed` / `scheduled` w bazie) — wyszarzenie liczone czysto po czasie w UI.
+**Ikona wejścia do /sprawy w nagłówku Dzisiaj** — dla wszystkich ról (stałe wejście, niezależne od zawartości sekcji):
+- W `_layout.index.tsx` przekazać do `AppHeader` prop `right={<Button asChild variant="ghost" size="icon" aria-label="Sprawy"><Link to="/sprawy"><ListTodo/></Link></Button>}`. Ikona `ListTodo` z lucide, renderowana przed ikoną sugestii.
+
+### Poza zakresem
+Powiadomienia, powtarzalność, kategorie, osobne listy, załączniki, realtime, DELETE.
+
+### Kolejność wykonania
+1. Migracja (tabela + RLS + trigger + grants).
+2. Regeneracja typów Supabase, potem `src/lib/types.ts` + `tasks-store.ts`.
+3. Trasa `/sprawy` + arkusz edycji.
+4. Sekcja "Sprawy" i ikona nagłówka na Dzisiaj.

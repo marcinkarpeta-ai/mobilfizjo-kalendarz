@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { ListTodo, Plus } from "lucide-react";
 import { endOfDay, parseISO, startOfDay } from "date-fns";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { AppointmentCard } from "@/components/appointment-card";
 import { BusyBlockCard } from "@/components/busy-block-card";
 import { AppointmentDetailsSheet } from "@/components/appointment-details-sheet";
 import { AddAppointmentDialog } from "@/components/add-appointment-dialog";
+import { TodayTasksSection } from "@/components/today-tasks-section";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { fmtDateLong, isSameLocalDay } from "@/lib/format";
@@ -88,6 +89,13 @@ function TodayPage() {
         title="Dzisiaj"
         subtitle={mounted ? capitalize(fmtDateLong(today)) : ""}
         feedbackScreen="Dzisiaj"
+        right={
+          <Button asChild variant="ghost" size="icon" aria-label="Sprawy">
+            <Link to="/sprawy">
+              <ListTodo className="h-5 w-5" />
+            </Link>
+          </Button>
+        }
       />
       <PageContainer>
         {!mounted ? (
@@ -131,6 +139,8 @@ function TodayPage() {
                 </ul>
               )}
             </section>
+
+            <TodayTasksSection />
           </>
         )}
       </PageContainer>

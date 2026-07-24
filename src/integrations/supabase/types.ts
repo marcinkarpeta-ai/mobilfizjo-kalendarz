@@ -447,6 +447,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          created_at: string
+          created_by: string
+          done_at: string | null
+          done_by: string | null
+          due_date: string | null
+          id: string
+          note: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          done_at?: string | null
+          done_by?: string | null
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          done_at?: string | null
+          done_by?: string | null
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       visit_labels: {
         Row: {
           created_at: string

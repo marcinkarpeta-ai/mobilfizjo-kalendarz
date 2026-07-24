@@ -89,6 +89,13 @@ function TodayPage() {
         title="Dzisiaj"
         subtitle={mounted ? capitalize(fmtDateLong(today)) : ""}
         feedbackScreen="Dzisiaj"
+        right={
+          <Button asChild variant="ghost" size="icon" aria-label="Sprawy">
+            <Link to="/sprawy">
+              <ListTodo className="h-5 w-5" />
+            </Link>
+          </Button>
+        }
       />
       <PageContainer>
         {!mounted ? (

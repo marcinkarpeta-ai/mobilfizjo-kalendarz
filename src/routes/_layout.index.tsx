@@ -139,6 +139,8 @@ function TodayPage() {
                 </ul>
               )}
             </section>
+
+            <TodayTasksSection />
           </>
         )}
       </PageContainer>

@@ -5,6 +5,8 @@ import type { Appointment, Patient, VisitLabel } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatPatientName } from "@/lib/format";
+import { useNow } from "@/hooks/use-now";
+
 
 export interface BusyInterval {
   starts_at: string;
@@ -161,6 +163,8 @@ export function DayTimeline({
   onSelectAppointment?: (appt: Appointment) => void;
 }) {
   void _date;
+  const now = useNow();
+  const nowMs = now.getTime();
   const active = appointments.filter((a) => a.status !== "cancelled");
   const cancelled = appointments
     .filter((a) => a.status === "cancelled")
@@ -172,6 +176,7 @@ export function DayTimeline({
 
   const [cancelledOpen, setCancelledOpen] = useState(false);
   const showCancelledSection = !familyView && cancelled.length > 0;
+
 
   return (
     <>
@@ -262,12 +267,17 @@ export function DayTimeline({
             ? label?.name ?? "Wizyta"
             : "Wydarzenie rodzinne";
 
-        const accentBar = isPatient ? "bg-primary" : "bg-accent";
+        const isFamilyEvent = appt.type === "family_event";
+        const accentBar = isFamilyEvent ? "bg-family-bar" : "bg-primary";
 
         const compact = height < 56;
         const timeText = `${hhmm(p.startMin)}–${hhmm(p.endMin)}`;
 
-        const isFamilyEvent = appt.type === "family_event";
+        const endsAtMs = parseISO(appt.ends_at).getTime();
+        const startsAtMs = parseISO(appt.starts_at).getTime();
+        const isPast = endsAtMs <= nowMs;
+        const isOngoing = startsAtMs <= nowMs && nowMs < endsAtMs;
+
         const showFamilyBadge = isFamilyEvent && !familyView;
 
         const clickable =
@@ -278,7 +288,9 @@ export function DayTimeline({
             key={`ap-${appt.id}-${idx}`}
             className={cn(
               "absolute z-10 overflow-hidden rounded-2xl border border-border shadow-sm hover:border-accent",
-              isFamilyEvent ? "bg-accent/10" : "bg-card",
+              isFamilyEvent ? "bg-family" : "bg-card",
+              isPast && "opacity-60",
+              isOngoing && (isFamilyEvent ? "border-family-bar" : "border-primary"),
               compact ? "p-2" : "p-3",
             )}
             style={{
@@ -288,7 +300,8 @@ export function DayTimeline({
               width: `calc((100% - ${GUTTER_PX + 4}px) / ${cols} - 4px)`,
             }}
           >
-            <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
+            <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", accentBar, isPast && "opacity-60")} />
+
             {showFamilyBadge ? (
               <Badge
                 variant="outline"

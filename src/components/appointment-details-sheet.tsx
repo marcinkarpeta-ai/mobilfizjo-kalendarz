@@ -70,7 +70,13 @@ export function AppointmentDetailsSheet({
         {appt ? (
           <>
             <SheetHeader className="text-left">
-              <div className="flex items-start justify-between gap-3">
+              <div
+                className={
+                  isFamilyEvent
+                    ? "flex items-start justify-between gap-3 rounded-xl bg-family p-3"
+                    : "flex items-start justify-between gap-3"
+                }
+              >
                 <SheetTitle className="text-xl">{title}</SheetTitle>
                 {cancelled ? (
                   <Badge variant="secondary" className="gap-1">
@@ -84,6 +90,7 @@ export function AppointmentDetailsSheet({
               </div>
               <SheetDescription className="sr-only">Szczegóły wpisu</SheetDescription>
             </SheetHeader>
+
 
             <div className="mt-4 space-y-1 text-sm">
               <div className="text-foreground">{dateLine}</div>

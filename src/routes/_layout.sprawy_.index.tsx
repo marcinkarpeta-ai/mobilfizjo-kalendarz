@@ -197,8 +197,8 @@ function SprawyPage() {
                       {t.done_at
                         ? format(parseISO(t.done_at), "dd.MM.yyyy HH:mm", { locale: pl })
                         : ""}
-                      {t.done_by_name ? ` • ${t.done_by_name}` : ""}
                     </p>
+
                   </div>
                   <Button
                     variant="ghost"
@@ -267,7 +267,6 @@ function TaskGroup({
                 </p>
               ) : null}
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                {t.created_by_name ? <span>{t.created_by_name}</span> : null}
                 {overdueMarker && t.due_date ? (
                   <span className={cn("text-destructive")}>
                     zaległe od {format(parseISO(t.due_date), "dd.MM", { locale: pl })}
@@ -280,6 +279,7 @@ function TaskGroup({
                   <span>dziś</span>
                 ) : null}
               </div>
+
             </button>
           </li>
         ))}

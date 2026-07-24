@@ -4,6 +4,7 @@ import { AppHeader, PageContainer } from "@/components/app-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SmsUsageCard } from "@/components/sms-usage-card";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 import { fmtDate, formatPatientName } from "@/lib/format";
@@ -116,6 +117,9 @@ function MessagesPage() {
     <>
       <AppHeader title="Wiadomości" subtitle="Dziennik i propozycje marketingowe" feedbackScreen="Wiadomości" />
       <PageContainer>
+        <div className="mb-4">
+          <SmsUsageCard />
+        </div>
         <Tabs defaultValue="log">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="log">Dziennik</TabsTrigger>

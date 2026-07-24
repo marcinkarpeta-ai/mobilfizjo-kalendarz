@@ -142,6 +142,24 @@ function SettingsPage() {
         </Section>
 
         <Section title="Szablony wiadomości">
+          <div className="mb-3 rounded-2xl border border-border bg-card p-4">
+            <Label htmlFor="s-sms-price">Cena netto za część SMS (gr)</Label>
+            <Input
+              id="s-sms-price"
+              type="number"
+              min={0}
+              step={1}
+              value={settings.sms_price_net_gr}
+              onChange={(e) =>
+                updateSettings({
+                  sms_price_net_gr: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                })
+              }
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Używane do wyliczania szacunkowego kosztu w karcie „Zużycie SMS".
+            </p>
+          </div>
           <p className="mb-2 px-1 text-xs text-muted-foreground">
             Dostępne placeholdery: <code>{"{{salutation}}"}</code>,{" "}
             <code>{"{{date}}"}</code>, <code>{"{{time}}"}</code>,{" "}

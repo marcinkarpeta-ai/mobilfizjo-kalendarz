@@ -150,7 +150,7 @@ function SettingsPage() {
 
         <Section title="Szablony wiadomości">
           <div className="mb-3 rounded-2xl border border-border bg-card p-4">
-            <Label htmlFor="s-sms-price">Cena netto za część SMS (gr)</Label>
+            <Label htmlFor="s-sms-price">Cena netto za 1 SMS (gr)</Label>
             <Input
               id="s-sms-price"
               type="number"
@@ -352,6 +352,12 @@ function SettingsPage() {
               setEditingTpl((s) => (s ? { ...s, body: e.target.value } : s))
             }
           />
+          {editingTpl ? (
+            <TemplateSmsMeter
+              body={editingTpl.body}
+              priceGr={settings.sms_price_net_gr}
+            />
+          ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingTpl(null)}>
               Anuluj

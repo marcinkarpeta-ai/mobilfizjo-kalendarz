@@ -1,34 +1,42 @@
-## Cel
-Licznik zużycia SMS: kolumna `parts` w `messages_log`, RPC agregujący po miesiącach, cena netto w ustawieniach, karta na ekranie Wiadomości.
+## Zakres
+Dwie zmiany UI dotyczące SMS-ów. Bez zmian w bazie, RPC ani logice zapisu `parts`.
 
-## 1. Baza (migracja)
-- `ALTER TABLE public.messages_log ADD COLUMN parts smallint NOT NULL DEFAULT 1 CHECK (parts BETWEEN 1 AND 10);`
-- `ALTER TABLE public.app_settings ADD COLUMN sms_price_net_gr integer NOT NULL DEFAULT 10 CHECK (sms_price_net_gr >= 0);`
-- RPC `public.get_sms_monthly_stats(_months int DEFAULT 12)`:
-  - `RETURNS TABLE(month date, messages_count bigint, parts_total bigint)`
-  - `LANGUAGE plpgsql SECURITY DEFINER SET search_path = public`
-  - Wewnątrz: `IF NOT public.has_role(auth.uid(),'therapist') THEN RAISE EXCEPTION 'forbidden'; END IF;`
-  - Grupowanie po `date_trunc('month', coalesce(sent_at, created_at) AT TIME ZONE 'Europe/Warsaw')::date`, filtr `status IN ('sent','delivered','undelivered')`, zakres ostatnie `_months` miesięcy (włącznie z bieżącym), sort DESC, uzupełnianie brakujących miesięcy pustymi wierszami (0/0).
-  - `GRANT EXECUTE ... TO authenticated;`
+## 1. Licznik znaków w edytorze szablonów
+Plik: `src/routes/_layout.ustawienia.tsx` (sekcja edycji szablonów wiadomości).
 
-## 2. Endpoint PATCH `/api/public/messages-log/:id/result`
-Plik: `src/routes/api/public/messages-log/$id.result.ts`
-- W `ResultSchema` dodać `parts: z.number().int().min(1).max(10).optional()`.
-- W bloku `if (payload.status === "sent")` zapisać `update.parts = payload.parts ?? 1` (dla statusu `failed` nie dotykamy).
+Nowy helper `src/lib/sms.ts`:
+- `GSM_BASIC_CHARS` — zestaw znaków GSM 03.38 (litery ASCII bez PL, cyfry, spacja, podstawowa interpunkcja, `@£$¥èéùìòÇØøÅå…`) + znaki „rozszerzenia" liczące się podwójnie (`^{}\[~]|€`).
+- `isGsm7(text)` — wszystkie znaki należą do zbioru GSM.
+- `gsmLength(text)` — długość z uwzględnieniem podwójnego kosztu znaków rozszerzenia.
+- `smsSegments(text)` — zwraca `{ encoding: 'gsm'|'ucs2', length, segments, perSegment, singleLimit }`. Progi: GSM 160/153, UCS-2 70/67. 1 segment gdy `length <= singleLimit`, w innym wypadku `ceil(length / perSegment)`.
+- `renderPreview(body, longestSalutation)` — podstawia:
+  - `{{date}}` → `"29.07.2026"`
+  - `{{time}}` → `"20:00"`
+  - `{{ics_link}}` → `""`
+  - `{{salutation}}` → `longestSalutation`
 
-## 3. Ustawienia terapeuty
-Plik: `src/routes/_layout.ustawienia.tsx`, sekcja szablonów SMS (lub nowa mała sekcja "SMS — cena") — pole liczbowo w groszach.
-- Rozszerzyć `AppSettings` w `src/lib/types.ts` o `sms_price_net_gr: number`.
-- W `src/lib/store.ts` — mapowanie odczytu i `updateSettings` (już generyczne przez merge; sprawdzić SELECT/UPDATE payload).
-- UI: `Input type="number" min=0 step=1` z etykietą "Cena netto za część SMS (gr)". Zapis natychmiastowy jak inne pola.
+Wybór `longestSalutation`:
+- Czytany z `useStore(s => s.patients)`: najdłuższy niepusty `salutation.trim()` (porównanie po `length`).
+- Fallback: `"Panie Mieczysławie"`.
 
-## 4. UI — ekran Wiadomości
-Plik: `src/routes/_layout.wiadomosci.tsx`. Nad `<Tabs>` dodać nowy komponent lokalny `SmsUsageCard`:
-- Wywołanie: `supabase.rpc("get_sms_monthly_stats", { _months: 12 })` w `useEffect`.
-- Bieżący miesiąc = pierwszy wiersz (lub match po `date-fns startOfMonth`): pokaż `parts_total` części i koszt `parts_total * sms_price_net_gr / 100` sformatowany jak `"12,40 zł netto"` (`Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })`).
-- `<Collapsible>` "Poprzednie miesiące" (domyślnie zwinięte): lista pozostałych miesięcy — nazwa miesiąca po polsku (`format(date, "LLLL yyyy", { locale: pl })` z capitalize), liczba części, koszt.
-- Dopisek `<p className="text-xs text-muted-foreground mt-2">Liczone wg części SMS; statusy wysłane i niedoręczone.</p>`
-- Cena netto czytana z `useStore(s => s.settings.sms_price_net_gr)`.
+UI pod każdym `<Textarea>` szablonu (dla każdego z 6 rodzajów `MessageKind`):
+- Wiersz: `Podgląd: {length} znaków · {segments} SMS · ~{cost} zł netto` (koszt = `segments * sms_price_net_gr / 100`, format `pl-PL` z 2 miejscami + `" zł netto"`).
+- Gdy `segments > 1`: kontener licznika `bg-yellow-100 text-yellow-900 border-yellow-300` (dark: `bg-yellow-500/15 text-yellow-200 border-yellow-500/40`) + tekst: `"Ta treść wyśle się jako {segments} SMS-y — podwójny koszt. Skróć do {singleLimit} znaków, aby zmieścić w jednym."` (`singleLimit` = 70 lub 160 zależnie od kodowania).
+- Zawsze pod spodem drobnym drukiem `text-xs text-muted-foreground`: `"Polskie znaki skracają limit ze 160 do 70 znaków."`
+
+Licznik reaguje na żywo (już zarządzany stan `templates[kind]` w edytorze — wystarczy `useMemo` po `body`, `longestSalutation`, `sms_price_net_gr`).
+
+## 2. Etykiety „SMS-ów"
+- `src/components/sms-usage-card.tsx`:
+  - Zamień „część"/„części" na `"SMS"` / `"SMS-ów"` (1 → `"SMS"`, inaczej `"SMS-ów"`) w nagłówku bieżącego miesiąca i w liście „Poprzednie miesiące".
+  - Zmień dopisek na: `"Dłuższe wiadomości liczą się jako kilka SMS-ów."` (zamiast „Liczone wg części SMS…").
+- `src/routes/_layout.ustawienia.tsx`:
+  - Etykieta pola ceny → `"Cena netto za 1 SMS (gr)"`.
+  - Podpowiedź pod polem: zostaw jak jest lub uspójnij („Używane do wyliczania szacunkowego kosztu w karcie „Zużycie SMS".").
+
+Bez zmian w kolumnie `messages_log.parts`, w RPC `get_sms_monthly_stats` ani w endpoint `PATCH …/result`.
 
 ## Poza zakresem
-Eksport, wykresy, limity/alerty, zmiany w kolejce/triggerach.
+- Zmiany w bazie, migracje, RLS.
+- Zmiana sposobu liczenia `parts` po stronie n8n / endpointu.
+- Walidacja/limity długości blokujące zapis szablonu.

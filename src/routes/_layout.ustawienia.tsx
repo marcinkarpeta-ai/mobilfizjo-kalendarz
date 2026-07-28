@@ -23,6 +23,13 @@ import {
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import type { MessageKind } from "@/lib/types";
+import {
+  pickLongestSalutation,
+  renderTemplatePreview,
+  smsSegments,
+} from "@/lib/sms";
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 
 
@@ -143,7 +150,7 @@ function SettingsPage() {
 
         <Section title="Szablony wiadomości">
           <div className="mb-3 rounded-2xl border border-border bg-card p-4">
-            <Label htmlFor="s-sms-price">Cena netto za część SMS (gr)</Label>
+            <Label htmlFor="s-sms-price">Cena netto za 1 SMS (gr)</Label>
             <Input
               id="s-sms-price"
               type="number"
@@ -345,6 +352,12 @@ function SettingsPage() {
               setEditingTpl((s) => (s ? { ...s, body: e.target.value } : s))
             }
           />
+          {editingTpl ? (
+            <TemplateSmsMeter
+              body={editingTpl.body}
+              priceGr={settings.sms_price_net_gr}
+            />
+          ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingTpl(null)}>
               Anuluj
@@ -494,6 +507,53 @@ function SuggestionsSection({ onOpen }: { onOpen: () => void }) {
         <FeedbackThreadsList />
       </div>
     </section>
+  );
+}
+
+const costFmt = new Intl.NumberFormat("pl-PL", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+function TemplateSmsMeter({ body, priceGr }: { body: string; priceGr: number }) {
+  const patients = useStore((s) => s.patients);
+  const longestSalutation = useMemo(
+    () => pickLongestSalutation(patients),
+    [patients],
+  );
+  const info = useMemo(
+    () => smsSegments(renderTemplatePreview(body, longestSalutation)),
+    [body, longestSalutation],
+  );
+  const cost = (info.segments * priceGr) / 100;
+  const warn = info.segments > 1;
+
+  return (
+    <div className="space-y-2">
+      <div
+        className={cn(
+          "rounded-lg border px-3 py-2 text-sm",
+          warn
+            ? "border-yellow-300 bg-yellow-100 text-yellow-900 dark:border-yellow-500/40 dark:bg-yellow-500/15 dark:text-yellow-200"
+            : "border-border bg-secondary/40 text-foreground",
+        )}
+      >
+        <div>
+          Podgląd: <span className="font-medium">{info.length}</span> znaków ·{" "}
+          <span className="font-medium">{info.segments}</span>{" "}
+          {info.segments === 1 ? "SMS" : "SMS-ów"} · ~{costFmt.format(cost)} zł netto
+        </div>
+        {warn ? (
+          <div className="mt-1 text-xs">
+            Ta treść wyśle się jako {info.segments} SMS-y — podwójny koszt.
+            Skróć do {info.singleLimit} znaków, aby zmieścić w jednym.
+          </div>
+        ) : null}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Polskie znaki skracają limit ze 160 do 70 znaków.
+      </p>
+    </div>
   );
 }
 

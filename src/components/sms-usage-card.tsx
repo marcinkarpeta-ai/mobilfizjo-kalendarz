@@ -81,7 +81,7 @@ export function SmsUsageCard() {
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {current.parts_total}{" "}
             <span className="text-sm font-normal text-muted-foreground">
-              {current.parts_total === 1 ? "część" : "części"}
+              {current.parts_total === 1 ? "SMS" : "SMS-ów"}
             </span>
           </p>
           <p className="text-sm text-foreground/90">
@@ -118,7 +118,7 @@ export function SmsUsageCard() {
                   </span>
                   <span className="text-muted-foreground">
                     {r.parts_total}{" "}
-                    {r.parts_total === 1 ? "część" : "części"} ·{" "}
+                    {r.parts_total === 1 ? "SMS" : "SMS-ów"} ·{" "}
                     {formatCost(r.parts_total, priceGr)}
                   </span>
                 </li>
@@ -129,7 +129,7 @@ export function SmsUsageCard() {
       ) : null}
 
       <p className="mt-3 text-xs text-muted-foreground">
-        Liczone wg części SMS; statusy wysłane i niedoręczone.
+        Dłuższe wiadomości liczą się jako kilka SMS-ów.
       </p>
     </div>
   );

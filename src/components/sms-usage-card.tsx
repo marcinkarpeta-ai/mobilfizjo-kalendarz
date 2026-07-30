@@ -97,6 +97,31 @@ export function SmsUsageCard() {
         </p>
       </div>
 
+      {balanceAt && balanceFull !== null ? (
+        <div className="mt-3 rounded-xl border border-border/60 bg-card/50 px-3 py-2">
+          <p className="text-sm text-foreground">
+            Pozostało na koncie: {balanceFull}{" "}
+            {balanceFull === 1 ? "SMS" : "SMS-ów"}
+            {balancePln !== null ? ` (${priceFmt.format(balancePln)} zł)` : ""}
+          </p>
+          <p
+            className={cn(
+              "mt-0.5 text-xs",
+              Date.now() - new Date(balanceAt).getTime() > 48 * 3600 * 1000
+                ? "text-yellow-700 dark:text-yellow-300"
+                : "text-muted-foreground",
+            )}
+          >
+            stan na {format(new Date(balanceAt), "dd.MM.yyyy, HH:mm")}
+            {Date.now() - new Date(balanceAt).getTime() > 48 * 3600 * 1000
+              ? " · stan może być nieaktualny"
+              : ""}
+          </p>
+        </div>
+      ) : null}
+
+
+
       {previous.length > 0 ? (
         <Collapsible className="mt-3">
           <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-xl border border-border/60 bg-card/50 px-3 py-2 text-sm text-muted-foreground hover:bg-card">

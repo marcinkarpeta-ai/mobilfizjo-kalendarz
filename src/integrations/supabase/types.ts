@@ -37,6 +37,9 @@ export type Database = {
           allowed_emails: string[]
           clinic_name: string
           id: string
+          sms_balance_full: number | null
+          sms_balance_pln: number | null
+          sms_balance_updated_at: string | null
           sms_price_net_gr: number
           therapist_name: string
           updated_at: string
@@ -45,6 +48,9 @@ export type Database = {
           allowed_emails?: string[]
           clinic_name?: string
           id?: string
+          sms_balance_full?: number | null
+          sms_balance_pln?: number | null
+          sms_balance_updated_at?: string | null
           sms_price_net_gr?: number
           therapist_name?: string
           updated_at?: string
@@ -53,6 +59,9 @@ export type Database = {
           allowed_emails?: string[]
           clinic_name?: string
           id?: string
+          sms_balance_full?: number | null
+          sms_balance_pln?: number | null
+          sms_balance_updated_at?: string | null
           sms_price_net_gr?: number
           therapist_name?: string
           updated_at?: string

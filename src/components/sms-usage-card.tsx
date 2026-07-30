@@ -28,8 +28,12 @@ function capitalize(s: string): string {
 
 export function SmsUsageCard() {
   const priceGr = useStore((s) => s.settings.sms_price_net_gr);
+  const balanceFull = useStore((s) => s.settings.sms_balance_full);
+  const balancePln = useStore((s) => s.settings.sms_balance_pln);
+  const balanceAt = useStore((s) => s.settings.sms_balance_updated_at);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;

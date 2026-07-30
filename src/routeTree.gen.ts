@@ -22,6 +22,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LayoutSprawyIndexRouteImport } from './routes/_layout.sprawy_.index'
 import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
+import { Route as ApiPublicSmsBalanceRouteImport } from './routes/api/public/sms-balance'
 import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -96,6 +97,11 @@ const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutPacjenciRoute,
 } as any)
+const ApiPublicSmsBalanceRoute = ApiPublicSmsBalanceRouteImport.update({
+  id: '/api/public/sms-balance',
+  path: '/api/public/sms-balance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDailyDigestRoute = ApiPublicDailyDigestRouteImport.update({
   id: '/api/public/daily-digest',
   path: '/api/public/daily-digest',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
+  '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
   '/sprawy/': typeof LayoutSprawyIndexRoute
   '/ustawienia/sugestie/$id': typeof LayoutUstawieniaSugestieIdRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
+  '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
   '/sprawy': typeof LayoutSprawyIndexRoute
   '/ustawienia/sugestie/$id': typeof LayoutUstawieniaSugestieIdRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
+  '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
   '/_layout/sprawy_/': typeof LayoutSprawyIndexRoute
   '/_layout/ustawienia_/sugestie/$id': typeof LayoutUstawieniaSugestieIdRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
     | '/api/public/daily-digest'
+    | '/api/public/sms-balance'
     | '/pacjenci/'
     | '/sprawy/'
     | '/ustawienia/sugestie/$id'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
     | '/api/public/daily-digest'
+    | '/api/public/sms-balance'
     | '/pacjenci'
     | '/sprawy'
     | '/ustawienia/sugestie/$id'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_layout/pacjenci/$id'
     | '/api/public/daily-digest'
+    | '/api/public/sms-balance'
     | '/_layout/pacjenci/'
     | '/_layout/sprawy_/'
     | '/_layout/ustawienia_/sugestie/$id'
@@ -275,6 +287,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicDailyDigestRoute: typeof ApiPublicDailyDigestRoute
+  ApiPublicSmsBalanceRoute: typeof ApiPublicSmsBalanceRoute
   ApiPublicMessagesLogClaimRoute: typeof ApiPublicMessagesLogClaimRoute
   ApiPublicMessagesLogIdDeliveryRoute: typeof ApiPublicMessagesLogIdDeliveryRoute
   ApiPublicMessagesLogIdResultRoute: typeof ApiPublicMessagesLogIdResultRoute
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pacjenci/'
       preLoaderRoute: typeof LayoutPacjenciIndexRouteImport
       parentRoute: typeof LayoutPacjenciRoute
+    }
+    '/api/public/sms-balance': {
+      id: '/api/public/sms-balance'
+      path: '/api/public/sms-balance'
+      fullPath: '/api/public/sms-balance'
+      preLoaderRoute: typeof ApiPublicSmsBalanceRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/daily-digest': {
       id: '/api/public/daily-digest'
@@ -473,6 +493,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicDailyDigestRoute: ApiPublicDailyDigestRoute,
+  ApiPublicSmsBalanceRoute: ApiPublicSmsBalanceRoute,
   ApiPublicMessagesLogClaimRoute: ApiPublicMessagesLogClaimRoute,
   ApiPublicMessagesLogIdDeliveryRoute: ApiPublicMessagesLogIdDeliveryRoute,
   ApiPublicMessagesLogIdResultRoute: ApiPublicMessagesLogIdResultRoute,

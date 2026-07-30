@@ -160,7 +160,15 @@ export const useStore = create<StoreState>()((set, get) => ({
   messages: [],
   proposals: [],
   templates: [],
-  settings: { therapist_name: "", clinic_name: "", sms_price_net_gr: 10 },
+  settings: {
+    therapist_name: "",
+    clinic_name: "",
+    sms_price_net_gr: 10,
+    sms_balance_full: null,
+    sms_balance_pln: null,
+    sms_balance_updated_at: null,
+  },
+
 
   _setAuth: (patch) =>
     set({ userId: patch.userId, role: patch.role, displayName: patch.displayName }),

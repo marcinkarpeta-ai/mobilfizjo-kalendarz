@@ -110,7 +110,9 @@ function layoutColumns(
 
 function computeGaps(
   items: Appointment[],
-  extraBusy: BusyInterval[] = [],
+  extraBusy: BusyInterval[],
+  TIMELINE_START: number,
+  TIMELINE_END: number,
 ): { start: number; end: number }[] {
   const intervals: { s: number; e: number }[] = [];
   for (const a of items) {

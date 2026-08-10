@@ -160,7 +160,19 @@ export function DataSync() {
             sms_balance_pln: null,
             sms_balance_updated_at: null,
           };
+      const workingHours: WorkingHours[] = (workingHoursRes.data ?? []).map((r) => ({
+        weekday: r.weekday,
+        is_open: r.is_open,
+        start_time: String(r.start_time).slice(0, 5),
+        end_time: String(r.end_time).slice(0, 5),
+      }));
 
+      const daysOff: DayOff[] = (daysOffRes.data ?? []).map((r) => ({
+        id: r.id,
+        date: r.date,
+        reason: r.reason,
+        blocks_booking: r.blocks_booking,
+      }));
 
       hydrate({
         patients,
@@ -171,9 +183,12 @@ export function DataSync() {
         proposals,
         templates,
         settings,
+        workingHours,
+        daysOff,
         _settingsId: settingsRow?.id ?? null,
         _hydrated: true,
       });
+
     }
 
     void loadAll();

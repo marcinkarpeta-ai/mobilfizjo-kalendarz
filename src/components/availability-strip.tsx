@@ -6,10 +6,6 @@ import type { Appointment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 
-const START_MIN = 7 * 60;
-const END_MIN = 20 * 60;
-const RANGE = END_MIN - START_MIN;
-
 function hhmmToMin(s: string) {
   const [h, m] = s.split(":").map(Number);
   return h * 60 + m;
@@ -20,14 +16,7 @@ function minToHHMM(min: number) {
   const m = clamped % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
-function pctLeft(min: number) {
-  return ((Math.max(START_MIN, Math.min(END_MIN, min)) - START_MIN) / RANGE) * 100;
-}
-function pctWidth(s: number, e: number) {
-  const a = Math.max(START_MIN, Math.min(END_MIN, s));
-  const b = Math.max(START_MIN, Math.min(END_MIN, e));
-  return Math.max(0, (b - a) / RANGE) * 100;
-}
+
 function minutesOfDay(iso: string) {
   const d = parseISO(iso);
   return d.getHours() * 60 + d.getMinutes();

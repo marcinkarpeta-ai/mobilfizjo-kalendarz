@@ -135,6 +135,33 @@ export type Database = {
           },
         ]
       }
+      day_off: {
+        Row: {
+          blocks_booking: boolean
+          created_at: string
+          date: string
+          id: string
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          blocks_booking?: boolean
+          created_at?: string
+          date: string
+          id?: string
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blocks_booking?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           body: string
@@ -557,6 +584,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      working_hours: {
+        Row: {
+          created_at: string
+          end_time: string
+          is_open: boolean
+          start_time: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string
+          is_open?: boolean
+          start_time?: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          is_open?: boolean
+          start_time?: string
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: []
       }
     }
     Views: {

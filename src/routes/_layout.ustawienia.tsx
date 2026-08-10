@@ -117,54 +117,84 @@ function SettingsPage() {
           </div>
         </Section>
 
-        <Section title="Etykiety zabiegów">
+        <Section title="Usługi">
           <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex gap-2">
-              <Input
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Nowa etykieta"
-              />
-              <Button
-                onClick={() => {
-                  if (!newLabel.trim()) return;
-                  addLabel(newLabel.trim());
-                  setNewLabel("");
-                }}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <ul className="mt-3 divide-y divide-border">
-              {labels.map((l) => (
-                <li key={l.id} className="flex items-center justify-between py-2">
-                  <span className="text-sm text-foreground">{l.name}</span>
-                  <div className="flex gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Edytuj etykietę"
-                      onClick={() => setEditingLabel({ id: l.id, name: l.name })}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Usuń etykietę"
+            <Button
+              className="w-full"
+              onClick={() => {
+                setEditingService(null);
+                setServiceSheetOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Dodaj usługę
+            </Button>
+
+            {sortedLabels.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Brak usług. Dodaj pierwszą pozycję katalogu.
+              </p>
+            ) : (
+              <ul className="mt-3 divide-y divide-border">
+                {sortedLabels.map((l, i) => (
+                  <li key={l.id} className="flex items-start gap-2 py-2">
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 text-left"
                       onClick={() => {
-                        removeLabel(l.id);
-                        toast("Etykieta usunięta.");
+                        setEditingService(l);
+                        setServiceSheetOpen(true);
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                      <div className="flex items-baseline gap-2">
+                        <span className="truncate text-sm font-medium text-foreground">
+                          {l.name}
+                        </span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {l.duration_minutes} min
+                          {l.price_pln !== null && l.price_pln !== undefined
+                            ? ` · ${l.price_pln} zł`
+                            : ""}
+                        </span>
+                      </div>
+                      {l.description ? (
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                          {l.description}
+                        </p>
+                      ) : null}
+                      {l.bookable ? (
+                        <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground">
+                          Rezerwacje online
+                        </span>
+                      ) : null}
+                    </button>
+                    <div className="flex shrink-0 items-center">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Przenieś wyżej"
+                        disabled={i === 0}
+                        onClick={() => moveService(i, -1)}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Przenieś niżej"
+                        disabled={i === sortedLabels.length - 1}
+                        onClick={() => moveService(i, 1)}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </Section>
+
 
         <Section title="Wizyty">
           <div className="rounded-2xl border border-border bg-card p-4">

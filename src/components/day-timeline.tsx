@@ -41,7 +41,11 @@ type Positioned = {
 
 // Group overlapping appointments and assign side-by-side columns.
 // Input MUST be pre-filtered (no cancelled).
-function layoutColumns(items: Appointment[]): Positioned[] {
+function layoutColumns(
+  items: Appointment[],
+  TIMELINE_START: number,
+  TIMELINE_END: number,
+): Positioned[] {
   const active = items
     .map((a) => ({ a, s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) }))
     .sort((x, y) => x.s - y.s || x.e - y.e);

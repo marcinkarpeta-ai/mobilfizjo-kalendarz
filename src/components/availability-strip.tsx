@@ -84,9 +84,31 @@ export function AvailabilityStrip({
 }) {
   const defaultVisitMinutes =
     useStore((s) => s.settings.default_visit_minutes) || 60;
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
   const dayItems = appointments.filter((a) => appointmentDay(a) === date);
   const active = dayItems.filter((a) => a.status !== "cancelled");
-  const gaps = computeGaps(dayItems, extraBusy);
+
+  const dayDate = (() => {
+    try {
+      return parseISO(date);
+    } catch {
+      return new Date();
+    }
+  })();
+  const range = getDayRange(dayDate, workingHours, daysOff, dayItems);
+  const START_MIN = range.startMin;
+  const END_MIN = range.endMin;
+  const RANGE = Math.max(1, END_MIN - START_MIN);
+  const pctLeft = (min: number) =>
+    ((Math.max(START_MIN, Math.min(END_MIN, min)) - START_MIN) / RANGE) * 100;
+  const pctWidth = (s: number, e: number) => {
+    const a = Math.max(START_MIN, Math.min(END_MIN, s));
+    const b = Math.max(START_MIN, Math.min(END_MIN, e));
+    return Math.max(0, (b - a) / RANGE) * 100;
+  };
+
+  const gaps = computeGaps(dayItems, extraBusy, START_MIN, END_MIN);
 
   const selStart = hhmmToMin(start);
   const selEnd = hhmmToMin(end);
@@ -99,7 +121,13 @@ export function AvailabilityStrip({
     onDateChange(format(next, "yyyy-MM-dd"));
   };
 
-  const hourTicks = [7, 10, 13, 16, 20];
+  const firstTick = Math.ceil(START_MIN / 60);
+  const lastTick = Math.floor(END_MIN / 60);
+  const tickStep = Math.max(1, Math.ceil((lastTick - firstTick) / 4));
+  const hourTicks: number[] = [];
+  for (let h = firstTick; h <= lastTick; h += tickStep) hourTicks.push(h);
+  if (hourTicks[hourTicks.length - 1] !== lastTick) hourTicks.push(lastTick);
+
 
   const dayLabel = (() => {
     try {

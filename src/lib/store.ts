@@ -177,6 +177,9 @@ export const useStore = create<StoreState>()((set, get) => ({
     sms_balance_pln: null,
     sms_balance_updated_at: null,
   },
+  workingHours: [],
+  daysOff: [],
+
 
 
   _setAuth: (patch) =>

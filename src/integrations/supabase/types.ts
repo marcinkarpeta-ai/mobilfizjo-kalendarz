@@ -530,19 +530,34 @@ export type Database = {
       }
       visit_labels: {
         Row: {
+          bookable: boolean
           created_at: string
+          description: string | null
+          duration_minutes: number
           id: string
           name: string
+          price_pln: number | null
+          sort_order: number
         }
         Insert: {
+          bookable?: boolean
           created_at?: string
+          description?: string | null
+          duration_minutes?: number
           id?: string
           name: string
+          price_pln?: number | null
+          sort_order?: number
         }
         Update: {
+          bookable?: boolean
           created_at?: string
+          description?: string | null
+          duration_minutes?: number
           id?: string
           name?: string
+          price_pln?: number | null
+          sort_order?: number
         }
         Relationships: []
       }

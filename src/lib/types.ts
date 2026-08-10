@@ -24,6 +24,11 @@ export interface Patient {
 export interface VisitLabel {
   id: string;
   name: string;
+  duration_minutes: number;
+  price_pln?: number | null;
+  description?: string | null;
+  bookable: boolean;
+  sort_order: number;
 }
 
 export interface Appointment {

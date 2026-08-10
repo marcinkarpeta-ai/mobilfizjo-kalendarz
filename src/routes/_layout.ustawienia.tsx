@@ -1,6 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Info, LogOut, Mail, MessageSquarePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Info,
+  LogOut,
+  Mail,
+  MessageSquarePlus,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { ServiceEditSheet } from "@/components/service-edit-sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
@@ -23,7 +34,7 @@ import {
 import { useStore } from "@/lib/store";
 import { Switch } from "@/components/ui/switch";
 import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/lib/working-hours";
-import type { WorkingHours } from "@/lib/types";
+import type { VisitLabel, WorkingHours } from "@/lib/types";
 import { toast } from "sonner";
 import type { MessageKind } from "@/lib/types";
 import {
@@ -62,14 +73,29 @@ function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const labels = useStore((s) => s.labels);
-  const addLabel = useStore((s) => s.addLabel);
-  const renameLabel = useStore((s) => s.renameLabel);
-  const removeLabel = useStore((s) => s.removeLabel);
+  const reorderLabels = useStore((s) => s.reorderLabels);
   const templates = useStore((s) => s.templates);
   const updateTemplate = useStore((s) => s.updateTemplate);
 
-  const [newLabel, setNewLabel] = useState("");
-  const [editingLabel, setEditingLabel] = useState<{ id: string; name: string } | null>(null);
+  const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
+  const [editingService, setEditingService] = useState<VisitLabel | null>(null);
+  const sortedLabels = useMemo(
+    () =>
+      [...labels].sort(
+        (a, b) =>
+          a.sort_order - b.sort_order ||
+          a.name.localeCompare(b.name, "pl", { sensitivity: "base" }),
+      ),
+    [labels],
+  );
+  const moveService = (index: number, dir: -1 | 1) => {
+    const next = [...sortedLabels];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    reorderLabels(next.map((l) => l.id));
+  };
+
   const [editingTpl, setEditingTpl] = useState<{ id: string; body: string; kind: MessageKind } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
@@ -102,54 +128,84 @@ function SettingsPage() {
           </div>
         </Section>
 
-        <Section title="Etykiety zabiegów">
+        <Section title="Usługi">
           <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex gap-2">
-              <Input
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Nowa etykieta"
-              />
-              <Button
-                onClick={() => {
-                  if (!newLabel.trim()) return;
-                  addLabel(newLabel.trim());
-                  setNewLabel("");
-                }}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <ul className="mt-3 divide-y divide-border">
-              {labels.map((l) => (
-                <li key={l.id} className="flex items-center justify-between py-2">
-                  <span className="text-sm text-foreground">{l.name}</span>
-                  <div className="flex gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Edytuj etykietę"
-                      onClick={() => setEditingLabel({ id: l.id, name: l.name })}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Usuń etykietę"
+            <Button
+              className="w-full"
+              onClick={() => {
+                setEditingService(null);
+                setServiceSheetOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Dodaj usługę
+            </Button>
+
+            {sortedLabels.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Brak usług. Dodaj pierwszą pozycję katalogu.
+              </p>
+            ) : (
+              <ul className="mt-3 divide-y divide-border">
+                {sortedLabels.map((l, i) => (
+                  <li key={l.id} className="flex items-start gap-2 py-2">
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 text-left"
                       onClick={() => {
-                        removeLabel(l.id);
-                        toast("Etykieta usunięta.");
+                        setEditingService(l);
+                        setServiceSheetOpen(true);
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                      <div className="flex items-baseline gap-2">
+                        <span className="truncate text-sm font-medium text-foreground">
+                          {l.name}
+                        </span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {l.duration_minutes} min
+                          {l.price_pln !== null && l.price_pln !== undefined
+                            ? ` · ${l.price_pln} zł`
+                            : ""}
+                        </span>
+                      </div>
+                      {l.description ? (
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                          {l.description}
+                        </p>
+                      ) : null}
+                      {l.bookable ? (
+                        <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground">
+                          Rezerwacje online
+                        </span>
+                      ) : null}
+                    </button>
+                    <div className="flex shrink-0 items-center">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Przenieś wyżej"
+                        disabled={i === 0}
+                        onClick={() => moveService(i, -1)}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Przenieś niżej"
+                        disabled={i === sortedLabels.length - 1}
+                        onClick={() => moveService(i, 1)}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </Section>
+
 
         <Section title="Wizyty">
           <div className="rounded-2xl border border-border bg-card p-4">
@@ -337,37 +393,14 @@ function SettingsPage() {
         <PoweredByFooter />
       </PageContainer>
 
-      <Dialog
-        open={!!editingLabel}
-        onOpenChange={(v) => !v && setEditingLabel(null)}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Zmień nazwę etykiety</DialogTitle>
-          </DialogHeader>
-          <Input
-            value={editingLabel?.name ?? ""}
-            onChange={(e) =>
-              setEditingLabel((s) => (s ? { ...s, name: e.target.value } : s))
-            }
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingLabel(null)}>
-              Anuluj
-            </Button>
-            <Button
-              onClick={() => {
-                if (editingLabel && editingLabel.name.trim()) {
-                  renameLabel(editingLabel.id, editingLabel.name.trim());
-                  setEditingLabel(null);
-                }
-              }}
-            >
-              Zapisz
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ServiceEditSheet
+        open={serviceSheetOpen}
+        service={editingService}
+        onOpenChange={(v) => {
+          setServiceSheetOpen(v);
+          if (!v) setEditingService(null);
+        }}
+      />
 
       <Dialog open={!!editingTpl} onOpenChange={(v) => !v && setEditingTpl(null)}>
         <DialogContent className="max-w-md">

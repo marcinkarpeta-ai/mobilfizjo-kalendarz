@@ -43,7 +43,11 @@ export function DataSync() {
         daysOffRes,
       ] = await Promise.all([
         supabase.from("patients").select("*").order("created_at", { ascending: false }),
-        supabase.from("visit_labels").select("*").order("created_at", { ascending: true }),
+        supabase
+          .from("visit_labels")
+          .select("*")
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
         supabase.from("appointments").select("*"),
         supabase.from("visit_notes").select("*").order("created_at", { ascending: false }),
         supabase.from("note_photos").select("*"),
@@ -77,6 +81,11 @@ export function DataSync() {
       const labels: VisitLabel[] = (labelsRes.data ?? []).map((r) => ({
         id: r.id,
         name: r.name,
+        duration_minutes: r.duration_minutes ?? 60,
+        price_pln: r.price_pln === null || r.price_pln === undefined ? null : Number(r.price_pln),
+        description: r.description ?? null,
+        bookable: r.bookable ?? false,
+        sort_order: r.sort_order ?? 0,
       }));
 
       const appointments: Appointment[] = (apptsRes.data ?? []).map((r) => ({

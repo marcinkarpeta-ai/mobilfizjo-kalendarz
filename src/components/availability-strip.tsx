@@ -4,6 +4,7 @@ import { pl } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Appointment } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/lib/store";
 
 const START_MIN = 7 * 60;
 const END_MIN = 20 * 60;
@@ -170,7 +171,7 @@ export function AvailabilityStrip({
                 return;
               }
               const s = g.s;
-              const e2 = Math.min(g.e, s + 45);
+              const e2 = Math.min(g.e, s + defaultVisitMinutes);
               onRangeChange(minToHHMM(s), minToHHMM(Math.max(e2, s + 15)));
             }}
             className="absolute top-0 bottom-0 z-10 rounded-md hover:bg-accent/10 focus-visible:bg-accent/15 focus-visible:outline-none"

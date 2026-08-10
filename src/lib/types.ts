@@ -105,6 +105,7 @@ export interface AppSettings {
   therapist_name: string;
   clinic_name: string;
   sms_price_net_gr: number;
+  default_visit_minutes: number;
   sms_balance_full: number | null;
   sms_balance_pln: number | null;
   sms_balance_updated_at: string | null;

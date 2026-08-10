@@ -5,6 +5,7 @@ import { formatPhoneStorage } from "./csv";
 import type {
   Appointment,
   AppSettings,
+  DayOff,
   MarketingProposal,
   MessageLog,
   MessageTemplate,
@@ -12,6 +13,7 @@ import type {
   UserRole,
   VisitLabel,
   VisitNote,
+  WorkingHours,
 } from "./types";
 
 function newId() {

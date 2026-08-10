@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Appointment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { getDayRange } from "@/lib/working-hours";
 
 function hhmmToMin(s: string) {
   const [h, m] = s.split(":").map(Number);

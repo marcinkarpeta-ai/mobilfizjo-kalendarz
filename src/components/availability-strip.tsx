@@ -170,7 +170,10 @@ export function AvailabilityStrip({
       <div
         role="group"
         aria-label={`Dostępność dnia ${dayLabel}`}
-        className="relative h-16 touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-secondary/40"
+        className={cn(
+          "relative h-16 touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-secondary/40",
+          (range.closed || range.dayOff) && "bg-muted/70 opacity-80",
+        )}
         onPointerDown={(e) => {
           swipe.current = { x: e.clientX, moved: false };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);

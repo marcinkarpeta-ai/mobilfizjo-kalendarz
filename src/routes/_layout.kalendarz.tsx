@@ -49,7 +49,19 @@ function CalendarPage() {
   const patients = useStore((s) => s.patients);
   const labels = useStore((s) => s.labels);
   const role = useStore((s) => s.role);
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
   const isFamily = role === "family" || role === "admin";
+  const isTherapist = role === "therapist";
+
+  const dayOffByDate = useMemo(
+    () => new Set((daysOff ?? []).map((d) => d.date)),
+    [daysOff],
+  );
+  const closedWeekdays = useMemo(
+    () => new Set((workingHours ?? []).filter((w) => !w.is_open).map((w) => w.weekday)),
+    [workingHours],
+  );
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
   const labelById = new Map(labels.map((l) => [l.id, l]));
@@ -136,6 +148,21 @@ function CalendarPage() {
           <div className="min-h-[60vh]" aria-hidden />
         ) : (
           <>
+        {isTherapist ? (
+          <div className="mb-2 flex items-center justify-end gap-3 px-1 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="h-3 w-3 rounded-[4px] ring-1 ring-destructive/40"
+              />
+              Dzień wolny
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden className="h-3 w-3 rounded-[4px] bg-muted" />
+              Nieczynne
+            </span>
+          </div>
+        ) : null}
         <div className="mb-3 grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {weekdayLabels.map((w) => (
             <div key={w}>{w}</div>
@@ -153,6 +180,8 @@ function CalendarPage() {
             const inMonth = isSameMonth(d, cursor);
             const isSelected = isSameDay(d, selected);
             const isToday = isSameDay(d, new Date());
+            const isDayOff = dayOffByDate.has(key);
+            const isClosed = !isDayOff && closedWeekdays.has(d.getDay());
 
             return (
               <button
@@ -164,9 +193,14 @@ function CalendarPage() {
                   isSelected
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-secondary",
+                  !isSelected && isClosed && "bg-muted/50 text-muted-foreground/70",
+                  !isSelected && isDayOff && "text-destructive/70",
+                  !isSelected && isDayOff && !isToday && "ring-1 ring-destructive/30",
                   isToday && !isSelected && "ring-1 ring-primary/50",
                 )}
-                aria-label={format(d, "d MMMM yyyy", { locale: pl })}
+                aria-label={`${format(d, "d MMMM yyyy", { locale: pl })}${
+                  isDayOff ? ", dzień wolny" : isClosed ? ", nieczynne" : ""
+                }`}
                 aria-pressed={isSelected}
               >
                 <span>{format(d, "d")}</span>

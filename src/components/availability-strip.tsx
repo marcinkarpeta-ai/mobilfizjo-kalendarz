@@ -149,7 +149,14 @@ export function AvailabilityStrip({
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-xs font-medium text-foreground">{dayLabel}</span>
+        <span className="flex items-center gap-1 text-xs font-medium text-foreground">
+          {dayLabel}
+          {range.label && (
+            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground">
+              {range.label}
+            </span>
+          )}
+        </span>
         <button
           type="button"
           aria-label="Następny dzień"

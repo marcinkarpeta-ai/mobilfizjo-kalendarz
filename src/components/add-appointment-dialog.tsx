@@ -414,10 +414,17 @@ export function AddAppointmentDialog({
               </div>
               )}
               <div>
-                <Label>Etykieta zabiegu</Label>
-                <Select value={labelId} onValueChange={setLabelId}>
+                <Label>Usługa</Label>
+                <Select
+                  value={labelId}
+                  onValueChange={(v) => {
+                    setLabelId(v);
+                    const svc = labels.find((l) => l.id === v);
+                    if (svc?.duration_minutes) applyDuration(svc.duration_minutes);
+                  }}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Wybierz etykietę" />
+                    <SelectValue placeholder="Wybierz usługę" />
                   </SelectTrigger>
                   <SelectContent>
                     {labels.map((l) => (

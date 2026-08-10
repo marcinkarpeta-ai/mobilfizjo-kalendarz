@@ -62,14 +62,29 @@ function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const labels = useStore((s) => s.labels);
-  const addLabel = useStore((s) => s.addLabel);
-  const renameLabel = useStore((s) => s.renameLabel);
-  const removeLabel = useStore((s) => s.removeLabel);
+  const reorderLabels = useStore((s) => s.reorderLabels);
   const templates = useStore((s) => s.templates);
   const updateTemplate = useStore((s) => s.updateTemplate);
 
-  const [newLabel, setNewLabel] = useState("");
-  const [editingLabel, setEditingLabel] = useState<{ id: string; name: string } | null>(null);
+  const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
+  const [editingService, setEditingService] = useState<VisitLabel | null>(null);
+  const sortedLabels = useMemo(
+    () =>
+      [...labels].sort(
+        (a, b) =>
+          a.sort_order - b.sort_order ||
+          a.name.localeCompare(b.name, "pl", { sensitivity: "base" }),
+      ),
+    [labels],
+  );
+  const moveService = (index: number, dir: -1 | 1) => {
+    const next = [...sortedLabels];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    reorderLabels(next.map((l) => l.id));
+  };
+
   const [editingTpl, setEditingTpl] = useState<{ id: string; body: string; kind: MessageKind } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 

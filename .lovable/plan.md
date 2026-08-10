@@ -27,7 +27,7 @@ Sekcja widoczna tylko dla terapeuty (spójnie z resztą ekranu Ustawień).
 
 ## Szczegóły techniczne
 
-- Migracja: `public.working_hours` (weekday smallint PK/unique, is_open boolean, start_time time, end_time time) + `public.day_off` (date unique, reason text, blocks_booking boolean default true), GRANT-y dla `authenticated`/`service_role`, RLS: ALL dla `has_role(auth.uid(),'therapist')`, SELECT dla `has_role(auth.uid(),'admin')`; seed siedmiu wierszy w tej samej migracji.
+- Migracja: wyłącznie dodanie dwóch nowych tabel — żadnych zmian ani usunięć istniejących tabel i kolumn. `public.working_hours` (weekday smallint PK/unique, is_open boolean, start_time time, end_time time) + `public.day_off` (date unique, reason text, blocks_booking boolean default true), GRANT-y dla `authenticated`/`service_role`, RLS: ALL dla `has_role(auth.uid(),'therapist')`, SELECT dla `has_role(auth.uid(),'admin')`; seed siedmiu wierszy w tej samej migracji.
 - `src/lib/types.ts`: typy `WorkingHours`, `DayOff`; `src/lib/store.ts`: stan + akcje `updateWorkingHours`, `addDayOff`, `removeDayOff` (optimistic, wzorem istniejących akcji); `src/components/data-sync.tsx`: dołączenie obu tabel do `loadAll` (błąd odczytu dla roli bez dostępu traktowany jako pusta lista).
 - Nowy helper `src/lib/working-hours.ts`: `getDayRange(date, workingHours, daysOff, appointments)` zwracający `{ startMin, endMin, closed, dayOffReason }`.
 - `src/components/day-timeline.tsx` i `src/components/availability-strip.tsx`: zamiana stałych `TIMELINE_START/END` oraz `START_MIN/END_MIN` na wartości z helpera; brak zmian w logice układu bloków, luk i kolizji.

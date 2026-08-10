@@ -34,7 +34,7 @@ import {
 import { useStore } from "@/lib/store";
 import { Switch } from "@/components/ui/switch";
 import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/lib/working-hours";
-import type { WorkingHours } from "@/lib/types";
+import type { VisitLabel, WorkingHours } from "@/lib/types";
 import { toast } from "sonner";
 import type { MessageKind } from "@/lib/types";
 import {

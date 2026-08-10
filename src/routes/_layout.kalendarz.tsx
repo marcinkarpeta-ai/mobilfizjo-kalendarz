@@ -49,7 +49,19 @@ function CalendarPage() {
   const patients = useStore((s) => s.patients);
   const labels = useStore((s) => s.labels);
   const role = useStore((s) => s.role);
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
   const isFamily = role === "family" || role === "admin";
+  const isTherapist = role === "therapist";
+
+  const dayOffByDate = useMemo(
+    () => new Set((daysOff ?? []).map((d) => d.date)),
+    [daysOff],
+  );
+  const closedWeekdays = useMemo(
+    () => new Set((workingHours ?? []).filter((w) => !w.is_open).map((w) => w.weekday)),
+    [workingHours],
+  );
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
   const labelById = new Map(labels.map((l) => [l.id, l]));

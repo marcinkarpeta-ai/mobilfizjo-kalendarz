@@ -227,7 +227,7 @@ export function DayTimeline({
               const clickedMin = g.start + Math.floor(offsetPx / PX_PER_MIN);
               let startMin = Math.floor(clickedMin / 30) * 30;
               startMin = Math.max(startMin, g.start);
-              let endMin = startMin + 60;
+              let endMin = startMin + defaultVisitMinutes;
               if (endMin > g.end) endMin = g.end;
               if (endMin - startMin < 15) {
                 startMin = Math.max(g.start, endMin - 15);

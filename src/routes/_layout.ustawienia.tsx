@@ -172,6 +172,10 @@ function SettingsPage() {
           </div>
         </Section>
 
+        <WorkingHoursSection />
+
+
+
         <Section title="Szablony wiadomości">
           <div className="mb-3 rounded-2xl border border-border bg-card p-4">
             <Label htmlFor="s-sms-price">Cena netto za 1 SMS (gr)</Label>

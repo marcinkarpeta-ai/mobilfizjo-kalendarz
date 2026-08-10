@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatPatientName } from "@/lib/format";
 import { useNow } from "@/hooks/use-now";
+import { useStore } from "@/lib/store";
 
 
 export interface BusyInterval {
@@ -163,6 +164,7 @@ export function DayTimeline({
   onSelectAppointment?: (appt: Appointment) => void;
 }) {
   void _date;
+  const defaultVisitMinutes = useStore((s) => s.settings.default_visit_minutes) || 60;
   const now = useNow();
   const nowMs = now.getTime();
   const active = appointments.filter((a) => a.status !== "cancelled");
@@ -227,7 +229,7 @@ export function DayTimeline({
               const clickedMin = g.start + Math.floor(offsetPx / PX_PER_MIN);
               let startMin = Math.floor(clickedMin / 30) * 30;
               startMin = Math.max(startMin, g.start);
-              let endMin = startMin + 60;
+              let endMin = startMin + defaultVisitMinutes;
               if (endMin > g.end) endMin = g.end;
               if (endMin - startMin < 15) {
                 startMin = Math.max(g.start, endMin - 15);

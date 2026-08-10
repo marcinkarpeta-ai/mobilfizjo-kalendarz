@@ -164,6 +164,7 @@ export const useStore = create<StoreState>()((set, get) => ({
     therapist_name: "",
     clinic_name: "",
     sms_price_net_gr: 10,
+    default_visit_minutes: 60,
     sms_balance_full: null,
     sms_balance_pln: null,
     sms_balance_updated_at: null,

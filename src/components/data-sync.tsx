@@ -135,6 +135,7 @@ export function DataSync() {
             therapist_name: settingsRow.therapist_name ?? "",
             clinic_name: settingsRow.clinic_name ?? "",
             sms_price_net_gr: settingsRow.sms_price_net_gr ?? 10,
+            default_visit_minutes: settingsRow.default_visit_minutes ?? 60,
             sms_balance_full: settingsRow.sms_balance_full ?? null,
             sms_balance_pln:
               settingsRow.sms_balance_pln === null ||
@@ -147,6 +148,7 @@ export function DataSync() {
             therapist_name: "",
             clinic_name: "",
             sms_price_net_gr: 10,
+            default_visit_minutes: 60,
             sms_balance_full: null,
             sms_balance_pln: null,
             sms_balance_updated_at: null,

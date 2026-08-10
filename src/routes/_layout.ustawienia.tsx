@@ -148,6 +148,30 @@ function SettingsPage() {
           </div>
         </Section>
 
+        <Section title="Wizyty">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <Label htmlFor="s-visit-min">Domyślny czas wizyty (min)</Label>
+            <Input
+              id="s-visit-min"
+              type="number"
+              min={5}
+              step={5}
+              value={settings.default_visit_minutes}
+              onChange={(e) =>
+                updateSettings({
+                  default_visit_minutes: Math.max(
+                    5,
+                    Math.floor(Number(e.target.value) || 0),
+                  ),
+                })
+              }
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Proponowany czas trwania przy dodawaniu nowej wizyty.
+            </p>
+          </div>
+        </Section>
+
         <Section title="Szablony wiadomości">
           <div className="mb-3 rounded-2xl border border-border bg-card p-4">
             <Label htmlFor="s-sms-price">Cena netto za 1 SMS (gr)</Label>

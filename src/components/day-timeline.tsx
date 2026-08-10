@@ -165,8 +165,9 @@ export function DayTimeline({
   onGapClick: (startHHMM: string, endHHMM: string) => void;
   onSelectAppointment?: (appt: Appointment) => void;
 }) {
-  void _date;
   const defaultVisitMinutes = useStore((s) => s.settings.default_visit_minutes) || 60;
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
   const now = useNow();
   const nowMs = now.getTime();
   const active = appointments.filter((a) => a.status !== "cancelled");
@@ -174,17 +175,31 @@ export function DayTimeline({
     .filter((a) => a.status === "cancelled")
     .sort((a, b) => parseISO(a.starts_at).getTime() - parseISO(b.starts_at).getTime());
 
-  const positioned = layoutColumns(active);
-  const gaps = computeGaps(active, busyBlocks);
-  const hours = Array.from({ length: (TIMELINE_END - TIMELINE_START) / 60 + 1 }, (_, i) => TIMELINE_START + i * 60);
+  const range = getDayRange(_date, workingHours, daysOff, appointments);
+  const TIMELINE_START = range.startMin;
+  const TIMELINE_END = range.endMin;
+  const TOTAL_PX = (TIMELINE_END - TIMELINE_START) * PX_PER_MIN;
+  const dimmed = range.closed || range.dayOff;
+  const hasPlanned = active.length > 0;
+
+  const positioned = layoutColumns(active, TIMELINE_START, TIMELINE_END);
+  const gaps = computeGaps(active, busyBlocks, TIMELINE_START, TIMELINE_END);
+  const hours = Array.from({ length: Math.floor((TIMELINE_END - TIMELINE_START) / 60) + 1 }, (_, i) => TIMELINE_START + i * 60);
 
   const [cancelledOpen, setCancelledOpen] = useState(false);
   const showCancelledSection = !familyView && cancelled.length > 0;
 
-
   return (
     <>
-      <div className="relative" style={{ height: TOTAL_PX + 8 }}>
+      {range.label && (
+        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground/80">{range.label}</span>
+          {range.dayOffReason && <span>· {range.dayOffReason}</span>}
+          {hasPlanned && <span>(zaplanowane wizyty pozostają)</span>}
+        </div>
+      )}
+      <div className={cn("relative", dimmed && "rounded-lg bg-muted/30")} style={{ height: TOTAL_PX + 8 }}>
+
       {/* Hour lines + labels */}
       {hours.map((h) => {
         const top = (h - TIMELINE_START) * PX_PER_MIN;

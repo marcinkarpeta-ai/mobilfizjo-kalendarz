@@ -396,33 +396,74 @@ export const useStore = create<StoreState>()((set, get) => ({
   },
 
 
-  addLabel: (name) => {
+  addLabel: (data) => {
     const id = newId();
-    set((s) => ({ labels: [...s.labels, { id, name }] }));
+    const label: VisitLabel = {
+      id,
+      name: data.name,
+      duration_minutes: data.duration_minutes ?? 60,
+      price_pln: data.price_pln ?? null,
+      description: data.description ?? null,
+      bookable: data.bookable ?? false,
+      sort_order:
+        data.sort_order ??
+        (get().labels.reduce((m, l) => Math.max(m, l.sort_order), 0) + 1),
+    };
+    set((s) => ({ labels: [...s.labels, label] }));
     void (async () => {
-      const { error } = await supabase.from("visit_labels").insert({ id, name });
+      const { error } = await supabase.from("visit_labels").insert({
+        id,
+        name: label.name,
+        duration_minutes: label.duration_minutes,
+        price_pln: label.price_pln,
+        description: label.description,
+        bookable: label.bookable,
+        sort_order: label.sort_order,
+      });
       if (error) {
         set((s) => ({ labels: s.labels.filter((l) => l.id !== id) }));
-        handleError("Dodanie etykiety nie powiodło się", error);
+        handleError("Dodanie usługi nie powiodło się", error);
       }
     })();
   },
 
-  renameLabel: (lid, name) => {
+  updateLabel: (lid, patch) => {
     const prev = get().labels.find((l) => l.id === lid);
     set((s) => ({
-      labels: s.labels.map((l) => (l.id === lid ? { ...l, name } : l)),
+      labels: s.labels.map((l) => (l.id === lid ? { ...l, ...patch } : l)),
     }));
     void (async () => {
       const { error } = await supabase
         .from("visit_labels")
-        .update({ name })
+        .update(patch)
         .eq("id", lid);
       if (error && prev) {
         set((s) => ({
           labels: s.labels.map((l) => (l.id === lid ? prev : l)),
         }));
-        handleError("Zmiana nazwy etykiety nie powiodła się", error);
+        handleError("Zapis usługi nie powiódł się", error);
+      }
+    })();
+  },
+
+  reorderLabels: (ids) => {
+    const prev = get().labels;
+    const orderById = new Map(ids.map((id, i) => [id, i]));
+    set((s) => ({
+      labels: s.labels
+        .map((l) => ({ ...l, sort_order: orderById.get(l.id) ?? l.sort_order }))
+        .sort((a, b) => a.sort_order - b.sort_order),
+    }));
+    void (async () => {
+      const results = await Promise.all(
+        ids.map((id, i) =>
+          supabase.from("visit_labels").update({ sort_order: i }).eq("id", id),
+        ),
+      );
+      const failed = results.find((r) => r.error);
+      if (failed?.error) {
+        set({ labels: prev });
+        handleError("Zmiana kolejności nie powiodła się", failed.error);
       }
     })();
   },
@@ -434,7 +475,7 @@ export const useStore = create<StoreState>()((set, get) => ({
       const { error } = await supabase.from("visit_labels").delete().eq("id", lid);
       if (error && prev) {
         set((s) => ({ labels: [...s.labels, prev] }));
-        handleError("Usunięcie etykiety nie powiodło się", error);
+        handleError("Usunięcie usługi nie powiodło się", error);
       }
     })();
   },

@@ -49,6 +49,25 @@ function normalizeText(s: string) {
     .replace(/\p{Diacritic}/gu, "");
 }
 
+const DURATION_PRESETS = [
+  { minutes: 40, label: "40 min" },
+  { minutes: 60, label: "1 h" },
+  { minutes: 90, label: "1,5 h" },
+];
+
+function hhmmToMin(v: string) {
+  const [h, m] = v.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+function minToHHMM(min: number) {
+  const clamped = Math.max(0, Math.min(24 * 60 - 1, min));
+  return `${String(Math.floor(clamped / 60)).padStart(2, "0")}:${String(
+    clamped % 60,
+  ).padStart(2, "0")}`;
+}
+
 const schema = z.object({
   type: z.enum(["patient_visit", "family_event"]),
   date: z.string().min(1, "Podaj datę"),
@@ -126,8 +145,10 @@ export function AddAppointmentDialog({
       const baseDate = defaultDate ?? new Date();
       setType(familyOnly ? "family_event" : "patient_visit");
       setDate(format(baseDate, "yyyy-MM-dd"));
-      setStart(defaultStart ?? "09:00");
-      setEnd(defaultEnd ?? "09:45");
+      const s = defaultStart ?? "09:00";
+      setStart(s);
+      const dur = useStore.getState().settings.default_visit_minutes || 60;
+      setEnd(defaultEnd ?? minToHHMM((hhmmToMin(s) ?? 540) + dur));
       setPatientId("");
       setLabelId("");
       setTitle("");
@@ -136,6 +157,19 @@ export function AddAppointmentDialog({
     // początkowe pochodzą z propsów z momentu otwarcia.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const currentDuration = useMemo(() => {
+    const s = hhmmToMin(start);
+    const e = hhmmToMin(end);
+    if (s === null || e === null) return null;
+    return e - s;
+  }, [start, end]);
+
+  function applyDuration(minutes: number) {
+    const s = hhmmToMin(start);
+    if (s === null) return;
+    setEnd(minToHHMM(s + minutes));
+  }
 
   const startISO = `${date}T${start}:00`;
   const endISO = `${date}T${end}:00`;
@@ -247,6 +281,21 @@ export function AddAppointmentDialog({
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
               />
+            </div>
+            <div className="col-span-3 flex flex-wrap gap-1.5">
+              {DURATION_PRESETS.map((d) => (
+                <Button
+                  key={d.minutes}
+                  type="button"
+                  size="sm"
+                  variant={currentDuration === d.minutes ? "default" : "outline"}
+                  className="h-7 rounded-full px-3 text-xs"
+                  aria-pressed={currentDuration === d.minutes}
+                  onClick={() => applyDuration(d.minutes)}
+                >
+                  {d.label}
+                </Button>
+              ))}
             </div>
           </div>
 

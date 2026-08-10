@@ -41,6 +41,8 @@ interface StoreState extends InternalState {
   proposals: MarketingProposal[];
   templates: MessageTemplate[];
   settings: AppSettings;
+  workingHours: WorkingHours[];
+  daysOff: DayOff[];
 
   _setAuth: (patch: { userId: string; role: UserRole; displayName: string | null }) => void;
 
@@ -76,6 +78,10 @@ interface StoreState extends InternalState {
   approveProposal: (id: string, approved: boolean) => void;
 
   updateSettings: (patch: Partial<AppSettings>) => void;
+
+  updateWorkingHours: (weekday: number, patch: Partial<Omit<WorkingHours, "weekday">>) => void;
+  addDayOff: (date: string, reason?: string | null) => void;
+  removeDayOff: (id: string) => void;
 
   reset: () => void;
 }

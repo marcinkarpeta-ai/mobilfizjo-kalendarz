@@ -427,7 +427,7 @@ function WorkingHoursSection() {
   const [newDate, setNewDate] = useState("");
   const [newReason, setNewReason] = useState("");
 
-  const rows = WEEKDAY_ORDER.map((wd) =>
+  const rows: WorkingHours[] = WEEKDAY_ORDER.map((wd) =>
     workingHours.find((w) => w.weekday === wd) ?? {
       weekday: wd,
       is_open: false,

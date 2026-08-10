@@ -14,11 +14,7 @@ export interface BusyInterval {
   ends_at: string;
 }
 
-const TIMELINE_START = 7 * 60; // 07:00
-const TIMELINE_END = 20 * 60; // 20:00
 const PX_PER_MIN = 1;
-const TOTAL_MIN = TIMELINE_END - TIMELINE_START;
-const TOTAL_PX = TOTAL_MIN * PX_PER_MIN;
 const GUTTER_PX = 48; // hour label column
 const MIN_BLOCK_PX = 24;
 

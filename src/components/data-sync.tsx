@@ -77,6 +77,11 @@ export function DataSync() {
       const labels: VisitLabel[] = (labelsRes.data ?? []).map((r) => ({
         id: r.id,
         name: r.name,
+        duration_minutes: r.duration_minutes ?? 60,
+        price_pln: r.price_pln === null || r.price_pln === undefined ? null : Number(r.price_pln),
+        description: r.description ?? null,
+        bookable: r.bookable ?? false,
+        sort_order: r.sort_order ?? 0,
       }));
 
       const appointments: Appointment[] = (apptsRes.data ?? []).map((r) => ({

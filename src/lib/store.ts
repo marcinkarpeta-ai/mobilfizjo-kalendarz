@@ -512,6 +512,74 @@ export const useStore = create<StoreState>()((set, get) => ({
     })();
   },
 
+  updateWorkingHours: (weekday, patch) => {
+    const prev = get().workingHours.find((w) => w.weekday === weekday);
+    if (!prev) return;
+    const next = { ...prev, ...patch };
+    set((s) => ({
+      workingHours: s.workingHours.map((w) => (w.weekday === weekday ? next : w)),
+    }));
+    void (async () => {
+      const { error } = await supabase
+        .from("working_hours")
+        .update({
+          is_open: next.is_open,
+          start_time: next.start_time,
+          end_time: next.end_time,
+        })
+        .eq("weekday", weekday);
+      if (error) {
+        set((s) => ({
+          workingHours: s.workingHours.map((w) => (w.weekday === weekday ? prev : w)),
+        }));
+        handleError("Zapis godzin pracy nie powiódł się", error);
+      }
+    })();
+  },
+
+  addDayOff: (date, reason) => {
+    const id = newId();
+    const entry: DayOff = {
+      id,
+      date,
+      reason: emptyToNull(reason ?? null),
+      blocks_booking: true,
+    };
+    set((s) => ({
+      daysOff: [...s.daysOff.filter((d) => d.date !== date), entry].sort((a, b) =>
+        a.date.localeCompare(b.date),
+      ),
+    }));
+    void (async () => {
+      const { error } = await supabase.from("day_off").insert({
+        id,
+        date,
+        reason: entry.reason,
+        blocks_booking: true,
+      });
+      if (error) {
+        set((s) => ({ daysOff: s.daysOff.filter((d) => d.id !== id) }));
+        handleError("Dodanie dnia wolnego nie powiodło się", error);
+      }
+    })();
+  },
+
+  removeDayOff: (id) => {
+    const prev = get().daysOff.find((d) => d.id === id);
+    if (!prev) return;
+    set((s) => ({ daysOff: s.daysOff.filter((d) => d.id !== id) }));
+    void (async () => {
+      const { error } = await supabase.from("day_off").delete().eq("id", id);
+      if (error) {
+        set((s) => ({
+          daysOff: [...s.daysOff, prev].sort((a, b) => a.date.localeCompare(b.date)),
+        }));
+        handleError("Usunięcie dnia wolnego nie powiodło się", error);
+      }
+    })();
+  },
+
+
   reset: () => {
     // Zachowane w API dla kompatybilności — w wersji z Cloud nic nie robimy.
   },

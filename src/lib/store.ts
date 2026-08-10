@@ -66,8 +66,9 @@ interface StoreState extends InternalState {
   cancelAppointment: (id: string) => void;
   deleteAppointment: (id: string) => void;
 
-  addLabel: (name: string) => void;
-  renameLabel: (id: string, name: string) => void;
+  addLabel: (data: Partial<Omit<VisitLabel, "id">> & { name: string }) => void;
+  updateLabel: (id: string, patch: Partial<Omit<VisitLabel, "id">>) => void;
+  reorderLabels: (ids: string[]) => void;
   removeLabel: (id: string) => void;
 
   addNote: (

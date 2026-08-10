@@ -382,37 +382,14 @@ function SettingsPage() {
         <PoweredByFooter />
       </PageContainer>
 
-      <Dialog
-        open={!!editingLabel}
-        onOpenChange={(v) => !v && setEditingLabel(null)}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Zmień nazwę etykiety</DialogTitle>
-          </DialogHeader>
-          <Input
-            value={editingLabel?.name ?? ""}
-            onChange={(e) =>
-              setEditingLabel((s) => (s ? { ...s, name: e.target.value } : s))
-            }
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingLabel(null)}>
-              Anuluj
-            </Button>
-            <Button
-              onClick={() => {
-                if (editingLabel && editingLabel.name.trim()) {
-                  renameLabel(editingLabel.id, editingLabel.name.trim());
-                  setEditingLabel(null);
-                }
-              }}
-            >
-              Zapisz
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ServiceEditSheet
+        open={serviceSheetOpen}
+        service={editingService}
+        onOpenChange={(v) => {
+          setServiceSheetOpen(v);
+          if (!v) setEditingService(null);
+        }}
+      />
 
       <Dialog open={!!editingTpl} onOpenChange={(v) => !v && setEditingTpl(null)}>
         <DialogContent className="max-w-md">

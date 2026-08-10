@@ -1,27 +1,36 @@
-# Plan: Ujednolicenie szerokości przycisków czasu trwania
+# Plan: Proporcjonalne przyciski czasu trwania
 
 ## Cel
-W formularzu "Nowy wpis" wszystkie trzy przyciski szybkiego ustawiania czasu trwania (40 min / 1 h / 1,5 h) powinny mieć identyczną szerokość, dopasowaną do najszerszego z nich ("1,5 h").
+W formularzu "Nowy wpis" rząd przycisków 40 min / 1 h / 1,5 h ma mieć szerokość proporcjonalną do liczby minut i wspólny kontener równy szerokości pól Od+Do.
 
-## Zmiana
-W pliku `src/components/add-appointment-dialog.tsx`, w wierszu renderującym przyciski `DURATION_PRESETS`, zmienić klasę przycisku tak, aby wymuszała jednolitą szerokość.
+## Zmiana w src/components/add-appointment-dialog.tsx
 
-Obecna klasa:
-```
-className="h-7 rounded-full px-3 text-xs"
-```
+1. Otoczyć przyciski `DURATION_PRESETS` kontenerem o szerokości równej szerokości pól Od+Do.
+   - Kontener pól Od/Do to siatka z `grid-cols-3`; rząd przycisków zajmuje `col-span-3`. Aby kontener przycisków miał szerokość pól Od+Do, wystarczy pozostawić go w tej samej siatce jako `col-span-3` i upewnić się, że jego wewnętrzny flex rozciąga się na pełną dostępną szerokość.
 
-Docelowa klasa (przykład):
-```
-className="h-7 w-16 rounded-full px-2 text-xs"
-```
+2. Wewnątrz kontenera użyć `display: flex` z odstępami `gap-1.5`.
 
-lub z użyciem `min-w` + `flex-1` / `shrink-0`, jeśli kontener ma pozwolić na równe rozmieszczenie. Końcowa wartość zostanie dobrana po szybkiej weryfikacji w podglądzie, aby żaden z przycisków nie był węższy niż "1,5 h".
+3. Każdemu przyciskowi nadać `flex-grow` proporcjonalny do minut:
+   - 40 min → `flex-grow: 40`
+   - 60 min → `flex-grow: 60`
+   - 90 min → `flex-grow: 90`
+
+   Suma: 190. Zastosować style inline `style={{ flexGrow: d.minutes }}` lub klasy Tailwind odpowiadające tym współczynnikom (np. `grow-[40]`, `grow-[60]`, `grow-[90]`).
+
+4. Etykiety wyśrodkowane (`justify-center`). Przy najwęższym przycisku (40 min) dopuszczalna mniejsza czcionka, aby tekst mieścił się bez zawijania — np. `text-[10px]` na tym przycisku lub ogólnie `text-xs` z opcjonalnym skalowaniem.
+
+5. Zachować obecne zachowanie:
+   - `variant={currentDuration === d.minutes ? "default" : "outline"}`
+   - `aria-pressed={currentDuration === d.minutes}`
+   - `onClick={() => applyDuration(d.minutes)}`
+   - `type="button"`, `size="sm"`, zaokrąglenie `rounded-full`.
 
 ## Weryfikacja
-- Otworzyć formularz "Nowy wpis" w podglądzie.
-- Sprawdzić, czy przyciski 40 min, 1 h i 1,5 h mają identyczną szerokość.
-- Upewnić się, że tekst w najszerszym przycisku nie jest obcinany.
+- Otworzyć formularz "Nowy wpis".
+- Sprawdzić, że przycisk "1,5 h" jest najszerszy, "1 h" średni, a "40 min" najwęższy.
+- Potwierdzić, że wspólna szerokość rzędu równa się szerokości pól Od+Do.
+- Sprawdzić, czy "40 min" mieści się w najwęższym przycisku bez zawijania.
+- Kliknąć każdy przycisk i potwierdzić, że pole Do aktualizuje się zgodnie z czasem trwania oraz że aktywny przycisk podświetla się wariantem `default`.
 
-## Zakres
-Tylko wizualna zmiana przycisków w `add-appointment-dialog.tsx`. Brak zmian logiki, walidacji, paska dostępności ani innych ekranów.
+## Poza zakresem
+Bez zmian w logice formularza, walidacji, pasku dostępności, innych ekranach.

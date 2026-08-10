@@ -21,6 +21,9 @@ import {
   useFeedbackUnreadCount,
 } from "@/components/feedback-threads-list";
 import { useStore } from "@/lib/store";
+import { Switch } from "@/components/ui/switch";
+import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/lib/working-hours";
+import type { WorkingHours } from "@/lib/types";
 import { toast } from "sonner";
 import type { MessageKind } from "@/lib/types";
 import {
@@ -171,6 +174,10 @@ function SettingsPage() {
             </p>
           </div>
         </Section>
+
+        <WorkingHoursSection />
+
+
 
         <Section title="Szablony wiadomości">
           <div className="mb-3 rounded-2xl border border-border bg-card p-4">
@@ -409,6 +416,117 @@ function SettingsPage() {
     </>
   );
 }
+
+function WorkingHoursSection() {
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
+  const updateWorkingHours = useStore((s) => s.updateWorkingHours);
+  const addDayOff = useStore((s) => s.addDayOff);
+  const removeDayOff = useStore((s) => s.removeDayOff);
+
+  const [newDate, setNewDate] = useState("");
+  const [newReason, setNewReason] = useState("");
+
+  const rows: WorkingHours[] = WEEKDAY_ORDER.map((wd) =>
+    workingHours.find((w) => w.weekday === wd) ?? {
+      weekday: wd,
+      is_open: false,
+      start_time: "07:00",
+      end_time: "20:00",
+    },
+  );
+
+  return (
+    <Section title="Godziny pracy">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <ul className="space-y-2">
+          {rows.map((w) => (
+            <li key={w.weekday} className="flex items-center gap-2">
+              <span className="w-24 shrink-0 text-sm">{WEEKDAY_LABELS[w.weekday]}</span>
+              <Switch
+                checked={w.is_open}
+                aria-label={`${WEEKDAY_LABELS[w.weekday]} otwarte`}
+                onCheckedChange={(v) => updateWorkingHours(w.weekday, { is_open: v })}
+              />
+              <Input
+                type="time"
+                className="h-9 w-[104px]"
+                disabled={!w.is_open}
+                value={w.start_time}
+                onChange={(e) => updateWorkingHours(w.weekday, { start_time: e.target.value })}
+              />
+              <span className="text-muted-foreground">–</span>
+              <Input
+                type="time"
+                className="h-9 w-[104px]"
+                disabled={!w.is_open}
+                value={w.end_time}
+                onChange={(e) => updateWorkingHours(w.weekday, { end_time: e.target.value })}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-3 rounded-2xl border border-border bg-card p-4">
+        <h3 className="mb-2 text-sm font-medium">Dni wolne</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            type="date"
+            className="h-9 w-[150px]"
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+          />
+          <Input
+            placeholder="Opis (opcjonalnie)"
+            className="h-9 flex-1 min-w-[140px]"
+            value={newReason}
+            onChange={(e) => setNewReason(e.target.value)}
+          />
+          <Button
+            size="sm"
+            disabled={!newDate}
+            onClick={() => {
+              addDayOff(newDate, newReason.trim() || null);
+              setNewDate("");
+              setNewReason("");
+            }}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Dodaj
+          </Button>
+        </div>
+        {daysOff.length === 0 ? (
+          <p className="mt-3 text-xs text-muted-foreground">Brak dni wolnych.</p>
+        ) : (
+          <ul className="mt-3 space-y-1">
+            {daysOff.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2 text-sm"
+              >
+                <span>
+                  {d.date}
+                  {d.reason ? (
+                    <span className="text-muted-foreground"> · {d.reason}</span>
+                  ) : null}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Usuń dzień wolny"
+                  onClick={() => removeDayOff(d.id)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Section>
+  );
+}
+
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

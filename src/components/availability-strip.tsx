@@ -5,10 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Appointment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
-
-const START_MIN = 7 * 60;
-const END_MIN = 20 * 60;
-const RANGE = END_MIN - START_MIN;
+import { getDayRange } from "@/lib/working-hours";
 
 function hhmmToMin(s: string) {
   const [h, m] = s.split(":").map(Number);
@@ -20,14 +17,7 @@ function minToHHMM(min: number) {
   const m = clamped % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
-function pctLeft(min: number) {
-  return ((Math.max(START_MIN, Math.min(END_MIN, min)) - START_MIN) / RANGE) * 100;
-}
-function pctWidth(s: number, e: number) {
-  const a = Math.max(START_MIN, Math.min(END_MIN, s));
-  const b = Math.max(START_MIN, Math.min(END_MIN, e));
-  return Math.max(0, (b - a) / RANGE) * 100;
-}
+
 function minutesOfDay(iso: string) {
   const d = parseISO(iso);
   return d.getHours() * 60 + d.getMinutes();
@@ -41,7 +31,12 @@ export interface BusyInterval {
   ends_at: string;
 }
 
-function computeGaps(items: Appointment[], extraBusy: BusyInterval[] = []) {
+function computeGaps(
+  items: Appointment[],
+  extraBusy: BusyInterval[],
+  START_MIN: number,
+  END_MIN: number,
+) {
   const intervals: { s: number; e: number }[] = [];
   for (const a of items) {
     if (a.status === "cancelled") continue;
@@ -70,6 +65,7 @@ function computeGaps(items: Appointment[], extraBusy: BusyInterval[] = []) {
   return gaps;
 }
 
+
 export function AvailabilityStrip({
   date,
   onDateChange,
@@ -89,9 +85,31 @@ export function AvailabilityStrip({
 }) {
   const defaultVisitMinutes =
     useStore((s) => s.settings.default_visit_minutes) || 60;
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
   const dayItems = appointments.filter((a) => appointmentDay(a) === date);
   const active = dayItems.filter((a) => a.status !== "cancelled");
-  const gaps = computeGaps(dayItems, extraBusy);
+
+  const dayDate = (() => {
+    try {
+      return parseISO(date);
+    } catch {
+      return new Date();
+    }
+  })();
+  const range = getDayRange(dayDate, workingHours, daysOff, dayItems);
+  const START_MIN = range.startMin;
+  const END_MIN = range.endMin;
+  const RANGE = Math.max(1, END_MIN - START_MIN);
+  const pctLeft = (min: number) =>
+    ((Math.max(START_MIN, Math.min(END_MIN, min)) - START_MIN) / RANGE) * 100;
+  const pctWidth = (s: number, e: number) => {
+    const a = Math.max(START_MIN, Math.min(END_MIN, s));
+    const b = Math.max(START_MIN, Math.min(END_MIN, e));
+    return Math.max(0, (b - a) / RANGE) * 100;
+  };
+
+  const gaps = computeGaps(dayItems, extraBusy, START_MIN, END_MIN);
 
   const selStart = hhmmToMin(start);
   const selEnd = hhmmToMin(end);
@@ -104,7 +122,13 @@ export function AvailabilityStrip({
     onDateChange(format(next, "yyyy-MM-dd"));
   };
 
-  const hourTicks = [7, 10, 13, 16, 20];
+  const firstTick = Math.ceil(START_MIN / 60);
+  const lastTick = Math.floor(END_MIN / 60);
+  const tickStep = Math.max(1, Math.ceil((lastTick - firstTick) / 4));
+  const hourTicks: number[] = [];
+  for (let h = firstTick; h <= lastTick; h += tickStep) hourTicks.push(h);
+  if (hourTicks[hourTicks.length - 1] !== lastTick) hourTicks.push(lastTick);
+
 
   const dayLabel = (() => {
     try {
@@ -125,7 +149,14 @@ export function AvailabilityStrip({
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-xs font-medium text-foreground">{dayLabel}</span>
+        <span className="flex items-center gap-1 text-xs font-medium text-foreground">
+          {dayLabel}
+          {range.label && (
+            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground">
+              {range.label}
+            </span>
+          )}
+        </span>
         <button
           type="button"
           aria-label="Następny dzień"
@@ -139,7 +170,10 @@ export function AvailabilityStrip({
       <div
         role="group"
         aria-label={`Dostępność dnia ${dayLabel}`}
-        className="relative h-16 touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-secondary/40"
+        className={cn(
+          "relative h-16 touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-secondary/40",
+          (range.closed || range.dayOff) && "bg-muted/70 opacity-80",
+        )}
         onPointerDown={(e) => {
           swipe.current = { x: e.clientX, moved: false };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);

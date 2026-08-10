@@ -111,3 +111,18 @@ export interface AppSettings {
   sms_balance_updated_at: string | null;
 }
 
+export interface WorkingHours {
+  weekday: number; // 0 = niedziela … 6 = sobota
+  is_open: boolean;
+  start_time: string; // "HH:MM"
+  end_time: string; // "HH:MM"
+}
+
+export interface DayOff {
+  id: string;
+  date: string; // "YYYY-MM-DD"
+  reason: string | null;
+  blocks_booking: boolean;
+}
+
+

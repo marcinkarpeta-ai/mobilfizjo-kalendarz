@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { formatPatientName } from "@/lib/format";
 import { useNow } from "@/hooks/use-now";
 import { useStore } from "@/lib/store";
+import { getDayRange } from "@/lib/working-hours";
 
 
 export interface BusyInterval {
@@ -14,11 +15,7 @@ export interface BusyInterval {
   ends_at: string;
 }
 
-const TIMELINE_START = 7 * 60; // 07:00
-const TIMELINE_END = 20 * 60; // 20:00
 const PX_PER_MIN = 1;
-const TOTAL_MIN = TIMELINE_END - TIMELINE_START;
-const TOTAL_PX = TOTAL_MIN * PX_PER_MIN;
 const GUTTER_PX = 48; // hour label column
 const MIN_BLOCK_PX = 24;
 
@@ -45,7 +42,11 @@ type Positioned = {
 
 // Group overlapping appointments and assign side-by-side columns.
 // Input MUST be pre-filtered (no cancelled).
-function layoutColumns(items: Appointment[]): Positioned[] {
+function layoutColumns(
+  items: Appointment[],
+  TIMELINE_START: number,
+  TIMELINE_END: number,
+): Positioned[] {
   const active = items
     .map((a) => ({ a, s: minutesOfDay(a.starts_at), e: minutesOfDay(a.ends_at) }))
     .sort((x, y) => x.s - y.s || x.e - y.e);
@@ -110,7 +111,9 @@ function layoutColumns(items: Appointment[]): Positioned[] {
 
 function computeGaps(
   items: Appointment[],
-  extraBusy: BusyInterval[] = [],
+  extraBusy: BusyInterval[],
+  TIMELINE_START: number,
+  TIMELINE_END: number,
 ): { start: number; end: number }[] {
   const intervals: { s: number; e: number }[] = [];
   for (const a of items) {
@@ -163,8 +166,9 @@ export function DayTimeline({
   onGapClick: (startHHMM: string, endHHMM: string) => void;
   onSelectAppointment?: (appt: Appointment) => void;
 }) {
-  void _date;
   const defaultVisitMinutes = useStore((s) => s.settings.default_visit_minutes) || 60;
+  const workingHours = useStore((s) => s.workingHours);
+  const daysOff = useStore((s) => s.daysOff);
   const now = useNow();
   const nowMs = now.getTime();
   const active = appointments.filter((a) => a.status !== "cancelled");
@@ -172,17 +176,31 @@ export function DayTimeline({
     .filter((a) => a.status === "cancelled")
     .sort((a, b) => parseISO(a.starts_at).getTime() - parseISO(b.starts_at).getTime());
 
-  const positioned = layoutColumns(active);
-  const gaps = computeGaps(active, busyBlocks);
-  const hours = Array.from({ length: (TIMELINE_END - TIMELINE_START) / 60 + 1 }, (_, i) => TIMELINE_START + i * 60);
+  const range = getDayRange(_date, workingHours, daysOff, appointments);
+  const TIMELINE_START = range.startMin;
+  const TIMELINE_END = range.endMin;
+  const TOTAL_PX = (TIMELINE_END - TIMELINE_START) * PX_PER_MIN;
+  const dimmed = range.closed || range.dayOff;
+  const hasPlanned = active.length > 0;
+
+  const positioned = layoutColumns(active, TIMELINE_START, TIMELINE_END);
+  const gaps = computeGaps(active, busyBlocks, TIMELINE_START, TIMELINE_END);
+  const hours = Array.from({ length: Math.floor((TIMELINE_END - TIMELINE_START) / 60) + 1 }, (_, i) => TIMELINE_START + i * 60);
 
   const [cancelledOpen, setCancelledOpen] = useState(false);
   const showCancelledSection = !familyView && cancelled.length > 0;
 
-
   return (
     <>
-      <div className="relative" style={{ height: TOTAL_PX + 8 }}>
+      {range.label && (
+        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground/80">{range.label}</span>
+          {range.dayOffReason && <span>· {range.dayOffReason}</span>}
+          {hasPlanned && <span>(zaplanowane wizyty pozostają)</span>}
+        </div>
+      )}
+      <div className={cn("relative", dimmed && "rounded-lg bg-muted/30")} style={{ height: TOTAL_PX + 8 }}>
+
       {/* Hour lines + labels */}
       {hours.map((h) => {
         const top = (h - TIMELINE_START) * PX_PER_MIN;

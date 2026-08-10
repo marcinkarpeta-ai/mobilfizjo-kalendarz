@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 import type {
   Appointment,
+  DayOff,
   MarketingProposal,
   MessageLog,
   MessageTemplate,
   Patient,
   VisitLabel,
   VisitNote,
+  WorkingHours,
 } from "@/lib/types";
 
 function u<T>(v: T | null | undefined): T | undefined {
@@ -37,6 +39,8 @@ export function DataSync() {
         proposalsRes,
         templatesRes,
         settingsRes,
+        workingHoursRes,
+        daysOffRes,
       ] = await Promise.all([
         supabase.from("patients").select("*").order("created_at", { ascending: false }),
         supabase.from("visit_labels").select("*").order("created_at", { ascending: true }),
@@ -47,7 +51,10 @@ export function DataSync() {
         supabase.from("marketing_proposals").select("*").order("created_at", { ascending: false }),
         supabase.from("message_templates").select("*"),
         supabase.from("app_settings").select("*").limit(1).maybeSingle(),
+        supabase.from("working_hours").select("*").order("weekday", { ascending: true }),
+        supabase.from("day_off").select("*").order("date", { ascending: true }),
       ]);
+
 
       if (cancelled) return;
 
@@ -153,7 +160,19 @@ export function DataSync() {
             sms_balance_pln: null,
             sms_balance_updated_at: null,
           };
+      const workingHours: WorkingHours[] = (workingHoursRes.data ?? []).map((r) => ({
+        weekday: r.weekday,
+        is_open: r.is_open,
+        start_time: String(r.start_time).slice(0, 5),
+        end_time: String(r.end_time).slice(0, 5),
+      }));
 
+      const daysOff: DayOff[] = (daysOffRes.data ?? []).map((r) => ({
+        id: r.id,
+        date: r.date,
+        reason: r.reason,
+        blocks_booking: r.blocks_booking,
+      }));
 
       hydrate({
         patients,
@@ -164,9 +183,12 @@ export function DataSync() {
         proposals,
         templates,
         settings,
+        workingHours,
+        daysOff,
         _settingsId: settingsRow?.id ?? null,
         _hydrated: true,
       });
+
     }
 
     void loadAll();

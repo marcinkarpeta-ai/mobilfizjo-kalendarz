@@ -282,14 +282,18 @@ export function AddAppointmentDialog({
                 onChange={(e) => setEnd(e.target.value)}
               />
             </div>
-            <div className="col-span-3 flex flex-wrap gap-1.5">
+            <div className="col-span-2 flex gap-1.5">
               {DURATION_PRESETS.map((d) => (
                 <Button
                   key={d.minutes}
                   type="button"
                   size="sm"
                   variant={currentDuration === d.minutes ? "default" : "outline"}
-                  className="h-7 rounded-full px-3 text-xs"
+                  className={cn(
+                    "h-7 basis-0 justify-center rounded-full px-1",
+                    d.minutes === 40 ? "text-[10px]" : "text-xs"
+                  )}
+                  style={{ flexGrow: d.minutes }}
                   aria-pressed={currentDuration === d.minutes}
                   onClick={() => applyDuration(d.minutes)}
                 >

@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/lib/store";
 import type {
   Appointment,
+  DayOff,
   MarketingProposal,
   MessageLog,
   MessageTemplate,
   Patient,
   VisitLabel,
   VisitNote,
+  WorkingHours,
 } from "@/lib/types";
 
 function u<T>(v: T | null | undefined): T | undefined {

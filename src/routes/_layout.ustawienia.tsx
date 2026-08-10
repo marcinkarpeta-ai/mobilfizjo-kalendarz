@@ -1,6 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Info, LogOut, Mail, MessageSquarePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Info,
+  LogOut,
+  Mail,
+  MessageSquarePlus,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { ServiceEditSheet } from "@/components/service-edit-sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Button } from "@/components/ui/button";

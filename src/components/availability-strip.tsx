@@ -17,6 +17,19 @@ function minToHHMM(min: number) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+function minutesOfDay(iso: string) {
+  const d = parseISO(iso);
+  return d.getHours() * 60 + d.getMinutes();
+}
+function appointmentDay(a: Appointment) {
+  return format(parseISO(a.starts_at), "yyyy-MM-dd");
+}
+
+export interface BusyInterval {
+  starts_at: string;
+  ends_at: string;
+}
+
 function computeGaps(
   items: Appointment[],
   extraBusy: BusyInterval[],

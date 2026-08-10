@@ -21,6 +21,7 @@ Sekcja widoczna tylko dla terapeuty (spójnie z resztą ekranu Ustawień).
 
 - Zakres renderowanej osi pochodzi z godzin pracy dla dnia tygodnia wybranej daty, zamiast sztywnych 07:00-20:00. Jeśli w tym dniu istnieją wpisy poza godzinami pracy, zakres jest rozszerzany tak, by były widoczne.
 - Dzień zamknięty (wg godzin pracy) lub oznaczony jako wolny: przygaszone tło osi + etykieta „Nieczynne" / „Dzień wolny" wraz z opisem, jeśli podany. Dla dnia zamkniętego bez wpisów oś pokazuje domyślny zakres 07:00-20:00 w wersji przygaszonej.
+- Jeśli w dniu oznaczonym jako wolny są już wpisy w kalendarzu, przy etykiecie „Dzień wolny" pojawia się dopisek „(zaplanowane wizyty pozostają)" — oznaczenie niczego nie usuwa z grafiku.
 - Terapeuta nadal może klikać luki, dodawać i edytować wpisy w takim dniu — oznaczenie jest wyłącznie informacyjne; blokada dotyczy przyszłego modułu rezerwacji online.
 - Pasek dostępności w formularzu wpisu: ten sam zakres godzin i to samo oznaczenie dnia zamkniętego/wolnego.
 

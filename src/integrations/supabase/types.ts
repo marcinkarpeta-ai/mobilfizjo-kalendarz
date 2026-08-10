@@ -36,6 +36,7 @@ export type Database = {
         Row: {
           allowed_emails: string[]
           clinic_name: string
+          default_visit_minutes: number
           id: string
           sms_balance_full: number | null
           sms_balance_pln: number | null
@@ -47,6 +48,7 @@ export type Database = {
         Insert: {
           allowed_emails?: string[]
           clinic_name?: string
+          default_visit_minutes?: number
           id?: string
           sms_balance_full?: number | null
           sms_balance_pln?: number | null
@@ -58,6 +60,7 @@ export type Database = {
         Update: {
           allowed_emails?: string[]
           clinic_name?: string
+          default_visit_minutes?: number
           id?: string
           sms_balance_full?: number | null
           sms_balance_pln?: number | null

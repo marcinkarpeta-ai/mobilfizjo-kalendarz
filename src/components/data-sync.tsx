@@ -39,6 +39,8 @@ export function DataSync() {
         proposalsRes,
         templatesRes,
         settingsRes,
+        workingHoursRes,
+        daysOffRes,
       ] = await Promise.all([
         supabase.from("patients").select("*").order("created_at", { ascending: false }),
         supabase.from("visit_labels").select("*").order("created_at", { ascending: true }),
@@ -49,7 +51,10 @@ export function DataSync() {
         supabase.from("marketing_proposals").select("*").order("created_at", { ascending: false }),
         supabase.from("message_templates").select("*"),
         supabase.from("app_settings").select("*").limit(1).maybeSingle(),
+        supabase.from("working_hours").select("*").order("weekday", { ascending: true }),
+        supabase.from("day_off").select("*").order("date", { ascending: true }),
       ]);
+
 
       if (cancelled) return;
 

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { formatPatientName } from "@/lib/format";
 import { useNow } from "@/hooks/use-now";
 import { useStore } from "@/lib/store";
+import { getDayRange } from "@/lib/working-hours";
 
 
 export interface BusyInterval {

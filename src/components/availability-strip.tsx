@@ -87,6 +87,8 @@ export function AvailabilityStrip({
   appointments: Appointment[];
   extraBusy?: BusyInterval[];
 }) {
+  const defaultVisitMinutes =
+    useStore((s) => s.settings.default_visit_minutes) || 60;
   const dayItems = appointments.filter((a) => appointmentDay(a) === date);
   const active = dayItems.filter((a) => a.status !== "cancelled");
   const gaps = computeGaps(dayItems, extraBusy);

@@ -43,7 +43,11 @@ export function DataSync() {
         daysOffRes,
       ] = await Promise.all([
         supabase.from("patients").select("*").order("created_at", { ascending: false }),
-        supabase.from("visit_labels").select("*").order("created_at", { ascending: true }),
+        supabase
+          .from("visit_labels")
+          .select("*")
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
         supabase.from("appointments").select("*"),
         supabase.from("visit_notes").select("*").order("created_at", { ascending: false }),
         supabase.from("note_photos").select("*"),

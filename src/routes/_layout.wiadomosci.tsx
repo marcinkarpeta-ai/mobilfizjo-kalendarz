@@ -43,6 +43,7 @@ const KIND_LABEL: Record<MessageKind, string> = {
   cancellation: "Odwołanie",
   marketing_anniversary: "Marketing · rocznica",
   marketing_birthday: "Marketing · urodziny",
+  booking_code: "Kod do rezerwacji",
 };
 
 const REASON_LABEL: Record<MarketingReason, string> = {

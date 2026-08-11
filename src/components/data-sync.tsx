@@ -73,6 +73,8 @@ export function DataSync() {
         service_consent_changed_at: u(r.service_consent_changed_at),
         marketing_consent_at: u(r.marketing_consent_at),
         marketing_consent_changed_at: u(r.marketing_consent_changed_at),
+        booking_consent_at: u(r.booking_consent_at),
+        booking_consent_changed_at: u(r.booking_consent_changed_at),
         general_note: u(r.general_note),
         archived_at: u(r.archived_at),
         created_at: r.created_at,
@@ -159,6 +161,9 @@ export function DataSync() {
                 ? null
                 : Number(settingsRow.sms_balance_pln),
             sms_balance_updated_at: settingsRow.sms_balance_updated_at ?? null,
+            booking_enabled: settingsRow.booking_enabled ?? false,
+            booking_days_ahead: settingsRow.booking_days_ahead ?? 14,
+            booking_min_hours_ahead: settingsRow.booking_min_hours_ahead ?? 12,
           }
         : {
             therapist_name: "",
@@ -168,6 +173,9 @@ export function DataSync() {
             sms_balance_full: null,
             sms_balance_pln: null,
             sms_balance_updated_at: null,
+            booking_enabled: false,
+            booking_days_ahead: 14,
+            booking_min_hours_ahead: 12,
           };
       const workingHours: WorkingHours[] = (workingHoursRes.data ?? []).map((r) => ({
         weekday: r.weekday,

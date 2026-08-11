@@ -233,6 +233,61 @@ function SettingsPage() {
 
         <WorkingHoursSection />
 
+        <Section title="Rezerwacje online">
+          <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <Label htmlFor="s-booking-enabled">Rezerwacje włączone</Label>
+                <p className="text-xs text-muted-foreground">
+                  Główny wyłącznik samodzielnej rezerwacji przez pacjentów.
+                </p>
+              </div>
+              <Switch
+                id="s-booking-enabled"
+                checked={settings.booking_enabled}
+                onCheckedChange={(v) => updateSettings({ booking_enabled: v })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="s-booking-days">Ile dni w przód</Label>
+              <Input
+                id="s-booking-days"
+                type="number"
+                min={1}
+                step={1}
+                value={settings.booking_days_ahead}
+                onChange={(e) =>
+                  updateSettings({
+                    booking_days_ahead: Math.max(
+                      1,
+                      Math.floor(Number(e.target.value) || 0),
+                    ),
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="s-booking-min">Minimalne wyprzedzenie (godz.)</Label>
+              <Input
+                id="s-booking-min"
+                type="number"
+                min={0}
+                step={1}
+                value={settings.booking_min_hours_ahead}
+                onChange={(e) =>
+                  updateSettings({
+                    booking_min_hours_ahead: Math.max(
+                      0,
+                      Math.floor(Number(e.target.value) || 0),
+                    ),
+                  })
+                }
+              />
+            </div>
+          </div>
+        </Section>
+
+
 
 
         <Section title="Szablony wiadomości">

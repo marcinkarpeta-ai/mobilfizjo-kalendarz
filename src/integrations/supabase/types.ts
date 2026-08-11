@@ -35,6 +35,9 @@ export type Database = {
       app_settings: {
         Row: {
           allowed_emails: string[]
+          booking_days_ahead: number
+          booking_enabled: boolean
+          booking_min_hours_ahead: number
           clinic_name: string
           default_visit_minutes: number
           id: string
@@ -47,6 +50,9 @@ export type Database = {
         }
         Insert: {
           allowed_emails?: string[]
+          booking_days_ahead?: number
+          booking_enabled?: boolean
+          booking_min_hours_ahead?: number
           clinic_name?: string
           default_visit_minutes?: number
           id?: string
@@ -59,6 +65,9 @@ export type Database = {
         }
         Update: {
           allowed_emails?: string[]
+          booking_days_ahead?: number
+          booking_enabled?: boolean
+          booking_min_hours_ahead?: number
           clinic_name?: string
           default_visit_minutes?: number
           id?: string
@@ -131,6 +140,50 @@ export type Database = {
             columns: ["visit_label_id"]
             isOneToOne: false
             referencedRelation: "visit_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_sessions: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          patient_id: string | null
+          phone: string
+          token_hash: string | null
+          verified: boolean
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          patient_id?: string | null
+          phone: string
+          token_hash?: string | null
+          verified?: boolean
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          patient_id?: string | null
+          phone?: string
+          token_hash?: string | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_sessions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
@@ -427,6 +480,8 @@ export type Database = {
         Row: {
           archived_at: string | null
           birth_date: string | null
+          booking_consent_at: string | null
+          booking_consent_changed_at: string | null
           created_at: string
           first_name: string | null
           general_note: string | null
@@ -442,6 +497,8 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           birth_date?: string | null
+          booking_consent_at?: string | null
+          booking_consent_changed_at?: string | null
           created_at?: string
           first_name?: string | null
           general_note?: string | null
@@ -457,6 +514,8 @@ export type Database = {
         Update: {
           archived_at?: string | null
           birth_date?: string | null
+          booking_consent_at?: string | null
+          booking_consent_changed_at?: string | null
           created_at?: string
           first_name?: string | null
           general_note?: string | null
@@ -694,6 +753,7 @@ export type Database = {
         | "cancellation"
         | "marketing_anniversary"
         | "marketing_birthday"
+        | "booking_code"
       message_status: "pending" | "sent" | "failed"
     }
     CompositeTypes: {
@@ -833,6 +893,7 @@ export const Constants = {
         "cancellation",
         "marketing_anniversary",
         "marketing_birthday",
+        "booking_code",
       ],
       message_status: ["pending", "sent", "failed"],
     },

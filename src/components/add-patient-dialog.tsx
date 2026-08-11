@@ -61,6 +61,7 @@ export function AddPatientDialog({
   const [generalNote, setGeneralNote] = useState("");
   const [serviceConsent, setServiceConsent] = useState(true);
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const [bookingConsent, setBookingConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export function AddPatientDialog({
       setGeneralNote(patient.general_note ?? "");
       setServiceConsent(Boolean(patient.service_consent_at));
       setMarketingConsent(Boolean(patient.marketing_consent_at));
+      setBookingConsent(Boolean(patient.booking_consent_at));
     } else {
       setFirstName("");
       setLastName("");
@@ -83,6 +85,7 @@ export function AddPatientDialog({
       setGeneralNote("");
       setServiceConsent(true);
       setMarketingConsent(false);
+      setBookingConsent(false);
     }
     setErrors({});
   }, [open, patient]);
@@ -137,6 +140,8 @@ export function AddPatientDialog({
     const marketingChanged = !isEdit
       ? marketingConsent
       : marketingConsent !== prevMarketing;
+    const prevBooking = Boolean(patient?.booking_consent_at);
+    const bookingChanged = !isEdit ? bookingConsent : bookingConsent !== prevBooking;
 
     const commonPatch = {
       first_name: fn || null,
@@ -157,6 +162,12 @@ export function AddPatientDialog({
       marketing_consent_changed_at: marketingChanged
         ? now
         : patient?.marketing_consent_changed_at,
+      booking_consent_at: bookingConsent
+        ? patient?.booking_consent_at ?? now
+        : undefined,
+      booking_consent_changed_at: bookingChanged
+        ? now
+        : patient?.booking_consent_changed_at,
     };
 
     if (isEdit && patient) {
@@ -284,6 +295,19 @@ export function AddPatientDialog({
                 <strong className="block">Zgoda marketingowa</strong>
                 <span className="text-muted-foreground">
                   Potrzebna do propozycji rocznicowych i urodzinowych.
+                </span>
+              </span>
+            </label>
+            <label className="flex items-start gap-3 text-sm">
+              <Checkbox
+                checked={bookingConsent}
+                onCheckedChange={(v) => setBookingConsent(v === true)}
+                aria-label="Zgoda na samodzielną rezerwację"
+              />
+              <span>
+                <strong className="block">Samodzielna rezerwacja</strong>
+                <span className="text-muted-foreground">
+                  Pozwala rezerwować terminy online kodem SMS.
                 </span>
               </span>
             </label>

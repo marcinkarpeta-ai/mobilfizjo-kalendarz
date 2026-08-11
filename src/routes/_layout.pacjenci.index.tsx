@@ -205,6 +205,9 @@ function PatientsPage() {
                           {p.marketing_consent_at ? (
                             <Badge variant="outline">Marketing</Badge>
                           ) : null}
+                          {p.booking_consent_at ? (
+                            <Badge variant="outline">Rezerwacje</Badge>
+                          ) : null}
                           {missingCount > 0 ? (
                             <Badge
                               variant="outline"

@@ -247,6 +247,22 @@ function PatientDetail() {
               }
             />
             <DataRow
+              label="Samodzielna rezerwacja"
+              value={
+                patientData.booking_consent_at ? (
+                  <Badge variant="outline">
+                    Zgoda z dn. {fmtDate(patientData.booking_consent_at)}
+                  </Badge>
+                ) : patientData.booking_consent_changed_at ? (
+                  <Badge variant="outline">
+                    Wycofana dn. {fmtDate(patientData.booking_consent_changed_at)}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline">Brak</Badge>
+                )
+              }
+            />
+            <DataRow
               label="Odwołane wizyty"
               value={`${cancelledStats.total} ogółem / ${cancelledStats.last12} w 12 mies.`}
             />

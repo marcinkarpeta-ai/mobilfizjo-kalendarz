@@ -16,7 +16,10 @@ export interface Patient {
   service_consent_changed_at?: string;
   marketing_consent_at?: string;
   marketing_consent_changed_at?: string;
+  booking_consent_at?: string;
+  booking_consent_changed_at?: string;
   general_note?: string;
+
   archived_at?: string;
   created_at: string;
 }

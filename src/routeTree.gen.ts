@@ -24,6 +24,7 @@ import { Route as LayoutSprawyIndexRouteImport } from './routes/_layout.sprawy_.
 import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
 import { Route as ApiPublicSmsBalanceRouteImport } from './routes/api/public/sms-balance'
 import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
+import { Route as ApiBookingRequestCodeRouteImport } from './routes/api/booking/request-code'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
@@ -107,6 +108,11 @@ const ApiPublicDailyDigestRoute = ApiPublicDailyDigestRouteImport.update({
   path: '/api/public/daily-digest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingRequestCodeRoute = ApiBookingRequestCodeRouteImport.update({
+  id: '/api/booking/request-code',
+  path: '/api/booking/request-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/wiadomosci'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/booking/request-code'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
     | '/pacjenci/'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/booking/request-code'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
     | '/pacjenci'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/.mcp/invoke-tool/$tool'
     | '/_layout/pacjenci/$id'
+    | '/api/booking/request-code'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
     | '/_layout/pacjenci/'
@@ -286,6 +298,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiBookingRequestCodeRoute: typeof ApiBookingRequestCodeRoute
   ApiPublicDailyDigestRoute: typeof ApiPublicDailyDigestRoute
   ApiPublicSmsBalanceRoute: typeof ApiPublicSmsBalanceRoute
   ApiPublicMessagesLogClaimRoute: typeof ApiPublicMessagesLogClaimRoute
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDailyDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/request-code': {
+      id: '/api/booking/request-code'
+      path: '/api/booking/request-code'
+      fullPath: '/api/booking/request-code'
+      preLoaderRoute: typeof ApiBookingRequestCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_layout/pacjenci/$id': {
       id: '/_layout/pacjenci/$id'
       path: '/$id'
@@ -492,6 +512,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiBookingRequestCodeRoute: ApiBookingRequestCodeRoute,
   ApiPublicDailyDigestRoute: ApiPublicDailyDigestRoute,
   ApiPublicSmsBalanceRoute: ApiPublicSmsBalanceRoute,
   ApiPublicMessagesLogClaimRoute: ApiPublicMessagesLogClaimRoute,

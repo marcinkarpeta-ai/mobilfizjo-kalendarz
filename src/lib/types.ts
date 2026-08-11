@@ -68,7 +68,8 @@ export type MessageKind =
   | "confirmation"
   | "cancellation"
   | "marketing_anniversary"
-  | "marketing_birthday";
+  | "marketing_birthday"
+  | "booking_code";
 
 export type MessageStatus =
   | "pending"
@@ -117,6 +118,9 @@ export interface AppSettings {
   sms_balance_full: number | null;
   sms_balance_pln: number | null;
   sms_balance_updated_at: string | null;
+  booking_enabled: boolean;
+  booking_days_ahead: number;
+  booking_min_hours_ahead: number;
 }
 
 export interface WorkingHours {

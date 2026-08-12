@@ -1,4 +1,4 @@
-import { CalendarX2, Clock } from "lucide-react";
+import { CalendarX2, Clock, Globe } from "lucide-react";
 import { parseISO } from "date-fns";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
 import { fmtTime, formatPatientName } from "@/lib/format";
@@ -100,6 +100,12 @@ export function AppointmentCard({
               Rodzina
             </Badge>
           ) : null}
+          {appt.booked_online && !familyView && !cancelled ? (
+            <Badge variant="outline" className="gap-1 text-[10px] font-normal text-muted-foreground">
+              <Globe className="h-3 w-3" aria-hidden /> Online
+            </Badge>
+          ) : null}
+
           {cancelled ? (
             <Badge variant="secondary" className="gap-1">
               <CalendarX2 className="h-3 w-3" aria-hidden /> Odwołana

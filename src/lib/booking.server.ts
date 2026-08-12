@@ -122,3 +122,49 @@ export function safeEqual(a: string, b: string): boolean {
   for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
 }
+
+/* ---------- Wyliczanie wolnych terminów (współdzielone przez /slots i /create) ---------- */
+
+export const DEFAULT_START = 7 * 60;
+export const DEFAULT_END = 20 * 60;
+export const EMPTY_DAY_WINDOW = 120; // pierwsze 2 godziny pracy
+export const STEPS = [40, 60];
+
+export interface Block {
+  startMin: number;
+  endMin: number;
+}
+
+export function slotsForDay(
+  dayBlocks: Block[],
+  openMin: number,
+  closeMin: number,
+  duration: number,
+): number[] {
+  const sorted = [...dayBlocks].sort((a, b) => a.startMin - b.startMin);
+  const candidates = new Set<number>();
+
+  if (sorted.length === 0) {
+    for (let t = openMin; t <= openMin + EMPTY_DAY_WINDOW; t += 20) {
+      if (t === openMin || STEPS.some((s) => (t - openMin) % s === 0)) {
+        candidates.add(t);
+      }
+    }
+  } else {
+    for (const b of sorted) {
+      candidates.add(b.endMin);
+      for (const s of STEPS) candidates.add(b.endMin + s);
+    }
+  }
+
+  const out: number[] = [];
+  for (const start of [...candidates].sort((a, b) => a - b)) {
+    if (start < openMin) continue;
+    const end = start + duration;
+    if (end > closeMin) continue;
+    const overlaps = sorted.some((b) => start < b.endMin && end > b.startMin);
+    if (overlaps) continue;
+    out.push(start);
+  }
+  return out;
+}

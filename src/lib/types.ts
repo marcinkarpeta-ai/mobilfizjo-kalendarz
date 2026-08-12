@@ -45,6 +45,7 @@ export interface Appointment {
   title?: string;
   notes?: string;
   created_by?: string;
+  booked_online?: boolean;
 }
 
 export interface VisitNote {

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RezerwacjaRouteImport } from './routes/rezerwacja'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as LayoutRouteImport } from './routes/_layout'
@@ -25,8 +26,11 @@ import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjen
 import { Route as ApiPublicSmsBalanceRouteImport } from './routes/api/public/sms-balance'
 import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
 import { Route as ApiBookingVerifyRouteImport } from './routes/api/booking/verify'
+import { Route as ApiBookingStatusRouteImport } from './routes/api/booking/status'
 import { Route as ApiBookingSlotsRouteImport } from './routes/api/booking/slots'
+import { Route as ApiBookingServicesRouteImport } from './routes/api/booking/services'
 import { Route as ApiBookingRequestCodeRouteImport } from './routes/api/booking/request-code'
+import { Route as ApiBookingCreateRouteImport } from './routes/api/booking/create'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
@@ -34,6 +38,11 @@ import { Route as LayoutUstawieniaSugestieIdRouteImport } from './routes/_layout
 import { Route as ApiPublicMessagesLogIdResultRouteImport } from './routes/api/public/messages-log/$id.result'
 import { Route as ApiPublicMessagesLogIdDeliveryRouteImport } from './routes/api/public/messages-log/$id.delivery'
 
+const RezerwacjaRoute = RezerwacjaRouteImport.update({
+  id: '/rezerwacja',
+  path: '/rezerwacja',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
@@ -115,14 +124,29 @@ const ApiBookingVerifyRoute = ApiBookingVerifyRouteImport.update({
   path: '/api/booking/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingStatusRoute = ApiBookingStatusRouteImport.update({
+  id: '/api/booking/status',
+  path: '/api/booking/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBookingSlotsRoute = ApiBookingSlotsRouteImport.update({
   id: '/api/booking/slots',
   path: '/api/booking/slots',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingServicesRoute = ApiBookingServicesRouteImport.update({
+  id: '/api/booking/services',
+  path: '/api/booking/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBookingRequestCodeRoute = ApiBookingRequestCodeRouteImport.update({
   id: '/api/booking/request-code',
   path: '/api/booking/request-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingCreateRoute = ApiBookingCreateRouteImport.update({
+  id: '/api/booking/create',
+  path: '/api/booking/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
@@ -165,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/auth': typeof AuthRoute
   '/mcp': typeof McpRoute
+  '/rezerwacja': typeof RezerwacjaRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/kalendarz': typeof LayoutKalendarzRoute
@@ -174,8 +199,11 @@ export interface FileRoutesByFullPath {
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/create': typeof ApiBookingCreateRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
+  '/api/booking/services': typeof ApiBookingServicesRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
+  '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
@@ -189,6 +217,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/mcp': typeof McpRoute
+  '/rezerwacja': typeof RezerwacjaRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/kalendarz': typeof LayoutKalendarzRoute
@@ -198,8 +227,11 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/create': typeof ApiBookingCreateRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
+  '/api/booking/services': typeof ApiBookingServicesRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
+  '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
@@ -215,6 +247,7 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteWithChildren
   '/auth': typeof AuthRoute
   '/mcp': typeof McpRoute
+  '/rezerwacja': typeof RezerwacjaRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_layout/kalendarz': typeof LayoutKalendarzRoute
@@ -225,8 +258,11 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/create': typeof ApiBookingCreateRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
+  '/api/booking/services': typeof ApiBookingServicesRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
+  '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
@@ -243,6 +279,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/mcp'
+    | '/rezerwacja'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/kalendarz'
@@ -252,8 +289,11 @@ export interface FileRouteTypes {
     | '/wiadomosci'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/booking/create'
     | '/api/booking/request-code'
+    | '/api/booking/services'
     | '/api/booking/slots'
+    | '/api/booking/status'
     | '/api/booking/verify'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
@@ -267,6 +307,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/mcp'
+    | '/rezerwacja'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/kalendarz'
@@ -276,8 +317,11 @@ export interface FileRouteTypes {
     | '/'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/booking/create'
     | '/api/booking/request-code'
+    | '/api/booking/services'
     | '/api/booking/slots'
+    | '/api/booking/status'
     | '/api/booking/verify'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
@@ -292,6 +336,7 @@ export interface FileRouteTypes {
     | '/_layout'
     | '/auth'
     | '/mcp'
+    | '/rezerwacja'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_layout/kalendarz'
@@ -302,8 +347,11 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/.mcp/invoke-tool/$tool'
     | '/_layout/pacjenci/$id'
+    | '/api/booking/create'
     | '/api/booking/request-code'
+    | '/api/booking/services'
     | '/api/booking/slots'
+    | '/api/booking/status'
     | '/api/booking/verify'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
@@ -319,11 +367,15 @@ export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   AuthRoute: typeof AuthRoute
   McpRoute: typeof McpRoute
+  RezerwacjaRoute: typeof RezerwacjaRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiBookingCreateRoute: typeof ApiBookingCreateRoute
   ApiBookingRequestCodeRoute: typeof ApiBookingRequestCodeRoute
+  ApiBookingServicesRoute: typeof ApiBookingServicesRoute
   ApiBookingSlotsRoute: typeof ApiBookingSlotsRoute
+  ApiBookingStatusRoute: typeof ApiBookingStatusRoute
   ApiBookingVerifyRoute: typeof ApiBookingVerifyRoute
   ApiPublicDailyDigestRoute: typeof ApiPublicDailyDigestRoute
   ApiPublicSmsBalanceRoute: typeof ApiPublicSmsBalanceRoute
@@ -334,6 +386,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/rezerwacja': {
+      id: '/rezerwacja'
+      path: '/rezerwacja'
+      fullPath: '/rezerwacja'
+      preLoaderRoute: typeof RezerwacjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
@@ -446,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBookingVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/status': {
+      id: '/api/booking/status'
+      path: '/api/booking/status'
+      fullPath: '/api/booking/status'
+      preLoaderRoute: typeof ApiBookingStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/booking/slots': {
       id: '/api/booking/slots'
       path: '/api/booking/slots'
@@ -453,11 +519,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBookingSlotsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/services': {
+      id: '/api/booking/services'
+      path: '/api/booking/services'
+      fullPath: '/api/booking/services'
+      preLoaderRoute: typeof ApiBookingServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/booking/request-code': {
       id: '/api/booking/request-code'
       path: '/api/booking/request-code'
       fullPath: '/api/booking/request-code'
       preLoaderRoute: typeof ApiBookingRequestCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/create': {
+      id: '/api/booking/create'
+      path: '/api/booking/create'
+      fullPath: '/api/booking/create'
+      preLoaderRoute: typeof ApiBookingCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/pacjenci/$id': {
@@ -548,12 +628,16 @@ const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   AuthRoute: AuthRoute,
   McpRoute: McpRoute,
+  RezerwacjaRoute: RezerwacjaRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiBookingCreateRoute: ApiBookingCreateRoute,
   ApiBookingRequestCodeRoute: ApiBookingRequestCodeRoute,
+  ApiBookingServicesRoute: ApiBookingServicesRoute,
   ApiBookingSlotsRoute: ApiBookingSlotsRoute,
+  ApiBookingStatusRoute: ApiBookingStatusRoute,
   ApiBookingVerifyRoute: ApiBookingVerifyRoute,
   ApiPublicDailyDigestRoute: ApiPublicDailyDigestRoute,
   ApiPublicSmsBalanceRoute: ApiPublicSmsBalanceRoute,

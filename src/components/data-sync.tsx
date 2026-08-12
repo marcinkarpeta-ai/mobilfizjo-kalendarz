@@ -101,6 +101,7 @@ export function DataSync() {
         title: u(r.title),
         notes: u(r.notes),
         created_by: u(r.created_by),
+        booked_online: r.booked_online ?? false,
       }));
 
       const photosByNote = new Map<string, { id: string; storage_path: string }[]>();

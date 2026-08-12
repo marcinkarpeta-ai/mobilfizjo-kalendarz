@@ -25,6 +25,7 @@ import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjen
 import { Route as ApiPublicSmsBalanceRouteImport } from './routes/api/public/sms-balance'
 import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
 import { Route as ApiBookingVerifyRouteImport } from './routes/api/booking/verify'
+import { Route as ApiBookingStatusRouteImport } from './routes/api/booking/status'
 import { Route as ApiBookingSlotsRouteImport } from './routes/api/booking/slots'
 import { Route as ApiBookingRequestCodeRouteImport } from './routes/api/booking/request-code'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
@@ -115,6 +116,11 @@ const ApiBookingVerifyRoute = ApiBookingVerifyRouteImport.update({
   path: '/api/booking/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingStatusRoute = ApiBookingStatusRouteImport.update({
+  id: '/api/booking/status',
+  path: '/api/booking/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBookingSlotsRoute = ApiBookingSlotsRouteImport.update({
   id: '/api/booking/slots',
   path: '/api/booking/slots',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
+  '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
+  '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
+  '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/pacjenci/$id'
     | '/api/booking/request-code'
     | '/api/booking/slots'
+    | '/api/booking/status'
     | '/api/booking/verify'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/pacjenci/$id'
     | '/api/booking/request-code'
     | '/api/booking/slots'
+    | '/api/booking/status'
     | '/api/booking/verify'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/_layout/pacjenci/$id'
     | '/api/booking/request-code'
     | '/api/booking/slots'
+    | '/api/booking/status'
     | '/api/booking/verify'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
@@ -324,6 +336,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiBookingRequestCodeRoute: typeof ApiBookingRequestCodeRoute
   ApiBookingSlotsRoute: typeof ApiBookingSlotsRoute
+  ApiBookingStatusRoute: typeof ApiBookingStatusRoute
   ApiBookingVerifyRoute: typeof ApiBookingVerifyRoute
   ApiPublicDailyDigestRoute: typeof ApiPublicDailyDigestRoute
   ApiPublicSmsBalanceRoute: typeof ApiPublicSmsBalanceRoute
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBookingVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/status': {
+      id: '/api/booking/status'
+      path: '/api/booking/status'
+      fullPath: '/api/booking/status'
+      preLoaderRoute: typeof ApiBookingStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/booking/slots': {
       id: '/api/booking/slots'
       path: '/api/booking/slots'
@@ -554,6 +574,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiBookingRequestCodeRoute: ApiBookingRequestCodeRoute,
   ApiBookingSlotsRoute: ApiBookingSlotsRoute,
+  ApiBookingStatusRoute: ApiBookingStatusRoute,
   ApiBookingVerifyRoute: ApiBookingVerifyRoute,
   ApiPublicDailyDigestRoute: ApiPublicDailyDigestRoute,
   ApiPublicSmsBalanceRoute: ApiPublicSmsBalanceRoute,

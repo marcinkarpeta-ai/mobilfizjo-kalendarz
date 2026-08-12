@@ -82,6 +82,7 @@ export type Database = {
       }
       appointments: {
         Row: {
+          booked_online: boolean
           created_at: string
           created_by: string | null
           ends_at: string
@@ -95,6 +96,7 @@ export type Database = {
           visit_label_id: string | null
         }
         Insert: {
+          booked_online?: boolean
           created_at?: string
           created_by?: string | null
           ends_at: string
@@ -108,6 +110,7 @@ export type Database = {
           visit_label_id?: string | null
         }
         Update: {
+          booked_online?: boolean
           created_at?: string
           created_by?: string | null
           ends_at?: string
@@ -691,6 +694,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      book_online_appointment: {
+        Args: {
+          _ends_at: string
+          _patient_id: string
+          _starts_at: string
+          _visit_label_id: string
+        }
+        Returns: string
+      }
       canonical_phone: { Args: { _phone: string }; Returns: string }
       claim_pending_messages: {
         Args: { _limit: number }

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { CalendarX2, Pencil, Trash2, User } from "lucide-react";
+import { CalendarX2, Globe, Pencil, Trash2, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,

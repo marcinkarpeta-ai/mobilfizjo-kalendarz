@@ -1,4 +1,4 @@
-import { CalendarX2, Clock } from "lucide-react";
+import { CalendarX2, Clock, Globe } from "lucide-react";
 import { parseISO } from "date-fns";
 import type { Appointment, Patient, VisitLabel } from "@/lib/types";
 import { fmtTime, formatPatientName } from "@/lib/format";

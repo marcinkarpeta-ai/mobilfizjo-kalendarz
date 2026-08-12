@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import {
+  DEFAULT_END,
+  DEFAULT_START,
   addDaysISO,
   hashSecret,
   localToUtc,
   minToTime,
+  slotsForDay,
   timeToMin,
   todayInWarsaw,
   utcToLocal,
   weekdayOf,
+  type Block,
 } from "@/lib/booking.server";
 
 const Payload = z.object({
@@ -18,49 +22,6 @@ const Payload = z.object({
   date_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-const DEFAULT_START = 7 * 60;
-const DEFAULT_END = 20 * 60;
-const EMPTY_DAY_WINDOW = 120; // pierwsze 2 godziny pracy
-const STEPS = [40, 60];
-
-interface Block {
-  startMin: number;
-  endMin: number;
-}
-
-function slotsForDay(
-  dayBlocks: Block[],
-  openMin: number,
-  closeMin: number,
-  duration: number,
-): number[] {
-  const sorted = [...dayBlocks].sort((a, b) => a.startMin - b.startMin);
-  const candidates = new Set<number>();
-
-  if (sorted.length === 0) {
-    for (let t = openMin; t <= openMin + EMPTY_DAY_WINDOW; t += 20) {
-      if (t === openMin || STEPS.some((s) => (t - openMin) % s === 0)) {
-        candidates.add(t);
-      }
-    }
-  } else {
-    for (const b of sorted) {
-      candidates.add(b.endMin);
-      for (const s of STEPS) candidates.add(b.endMin + s);
-    }
-  }
-
-  const out: number[] = [];
-  for (const start of [...candidates].sort((a, b) => a - b)) {
-    if (start < openMin) continue;
-    const end = start + duration;
-    if (end > closeMin) continue;
-    const overlaps = sorted.some((b) => start < b.endMin && end > b.startMin);
-    if (overlaps) continue;
-    out.push(start);
-  }
-  return out;
-}
 
 export const Route = createFileRoute("/api/booking/slots")({
   server: {

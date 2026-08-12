@@ -100,6 +100,12 @@ export function AppointmentDetailsSheet({
                   Etykieta: <span className="text-foreground">{label?.name ?? "—"}</span>
                 </div>
               ) : null}
+              {isVisit && appt.booked_online && !isFamily ? (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Globe className="h-3.5 w-3.5" aria-hidden /> Rezerwacja online
+                </div>
+              ) : null}
+
             </div>
 
             <SheetFooter className="mt-6 flex flex-col gap-2 sm:flex-col sm:space-x-0">

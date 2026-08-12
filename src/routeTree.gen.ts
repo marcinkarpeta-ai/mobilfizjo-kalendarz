@@ -29,6 +29,7 @@ import { Route as ApiBookingStatusRouteImport } from './routes/api/booking/statu
 import { Route as ApiBookingSlotsRouteImport } from './routes/api/booking/slots'
 import { Route as ApiBookingServicesRouteImport } from './routes/api/booking/services'
 import { Route as ApiBookingRequestCodeRouteImport } from './routes/api/booking/request-code'
+import { Route as ApiBookingCreateRouteImport } from './routes/api/booking/create'
 import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
@@ -137,6 +138,11 @@ const ApiBookingRequestCodeRoute = ApiBookingRequestCodeRouteImport.update({
   path: '/api/booking/request-code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingCreateRoute = ApiBookingCreateRouteImport.update({
+  id: '/api/booking/create',
+  path: '/api/booking/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/wiadomosci': typeof LayoutWiadomosciRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/create': typeof ApiBookingCreateRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/booking/services': typeof ApiBookingServicesRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/create': typeof ApiBookingCreateRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/booking/services': typeof ApiBookingServicesRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_layout/pacjenci/$id': typeof LayoutPacjenciIdRoute
+  '/api/booking/create': typeof ApiBookingCreateRoute
   '/api/booking/request-code': typeof ApiBookingRequestCodeRoute
   '/api/booking/services': typeof ApiBookingServicesRoute
   '/api/booking/slots': typeof ApiBookingSlotsRoute
@@ -270,6 +279,7 @@ export interface FileRouteTypes {
     | '/wiadomosci'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/booking/create'
     | '/api/booking/request-code'
     | '/api/booking/services'
     | '/api/booking/slots'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/'
     | '/.mcp/invoke-tool/$tool'
     | '/pacjenci/$id'
+    | '/api/booking/create'
     | '/api/booking/request-code'
     | '/api/booking/services'
     | '/api/booking/slots'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/.mcp/invoke-tool/$tool'
     | '/_layout/pacjenci/$id'
+    | '/api/booking/create'
     | '/api/booking/request-code'
     | '/api/booking/services'
     | '/api/booking/slots'
@@ -346,6 +358,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiBookingCreateRoute: typeof ApiBookingCreateRoute
   ApiBookingRequestCodeRoute: typeof ApiBookingRequestCodeRoute
   ApiBookingServicesRoute: typeof ApiBookingServicesRoute
   ApiBookingSlotsRoute: typeof ApiBookingSlotsRoute
@@ -500,6 +513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBookingRequestCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/create': {
+      id: '/api/booking/create'
+      path: '/api/booking/create'
+      fullPath: '/api/booking/create'
+      preLoaderRoute: typeof ApiBookingCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_layout/pacjenci/$id': {
       id: '/_layout/pacjenci/$id'
       path: '/$id'
@@ -592,6 +612,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiBookingCreateRoute: ApiBookingCreateRoute,
   ApiBookingRequestCodeRoute: ApiBookingRequestCodeRoute,
   ApiBookingServicesRoute: ApiBookingServicesRoute,
   ApiBookingSlotsRoute: ApiBookingSlotsRoute,

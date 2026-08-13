@@ -41,6 +41,9 @@ export interface DayRange {
   dayOffReason: string | null;
   /** etykieta „Nieczynne” / „Dzień wolny” lub null */
   label: string | null;
+  /** przerwa w minutach od północy (null gdy brak) */
+  breakStartMin: number | null;
+  breakEndMin: number | null;
 }
 
 function dayKey(d: Date) {

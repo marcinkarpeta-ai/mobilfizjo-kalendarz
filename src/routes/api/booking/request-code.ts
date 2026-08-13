@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { canonicalPhone } from "@/lib/csv";
-import { hashSecret, randomCode } from "@/lib/booking.server";
+import { hashSecret, pingInstantWebhook, randomCode } from "@/lib/booking.server";
 
 const Payload = z.object({ phone: z.string().min(3).max(32) });
 
@@ -73,13 +73,17 @@ export const Route = createFileRoute("/api/booking/request-code")({
         const body = (tpl?.body ?? "Twój kod do rezerwacji: {{code}}. Ważny 10 minut.")
           .replace("{{code}}", code);
 
-        await supabaseAdmin.from("messages_log").insert({
+        const { error: logError } = await supabaseAdmin.from("messages_log").insert({
           patient_id: patient.id,
           kind: "booking_code",
           status: "pending",
           body,
           scheduled_at: new Date().toISOString(),
         });
+
+        if (!logError) {
+          await pingInstantWebhook();
+        }
 
         return OK();
       },

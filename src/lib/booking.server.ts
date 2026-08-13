@@ -101,6 +101,20 @@ export async function hashSecret(value: string): Promise<string> {
     .join("");
 }
 
+/**
+ * Natychmiastowy sygnał do n8n po dodaniu wiadomości do kolejki.
+ * Bez treści, timeout 3 s, błędy wyciszone — nie wpływa na odpowiedź endpointu.
+ */
+export async function pingInstantWebhook(): Promise<void> {
+  const url = process.env["N8N_INSTANT_WEBHOOK_URL"];
+  if (!url) return;
+  try {
+    await fetch(url, { method: "POST", signal: AbortSignal.timeout(3000) });
+  } catch {
+    // celowo ignorujemy — cykliczny dyspozytor i tak wyśle wiadomość
+  }
+}
+
 export function randomCode(): string {
   const buf = new Uint32Array(1);
   crypto.getRandomValues(buf);

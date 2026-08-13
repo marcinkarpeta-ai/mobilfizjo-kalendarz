@@ -565,7 +565,7 @@ function WorkingHoursSection() {
       <div className="rounded-2xl border border-border bg-card p-4">
         <ul className="space-y-2">
           {rows.map((w) => (
-            <li key={w.weekday} className="flex items-center gap-2">
+            <li key={w.weekday} className="flex flex-wrap items-center gap-2">
               <span className="w-24 shrink-0 text-sm">{WEEKDAY_LABELS[w.weekday]}</span>
               <Switch
                 checked={w.is_open}

@@ -130,7 +130,17 @@ export const Route = createFileRoute("/api/booking/create")({
           return { startMin: s.minutes, endMin: e.date === s.date ? e.minutes : 24 * 60 };
         });
 
-        const allowed = slotsForDay(blocks, openMin, closeMin, duration);
+        const breakStart = wh?.break_start ? timeToMin(String(wh.break_start)) : null;
+        const breakEnd = wh?.break_end ? timeToMin(String(wh.break_end)) : null;
+
+        const allowed = slotsForDay(
+          blocks,
+          openMin,
+          closeMin,
+          duration,
+          breakStart,
+          breakEnd,
+        );
         if (!allowed.includes(local.minutes)) {
           return Response.json({ error: "slot_taken" }, { status: 409 });
         }

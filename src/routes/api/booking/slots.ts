@@ -101,7 +101,9 @@ export const Route = createFileRoute("/api/booking/slots")({
             .eq("status", "scheduled")
             .gte("starts_at", rangeStart)
             .lt("starts_at", rangeEnd),
-          supabaseAdmin.from("working_hours").select("weekday, is_open, start_time, end_time"),
+          supabaseAdmin
+            .from("working_hours")
+            .select("weekday, is_open, start_time, end_time, break_start, break_end"),
           supabaseAdmin.from("day_off").select("date, blocks_booking"),
         ]);
 

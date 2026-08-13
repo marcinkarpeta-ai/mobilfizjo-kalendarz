@@ -93,6 +93,10 @@ export function getDayRange(
 
   const label = off ? "Dzień wolny" : closed ? "Nieczynne" : null;
 
+  const bs = wh ? timeToMin(wh.break_start) : null;
+  const be = wh ? timeToMin(wh.break_end) : null;
+  const validBreak = bs !== null && be !== null && be > bs;
+
   return {
     startMin,
     endMin,
@@ -100,5 +104,7 @@ export function getDayRange(
     dayOff: !!off,
     dayOffReason: off?.reason ?? null,
     label,
+    breakStartMin: validBreak ? bs : null,
+    breakEndMin: validBreak ? be : null,
   };
 }

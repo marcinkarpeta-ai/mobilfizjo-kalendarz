@@ -1,0 +1,1 @@
+ALTER TABLE public.working_hours ADD COLUMN IF NOT EXISTS break_start time, ADD COLUMN IF NOT EXISTS break_end time;

@@ -587,6 +587,26 @@ function WorkingHoursSection() {
                 value={w.end_time}
                 onChange={(e) => updateWorkingHours(w.weekday, { end_time: e.target.value })}
               />
+              <div className="flex w-full items-center gap-2 pl-24 sm:w-auto sm:pl-2">
+                <span className="text-xs text-muted-foreground">Przerwa</span>
+                <Input
+                  type="time"
+                  aria-label={`${WEEKDAY_LABELS[w.weekday]} przerwa od`}
+                  className="h-9 w-[104px]"
+                  disabled={!w.is_open}
+                  value={w.break_start ?? ""}
+                  onChange={(e) => saveBreak(w, "break_start", e.target.value)}
+                />
+                <span className="text-muted-foreground">–</span>
+                <Input
+                  type="time"
+                  aria-label={`${WEEKDAY_LABELS[w.weekday]} przerwa do`}
+                  className="h-9 w-[104px]"
+                  disabled={!w.is_open}
+                  value={w.break_end ?? ""}
+                  onChange={(e) => saveBreak(w, "break_end", e.target.value)}
+                />
+              </div>
             </li>
           ))}
         </ul>

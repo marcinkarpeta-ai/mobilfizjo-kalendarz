@@ -101,7 +101,9 @@ export const Route = createFileRoute("/api/booking/slots")({
             .eq("status", "scheduled")
             .gte("starts_at", rangeStart)
             .lt("starts_at", rangeEnd),
-          supabaseAdmin.from("working_hours").select("weekday, is_open, start_time, end_time"),
+          supabaseAdmin
+            .from("working_hours")
+            .select("weekday, is_open, start_time, end_time, break_start, break_end"),
           supabaseAdmin.from("day_off").select("date, blocks_booking"),
         ]);
 
@@ -130,12 +132,16 @@ export const Route = createFileRoute("/api/booking/slots")({
           const openMin = (wh ? timeToMin(String(wh.start_time)) : null) ?? DEFAULT_START;
           const closeMin = (wh ? timeToMin(String(wh.end_time)) : null) ?? DEFAULT_END;
           if (closeMin <= openMin) continue;
+          const breakStart = wh?.break_start ? timeToMin(String(wh.break_start)) : null;
+          const breakEnd = wh?.break_end ? timeToMin(String(wh.break_end)) : null;
 
           for (const start of slotsForDay(
             blocksByDay.get(date) ?? [],
             openMin,
             closeMin,
             duration,
+            breakStart,
+            breakEnd,
           )) {
             if (localToUtc(date, start) < earliest) continue;
             slots.push({

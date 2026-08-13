@@ -664,6 +664,8 @@ export type Database = {
       }
       working_hours: {
         Row: {
+          break_end: string | null
+          break_start: string | null
           created_at: string
           end_time: string
           is_open: boolean
@@ -672,6 +674,8 @@ export type Database = {
           weekday: number
         }
         Insert: {
+          break_end?: string | null
+          break_start?: string | null
           created_at?: string
           end_time?: string
           is_open?: boolean
@@ -680,6 +684,8 @@ export type Database = {
           weekday: number
         }
         Update: {
+          break_end?: string | null
+          break_start?: string | null
           created_at?: string
           end_time?: string
           is_open?: boolean

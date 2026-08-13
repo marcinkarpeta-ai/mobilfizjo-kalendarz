@@ -183,6 +183,8 @@ export function DataSync() {
         is_open: r.is_open,
         start_time: String(r.start_time).slice(0, 5),
         end_time: String(r.end_time).slice(0, 5),
+        break_start: r.break_start ? String(r.break_start).slice(0, 5) : null,
+        break_end: r.break_end ? String(r.break_end).slice(0, 5) : null,
       }));
 
       const daysOff: DayOff[] = (daysOffRes.data ?? []).map((r) => ({

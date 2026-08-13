@@ -129,6 +129,8 @@ export interface WorkingHours {
   is_open: boolean;
   start_time: string; // "HH:MM"
   end_time: string; // "HH:MM"
+  break_start: string | null; // "HH:MM" lub null
+  break_end: string | null; // "HH:MM" lub null
 }
 
 export interface DayOff {

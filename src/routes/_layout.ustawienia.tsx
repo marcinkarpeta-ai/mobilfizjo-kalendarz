@@ -522,15 +522,50 @@ function WorkingHoursSection() {
       is_open: false,
       start_time: "07:00",
       end_time: "20:00",
+      break_start: null,
+      break_end: null,
     },
   );
+
+  const toMin = (t: string | null) => {
+    if (!t) return null;
+    const [h, m] = t.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    return h * 60 + m;
+  };
+
+  const saveBreak = (w: WorkingHours, field: "break_start" | "break_end", value: string) => {
+    const next = { ...w, [field]: value || null } as WorkingHours;
+    const bs = toMin(next.break_start);
+    const be = toMin(next.break_end);
+    if (bs === null && be === null) {
+      updateWorkingHours(w.weekday, { break_start: null, break_end: null });
+      return;
+    }
+    if (bs === null || be === null) {
+      // Częściowo wypełnione — zapisujemy, walidacja przy drugim polu.
+      updateWorkingHours(w.weekday, { [field]: value || null } as Partial<WorkingHours>);
+      return;
+    }
+    const open = toMin(next.start_time) ?? 0;
+    const close = toMin(next.end_time) ?? 24 * 60;
+    if (be <= bs) {
+      toast.error("Koniec przerwy musi być późniejszy niż początek.");
+      return;
+    }
+    if (bs < open || be > close) {
+      toast.error("Przerwa musi mieścić się w godzinach pracy.");
+      return;
+    }
+    updateWorkingHours(w.weekday, { [field]: value || null } as Partial<WorkingHours>);
+  };
 
   return (
     <Section title="Godziny pracy">
       <div className="rounded-2xl border border-border bg-card p-4">
         <ul className="space-y-2">
           {rows.map((w) => (
-            <li key={w.weekday} className="flex items-center gap-2">
+            <li key={w.weekday} className="flex flex-wrap items-center gap-2">
               <span className="w-24 shrink-0 text-sm">{WEEKDAY_LABELS[w.weekday]}</span>
               <Switch
                 checked={w.is_open}
@@ -552,6 +587,26 @@ function WorkingHoursSection() {
                 value={w.end_time}
                 onChange={(e) => updateWorkingHours(w.weekday, { end_time: e.target.value })}
               />
+              <div className="flex w-full items-center gap-2 pl-24 sm:w-auto sm:pl-2">
+                <span className="text-xs text-muted-foreground">Przerwa</span>
+                <Input
+                  type="time"
+                  aria-label={`${WEEKDAY_LABELS[w.weekday]} przerwa od`}
+                  className="h-9 w-[104px]"
+                  disabled={!w.is_open}
+                  value={w.break_start ?? ""}
+                  onChange={(e) => saveBreak(w, "break_start", e.target.value)}
+                />
+                <span className="text-muted-foreground">–</span>
+                <Input
+                  type="time"
+                  aria-label={`${WEEKDAY_LABELS[w.weekday]} przerwa do`}
+                  className="h-9 w-[104px]"
+                  disabled={!w.is_open}
+                  value={w.break_end ?? ""}
+                  onChange={(e) => saveBreak(w, "break_end", e.target.value)}
+                />
+              </div>
             </li>
           ))}
         </ul>

@@ -578,6 +578,8 @@ export const useStore = create<StoreState>()((set, get) => ({
           is_open: next.is_open,
           start_time: next.start_time,
           end_time: next.end_time,
+          break_start: next.break_start,
+          break_end: next.break_end,
         })
         .eq("weekday", weekday);
       if (error) {

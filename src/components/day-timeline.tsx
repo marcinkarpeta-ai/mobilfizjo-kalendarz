@@ -230,6 +230,25 @@ export function DayTimeline({
         );
       })}
 
+      {/* Przerwa (informacyjnie) */}
+      {range.breakStartMin !== null && range.breakEndMin !== null && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute rounded-lg bg-muted/60"
+          style={{
+            top: (Math.max(range.breakStartMin, TIMELINE_START) - TIMELINE_START) * PX_PER_MIN,
+            height:
+              (Math.min(range.breakEndMin, TIMELINE_END) -
+                Math.max(range.breakStartMin, TIMELINE_START)) *
+              PX_PER_MIN,
+            left: GUTTER_PX + 4,
+            right: 0,
+          }}
+        >
+          <span className="absolute left-2 top-1 text-[11px] text-muted-foreground">Przerwa</span>
+        </div>
+      )}
+
       {/* Gaps (click to add) */}
       {gaps.map((g) => {
         const top = (g.start - TIMELINE_START) * PX_PER_MIN;

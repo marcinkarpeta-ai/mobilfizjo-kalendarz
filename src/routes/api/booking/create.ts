@@ -101,7 +101,7 @@ export const Route = createFileRoute("/api/booking/create")({
           supabaseAdmin.from("day_off").select("date, blocks_booking").eq("date", local.date),
           supabaseAdmin
             .from("working_hours")
-            .select("weekday, is_open, start_time, end_time")
+            .select("weekday, is_open, start_time, end_time, break_start, break_end")
             .eq("weekday", weekdayOf(local.date)),
         ]);
         if ((offRes.data ?? []).some((d) => d.blocks_booking)) {
@@ -130,7 +130,17 @@ export const Route = createFileRoute("/api/booking/create")({
           return { startMin: s.minutes, endMin: e.date === s.date ? e.minutes : 24 * 60 };
         });
 
-        const allowed = slotsForDay(blocks, openMin, closeMin, duration);
+        const breakStart = wh?.break_start ? timeToMin(String(wh.break_start)) : null;
+        const breakEnd = wh?.break_end ? timeToMin(String(wh.break_end)) : null;
+
+        const allowed = slotsForDay(
+          blocks,
+          openMin,
+          closeMin,
+          duration,
+          breakStart,
+          breakEnd,
+        );
         if (!allowed.includes(local.minutes)) {
           return Response.json({ error: "slot_taken" }, { status: 409 });
         }

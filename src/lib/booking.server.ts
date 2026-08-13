@@ -127,34 +127,46 @@ export function safeEqual(a: string, b: string): boolean {
 
 export const DEFAULT_START = 7 * 60;
 export const DEFAULT_END = 20 * 60;
-export const EMPTY_DAY_WINDOW = 120; // pierwsze 2 godziny pracy
-export const STEPS = [40, 60];
 
 export interface Block {
   startMin: number;
   endMin: number;
 }
 
+/**
+ * Punkty startowe: otwarcie, koniec przerwy, koniec każdego zajętego bloku.
+ * Od każdego punktu: sam punkt, +40 min, dalej co 60 min do końca godzin pracy.
+ * Termin musi zmieścić się przed kolejnym blokiem, przed przerwą i przed zamknięciem.
+ */
 export function slotsForDay(
   dayBlocks: Block[],
   openMin: number,
   closeMin: number,
   duration: number,
+  breakStart?: number | null,
+  breakEnd?: number | null,
 ): number[] {
-  const sorted = [...dayBlocks].sort((a, b) => a.startMin - b.startMin);
-  const candidates = new Set<number>();
+  const hasBreak =
+    breakStart !== null &&
+    breakStart !== undefined &&
+    breakEnd !== null &&
+    breakEnd !== undefined &&
+    breakEnd > breakStart;
 
-  if (sorted.length === 0) {
-    for (let t = openMin; t <= openMin + EMPTY_DAY_WINDOW; t += 20) {
-      if (t === openMin || STEPS.some((s) => (t - openMin) % s === 0)) {
-        candidates.add(t);
-      }
-    }
-  } else {
-    for (const b of sorted) {
-      candidates.add(b.endMin);
-      for (const s of STEPS) candidates.add(b.endMin + s);
-    }
+  const busy: Block[] = [...dayBlocks];
+  if (hasBreak) busy.push({ startMin: breakStart!, endMin: breakEnd! });
+  busy.sort((a, b) => a.startMin - b.startMin);
+
+  const anchors = new Set<number>([openMin]);
+  if (hasBreak) anchors.add(breakEnd!);
+  for (const b of dayBlocks) anchors.add(b.endMin);
+
+  const candidates = new Set<number>();
+  for (const a of anchors) {
+    if (a + duration > closeMin) continue;
+    candidates.add(a);
+    if (a + 40 + duration <= closeMin) candidates.add(a + 40);
+    for (let t = a + 60; t + duration <= closeMin; t += 60) candidates.add(t);
   }
 
   const out: number[] = [];
@@ -162,8 +174,7 @@ export function slotsForDay(
     if (start < openMin) continue;
     const end = start + duration;
     if (end > closeMin) continue;
-    const overlaps = sorted.some((b) => start < b.endMin && end > b.startMin);
-    if (overlaps) continue;
+    if (busy.some((b) => start < b.endMin && end > b.startMin)) continue;
     out.push(start);
   }
   return out;

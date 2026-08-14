@@ -12,6 +12,7 @@ import {
   utcToLocal,
   weekdayOf,
   type Block,
+  pingInstantWebhook,
 } from "@/lib/booking.server";
 
 const Payload = z.object({

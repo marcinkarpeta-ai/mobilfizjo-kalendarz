@@ -376,7 +376,11 @@ export const useStore = create<StoreState>()((set, get) => ({
         .from("appointments")
         .update({ status: "cancelled" })
         .eq("id", aid);
-      if (error) handleError("Anulowanie wizyty nie powiodło się", error);
+      if (error) {
+        handleError("Anulowanie wizyty nie powiodło się", error);
+        return;
+      }
+      pingDispatch();
     })();
   },
 

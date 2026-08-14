@@ -361,6 +361,7 @@ export const useStore = create<StoreState>()((set, get) => ({
       set((s) => ({
         appointments: s.appointments.map((x) => (x.id === id ? mapped : x)),
       }));
+      pingDispatch();
     })();
     return appt;
   },

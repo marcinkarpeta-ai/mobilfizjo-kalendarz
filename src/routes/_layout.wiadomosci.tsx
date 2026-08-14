@@ -116,14 +116,43 @@ function statusBadge(status: MessageStatus) {
   );
 }
 
+function normalizeText(s: string) {
+  return s
+    .toLocaleLowerCase("pl")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+const STATUS_FILTERS: { value: string; label: string }[] = [
+  { value: "all", label: "Wszystkie statusy" },
+  { value: "pending", label: "Oczekuje" },
+  { value: "sent", label: "Wysłano" },
+  { value: "delivered", label: "Doręczono" },
+  { value: "undelivered", label: "Niedoręczona" },
+  { value: "failed", label: "Błąd" },
+  { value: "cancelled", label: "Anulowana" },
+];
+
+const KIND_FILTERS: { value: string; label: string; kinds: MessageKind[] }[] = [
+  { value: "all", label: "Wszystkie rodzaje", kinds: [] },
+  { value: "confirmation", label: "Potwierdzenie", kinds: ["confirmation"] },
+  { value: "reminders", label: "Przypomnienia", kinds: ["reminder_24h", "reminder_2h"] },
+  { value: "cancellation", label: "Odwołanie", kinds: ["cancellation"] },
+  { value: "booking_code", label: "Kod rezerwacji", kinds: ["booking_code"] },
+];
+
 function MessagesPage() {
   const messages = useStore((s) => s.messages);
   const proposals = useStore((s) => s.proposals);
   const patients = useStore((s) => s.patients);
   const approveProposal = useStore((s) => s.approveProposal);
   const hydrate = useStore((s) => s._hydrate);
-  
+
   const [refreshing, setRefreshing] = useState(false);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [kindFilter, setKindFilter] = useState("all");
+
 
   const refresh = useCallback(async () => {
     setRefreshing(true);

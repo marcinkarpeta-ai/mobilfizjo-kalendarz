@@ -175,7 +175,6 @@ function MessagesPage() {
     void refresh();
   }, [refresh]);
 
-  void settings;
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
 

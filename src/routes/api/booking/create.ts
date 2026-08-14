@@ -158,6 +158,8 @@ export const Route = createFileRoute("/api/booking/create")({
           return Response.json({ error: "internal_error" }, { status: 500 });
         }
 
+        await pingInstantWebhook();
+
         return Response.json({
           ok: true,
           starts_at: startsAt.toISOString(),

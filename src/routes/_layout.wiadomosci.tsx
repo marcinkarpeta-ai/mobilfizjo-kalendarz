@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { AlertTriangle, Ban, Check, CheckCheck, Clock, Loader2, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { AlertTriangle, Ban, Check, CheckCheck, Clock, Loader2, RefreshCw, X } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,69 @@ function MessagesPage() {
   const proposals = useStore((s) => s.proposals);
   const patients = useStore((s) => s.patients);
   const approveProposal = useStore((s) => s.approveProposal);
+  const hydrate = useStore((s) => s._hydrate);
+  
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const [messagesRes, settingsRes] = await Promise.all([
+        supabase.from("messages_log").select("*").order("created_at", { ascending: false }),
+        supabase.from("app_settings").select("*").limit(1).maybeSingle(),
+      ]);
+
+      const patch: Record<string, unknown> = {};
+
+      if (messagesRes.data) {
+        patch.messages = messagesRes.data.map((r) => ({
+          id: r.id,
+          appointment_id: r.appointment_id ?? undefined,
+          patient_id: r.patient_id,
+          kind: r.kind,
+          status: r.status as MessageStatus,
+          body: r.body,
+          created_at: r.created_at,
+          scheduled_at: r.scheduled_at ?? undefined,
+          sent_at: r.sent_at ?? undefined,
+          error: r.error ?? undefined,
+        }));
+      }
+
+      const row = settingsRes.data;
+      if (row) {
+        patch.settings = {
+          ...useStore.getState().settings,
+          therapist_name: row.therapist_name ?? "",
+          clinic_name: row.clinic_name ?? "",
+          sms_price_net_gr: row.sms_price_net_gr ?? 10,
+          default_visit_minutes: row.default_visit_minutes ?? 60,
+          sms_balance_full: row.sms_balance_full ?? null,
+          sms_balance_pln:
+            row.sms_balance_pln === null || row.sms_balance_pln === undefined
+              ? null
+              : Number(row.sms_balance_pln),
+          sms_balance_updated_at: row.sms_balance_updated_at ?? null,
+          booking_enabled: row.booking_enabled ?? false,
+          booking_days_ahead: row.booking_days_ahead ?? 14,
+          booking_min_hours_ahead: row.booking_min_hours_ahead ?? 12,
+        };
+      }
+
+      if (Object.keys(patch).length > 0) {
+        hydrate(patch as Parameters<typeof hydrate>[0]);
+      }
+    } catch {
+      // ciche niepowodzenie — dane ze startu aplikacji pozostają
+    } finally {
+      setRefreshing(false);
+    }
+  }, [hydrate]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
 
   const patientById = new Map(patients.map((p) => [p.id, p]));
 
@@ -135,6 +199,19 @@ function MessagesPage() {
           </TabsList>
 
           <TabsContent value="log" className="mt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground">Dziennik</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Odśwież"
+                disabled={refreshing}
+                onClick={() => void refresh()}
+                className="h-8 w-8 text-muted-foreground"
+              >
+                <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+              </Button>
+            </div>
             {messages.length === 0 ? (
               <EmptyBox text="Brak wpisów w dzienniku." />
             ) : (

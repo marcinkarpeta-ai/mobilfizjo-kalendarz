@@ -162,6 +162,25 @@ function handleError(context: string, error: unknown) {
   toast.error(`${context}: ${msg}`);
 }
 
+// Natychmiastowy sygnał do dyspozytora wysyłki (fire-and-forget, błędy wyciszone).
+function pingDispatch() {
+  void (async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return;
+      await fetch("/api/internal/ping-dispatch", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      // celowo ignorujemy — cykliczny dyspozytor i tak wyśle wiadomość
+    }
+  })();
+}
+
+
+
 export const useStore = create<StoreState>()((set, get) => ({
   _settingsId: null,
   _hydrated: false,
@@ -342,6 +361,7 @@ export const useStore = create<StoreState>()((set, get) => ({
       set((s) => ({
         appointments: s.appointments.map((x) => (x.id === id ? mapped : x)),
       }));
+      pingDispatch();
     })();
     return appt;
   },
@@ -357,7 +377,11 @@ export const useStore = create<StoreState>()((set, get) => ({
         .from("appointments")
         .update({ status: "cancelled" })
         .eq("id", aid);
-      if (error) handleError("Anulowanie wizyty nie powiodło się", error);
+      if (error) {
+        handleError("Anulowanie wizyty nie powiodło się", error);
+        return;
+      }
+      pingDispatch();
     })();
   },
 
@@ -389,7 +413,9 @@ export const useStore = create<StoreState>()((set, get) => ({
           appointments: s.appointments.map((a) => (a.id === aid ? prev : a)),
         }));
         handleError("Zapis wpisu nie powiódł się", error);
+        return;
       }
+      pingDispatch();
     })();
   },
 

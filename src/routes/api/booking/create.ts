@@ -12,6 +12,7 @@ import {
   utcToLocal,
   weekdayOf,
   type Block,
+  pingInstantWebhook,
 } from "@/lib/booking.server";
 
 const Payload = z.object({
@@ -157,6 +158,8 @@ export const Route = createFileRoute("/api/booking/create")({
           }
           return Response.json({ error: "internal_error" }, { status: 500 });
         }
+
+        await pingInstantWebhook();
 
         return Response.json({
           ok: true,

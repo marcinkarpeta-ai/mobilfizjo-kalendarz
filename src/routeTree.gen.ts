@@ -25,6 +25,7 @@ import { Route as LayoutSprawyIndexRouteImport } from './routes/_layout.sprawy_.
 import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
 import { Route as ApiPublicSmsBalanceRouteImport } from './routes/api/public/sms-balance'
 import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
+import { Route as ApiInternalPingDispatchRouteImport } from './routes/api/internal/ping-dispatch'
 import { Route as ApiBookingVerifyRouteImport } from './routes/api/booking/verify'
 import { Route as ApiBookingStatusRouteImport } from './routes/api/booking/status'
 import { Route as ApiBookingSlotsRouteImport } from './routes/api/booking/slots'
@@ -119,6 +120,11 @@ const ApiPublicDailyDigestRoute = ApiPublicDailyDigestRouteImport.update({
   path: '/api/public/daily-digest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInternalPingDispatchRoute = ApiInternalPingDispatchRouteImport.update({
+  id: '/api/internal/ping-dispatch',
+  path: '/api/internal/ping-dispatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBookingVerifyRoute = ApiBookingVerifyRouteImport.update({
   id: '/api/booking/verify',
   path: '/api/booking/verify',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/api/booking/slots': typeof ApiBookingSlotsRoute
   '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
+  '/api/internal/ping-dispatch': typeof ApiInternalPingDispatchRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/pacjenci/': typeof LayoutPacjenciIndexRoute
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   '/api/booking/slots': typeof ApiBookingSlotsRoute
   '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
+  '/api/internal/ping-dispatch': typeof ApiInternalPingDispatchRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/pacjenci': typeof LayoutPacjenciIndexRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/api/booking/slots': typeof ApiBookingSlotsRoute
   '/api/booking/status': typeof ApiBookingStatusRoute
   '/api/booking/verify': typeof ApiBookingVerifyRoute
+  '/api/internal/ping-dispatch': typeof ApiInternalPingDispatchRoute
   '/api/public/daily-digest': typeof ApiPublicDailyDigestRoute
   '/api/public/sms-balance': typeof ApiPublicSmsBalanceRoute
   '/_layout/pacjenci/': typeof LayoutPacjenciIndexRoute
@@ -295,6 +304,7 @@ export interface FileRouteTypes {
     | '/api/booking/slots'
     | '/api/booking/status'
     | '/api/booking/verify'
+    | '/api/internal/ping-dispatch'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
     | '/pacjenci/'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/api/booking/slots'
     | '/api/booking/status'
     | '/api/booking/verify'
+    | '/api/internal/ping-dispatch'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
     | '/pacjenci'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/api/booking/slots'
     | '/api/booking/status'
     | '/api/booking/verify'
+    | '/api/internal/ping-dispatch'
     | '/api/public/daily-digest'
     | '/api/public/sms-balance'
     | '/_layout/pacjenci/'
@@ -377,6 +389,7 @@ export interface RootRouteChildren {
   ApiBookingSlotsRoute: typeof ApiBookingSlotsRoute
   ApiBookingStatusRoute: typeof ApiBookingStatusRoute
   ApiBookingVerifyRoute: typeof ApiBookingVerifyRoute
+  ApiInternalPingDispatchRoute: typeof ApiInternalPingDispatchRoute
   ApiPublicDailyDigestRoute: typeof ApiPublicDailyDigestRoute
   ApiPublicSmsBalanceRoute: typeof ApiPublicSmsBalanceRoute
   ApiPublicMessagesLogClaimRoute: typeof ApiPublicMessagesLogClaimRoute
@@ -496,6 +509,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/daily-digest'
       fullPath: '/api/public/daily-digest'
       preLoaderRoute: typeof ApiPublicDailyDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/ping-dispatch': {
+      id: '/api/internal/ping-dispatch'
+      path: '/api/internal/ping-dispatch'
+      fullPath: '/api/internal/ping-dispatch'
+      preLoaderRoute: typeof ApiInternalPingDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/booking/verify': {
@@ -639,6 +659,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBookingSlotsRoute: ApiBookingSlotsRoute,
   ApiBookingStatusRoute: ApiBookingStatusRoute,
   ApiBookingVerifyRoute: ApiBookingVerifyRoute,
+  ApiInternalPingDispatchRoute: ApiInternalPingDispatchRoute,
   ApiPublicDailyDigestRoute: ApiPublicDailyDigestRoute,
   ApiPublicSmsBalanceRoute: ApiPublicSmsBalanceRoute,
   ApiPublicMessagesLogClaimRoute: ApiPublicMessagesLogClaimRoute,

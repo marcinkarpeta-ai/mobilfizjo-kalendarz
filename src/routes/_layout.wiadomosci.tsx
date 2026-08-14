@@ -113,7 +113,7 @@ function MessagesPage() {
   const patients = useStore((s) => s.patients);
   const approveProposal = useStore((s) => s.approveProposal);
   const hydrate = useStore((s) => s._hydrate);
-  const settings = useStore((s) => s.settings);
+  
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {

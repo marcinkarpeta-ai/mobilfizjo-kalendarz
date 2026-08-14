@@ -268,11 +268,57 @@ function MessagesPage() {
                 <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
               </Button>
             </div>
+
+            <div className="mb-3 space-y-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Szukaj pacjenta lub numeru telefonu"
+                  aria-label="Szukaj w dzienniku"
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="flex-1" aria-label="Filtr statusu">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_FILTERS.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={kindFilter} onValueChange={setKindFilter}>
+                  <SelectTrigger className="flex-1" aria-label="Filtr rodzaju">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {KIND_FILTERS.map((k) => (
+                      <SelectItem key={k.value} value={k.value}>
+                        {k.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {filteredMessages.length} z {messages.length} wpisów
+              </p>
+            </div>
+
             {messages.length === 0 ? (
               <EmptyBox text="Brak wpisów w dzienniku." />
+            ) : filteredMessages.length === 0 ? (
+              <EmptyBox text="Brak wpisów spełniających filtry." />
             ) : (
               <ul className="space-y-3">
-                {messages.map((m) => {
+                {filteredMessages.map((m) => {
+
                   const p = patientById.get(m.patient_id);
                   return (
                     <li

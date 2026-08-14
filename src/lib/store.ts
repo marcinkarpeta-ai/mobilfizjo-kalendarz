@@ -408,7 +408,9 @@ export const useStore = create<StoreState>()((set, get) => ({
           appointments: s.appointments.map((a) => (a.id === aid ? prev : a)),
         }));
         handleError("Zapis wpisu nie powiódł się", error);
+        return;
       }
+      pingDispatch();
     })();
   },
 

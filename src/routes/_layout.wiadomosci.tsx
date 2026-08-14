@@ -1,9 +1,17 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Ban, Check, CheckCheck, Clock, Loader2, RefreshCw, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertTriangle, Ban, Check, CheckCheck, Clock, Loader2, RefreshCw, Search, X } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SmsUsageCard } from "@/components/sms-usage-card";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +19,7 @@ import { useStore } from "@/lib/store";
 import { fmtDate, formatPatientName } from "@/lib/format";
 import type { MessageKind, MessageStatus, MarketingReason } from "@/lib/types";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_layout/wiadomosci")({
   beforeLoad: async () => {

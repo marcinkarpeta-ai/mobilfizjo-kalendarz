@@ -162,6 +162,25 @@ function handleError(context: string, error: unknown) {
   toast.error(`${context}: ${msg}`);
 }
 
+// Natychmiastowy sygnał do dyspozytora wysyłki (fire-and-forget, błędy wyciszone).
+function pingDispatch() {
+  void (async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return;
+      await fetch("/api/internal/ping-dispatch", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      // celowo ignorujemy — cykliczny dyspozytor i tak wyśle wiadomość
+    }
+  })();
+}
+
+
+
 export const useStore = create<StoreState>()((set, get) => ({
   _settingsId: null,
   _hydrated: false,

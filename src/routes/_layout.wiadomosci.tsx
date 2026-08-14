@@ -214,7 +214,25 @@ function MessagesPage() {
   }, [refresh]);
 
 
-  const patientById = new Map(patients.map((p) => [p.id, p]));
+  const patientById = useMemo(() => new Map(patients.map((p) => [p.id, p])), [patients]);
+
+  const filteredMessages = useMemo(() => {
+    const q = normalizeText(query.trim());
+    const digits = query.replace(/\D/g, "");
+    const kinds = KIND_FILTERS.find((k) => k.value === kindFilter)?.kinds ?? [];
+    return messages.filter((m) => {
+      if (statusFilter !== "all" && m.status !== statusFilter) return false;
+      if (kinds.length > 0 && !kinds.includes(m.kind)) return false;
+      if (q.length === 0) return true;
+      const p = patientById.get(m.patient_id);
+      if (!p) return false;
+      const name = normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""}`);
+      if (name.includes(q)) return true;
+      const phone = (p.phone ?? "").replace(/\D/g, "");
+      return digits.length > 0 && phone.includes(digits);
+    });
+  }, [messages, query, statusFilter, kindFilter, patientById]);
+
 
   return (
     <>

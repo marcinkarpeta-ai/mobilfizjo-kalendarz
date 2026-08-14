@@ -1,9 +1,17 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Ban, Check, CheckCheck, Clock, Loader2, RefreshCw, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertTriangle, Ban, Check, CheckCheck, Clock, Loader2, RefreshCw, Search, X } from "lucide-react";
 import { AppHeader, PageContainer } from "@/components/app-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SmsUsageCard } from "@/components/sms-usage-card";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +19,7 @@ import { useStore } from "@/lib/store";
 import { fmtDate, formatPatientName } from "@/lib/format";
 import type { MessageKind, MessageStatus, MarketingReason } from "@/lib/types";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_layout/wiadomosci")({
   beforeLoad: async () => {
@@ -107,14 +116,43 @@ function statusBadge(status: MessageStatus) {
   );
 }
 
+function normalizeText(s: string) {
+  return s
+    .toLocaleLowerCase("pl")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+const STATUS_FILTERS: { value: string; label: string }[] = [
+  { value: "all", label: "Wszystkie statusy" },
+  { value: "pending", label: "Oczekuje" },
+  { value: "sent", label: "Wysłano" },
+  { value: "delivered", label: "Doręczono" },
+  { value: "undelivered", label: "Niedoręczona" },
+  { value: "failed", label: "Błąd" },
+  { value: "cancelled", label: "Anulowana" },
+];
+
+const KIND_FILTERS: { value: string; label: string; kinds: MessageKind[] }[] = [
+  { value: "all", label: "Wszystkie rodzaje", kinds: [] },
+  { value: "confirmation", label: "Potwierdzenie", kinds: ["confirmation"] },
+  { value: "reminders", label: "Przypomnienia", kinds: ["reminder_24h", "reminder_2h"] },
+  { value: "cancellation", label: "Odwołanie", kinds: ["cancellation"] },
+  { value: "booking_code", label: "Kod rezerwacji", kinds: ["booking_code"] },
+];
+
 function MessagesPage() {
   const messages = useStore((s) => s.messages);
   const proposals = useStore((s) => s.proposals);
   const patients = useStore((s) => s.patients);
   const approveProposal = useStore((s) => s.approveProposal);
   const hydrate = useStore((s) => s._hydrate);
-  
+
   const [refreshing, setRefreshing] = useState(false);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [kindFilter, setKindFilter] = useState("all");
+
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -176,7 +214,25 @@ function MessagesPage() {
   }, [refresh]);
 
 
-  const patientById = new Map(patients.map((p) => [p.id, p]));
+  const patientById = useMemo(() => new Map(patients.map((p) => [p.id, p])), [patients]);
+
+  const filteredMessages = useMemo(() => {
+    const q = normalizeText(query.trim());
+    const digits = query.replace(/\D/g, "");
+    const kinds = KIND_FILTERS.find((k) => k.value === kindFilter)?.kinds ?? [];
+    return messages.filter((m) => {
+      if (statusFilter !== "all" && m.status !== statusFilter) return false;
+      if (kinds.length > 0 && !kinds.includes(m.kind)) return false;
+      if (q.length === 0) return true;
+      const p = patientById.get(m.patient_id);
+      if (!p) return false;
+      const name = normalizeText(`${p.first_name ?? ""} ${p.last_name ?? ""}`);
+      if (name.includes(q)) return true;
+      const phone = (p.phone ?? "").replace(/\D/g, "");
+      return digits.length > 0 && phone.includes(digits);
+    });
+  }, [messages, query, statusFilter, kindFilter, patientById]);
+
 
   return (
     <>
@@ -212,11 +268,57 @@ function MessagesPage() {
                 <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
               </Button>
             </div>
+
+            <div className="mb-3 space-y-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Szukaj pacjenta lub numeru telefonu"
+                  aria-label="Szukaj w dzienniku"
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="flex-1" aria-label="Filtr statusu">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_FILTERS.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={kindFilter} onValueChange={setKindFilter}>
+                  <SelectTrigger className="flex-1" aria-label="Filtr rodzaju">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {KIND_FILTERS.map((k) => (
+                      <SelectItem key={k.value} value={k.value}>
+                        {k.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {filteredMessages.length} z {messages.length} wpisów
+              </p>
+            </div>
+
             {messages.length === 0 ? (
               <EmptyBox text="Brak wpisów w dzienniku." />
+            ) : filteredMessages.length === 0 ? (
+              <EmptyBox text="Brak wpisów spełniających filtry." />
             ) : (
               <ul className="space-y-3">
-                {messages.map((m) => {
+                {filteredMessages.map((m) => {
+
                   const p = patientById.get(m.patient_id);
                   return (
                     <li

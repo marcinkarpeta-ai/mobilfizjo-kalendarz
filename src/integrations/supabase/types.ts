@@ -772,6 +772,7 @@ export type Database = {
         | "marketing_anniversary"
         | "marketing_birthday"
         | "booking_code"
+        | "confirmation_first"
       message_status: "pending" | "sent" | "failed"
     }
     CompositeTypes: {
@@ -912,6 +913,7 @@ export const Constants = {
         "marketing_anniversary",
         "marketing_birthday",
         "booking_code",
+        "confirmation_first",
       ],
       message_status: ["pending", "sent", "failed"],
     },

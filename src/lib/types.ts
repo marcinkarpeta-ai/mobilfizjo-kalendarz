@@ -67,6 +67,7 @@ export type MessageKind =
   | "reminder_24h"
   | "reminder_2h"
   | "confirmation"
+  | "confirmation_first"
   | "cancellation"
   | "marketing_anniversary"
   | "marketing_birthday"

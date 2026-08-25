@@ -403,11 +403,14 @@ export const useStore = create<StoreState>()((set, get) => ({
         ends_at?: string;
         visit_label_id?: string | null;
         title?: string | null;
+        owner?: string;
       } = {};
       if ("starts_at" in patch) dbPatch.starts_at = patch.starts_at;
       if ("ends_at" in patch) dbPatch.ends_at = patch.ends_at;
       if ("visit_label_id" in patch) dbPatch.visit_label_id = patch.visit_label_id ?? null;
       if ("title" in patch) dbPatch.title = patch.title ?? null;
+      if ("owner" in patch && patch.owner) dbPatch.owner = patch.owner;
+
       const { error } = await supabase
         .from("appointments")
         .update(dbPatch)

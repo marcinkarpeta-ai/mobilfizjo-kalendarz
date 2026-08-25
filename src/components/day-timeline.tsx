@@ -307,7 +307,9 @@ export function DayTimeline({
             : "Wydarzenie rodzinne";
 
         const isFamilyEvent = appt.type === "family_event";
-        const accentBar = isFamilyEvent ? "bg-family-bar" : "bg-primary";
+        const ownerCls = familyOwnerClasses(appt.owner);
+        const accentBar = isFamilyEvent ? ownerCls.bar : "bg-primary";
+
 
         const compact = height < 56;
         const timeText = `${hhmm(p.startMin)}–${hhmm(p.endMin)}`;

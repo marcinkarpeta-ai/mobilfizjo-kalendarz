@@ -156,6 +156,8 @@ export function AddAppointmentDialog({
       setPatientId("");
       setLabelId("");
       setTitle("");
+      setOwner("both");
+
     }
     // Inicjalizacja pól ma nastąpić wyłącznie przy otwarciu okna; wartości
     // początkowe pochodzą z propsów z momentu otwarcia.

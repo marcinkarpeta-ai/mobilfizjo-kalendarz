@@ -143,6 +143,8 @@ export function AddAppointmentDialog({
       setPatientId(editing.patient_id ?? "");
       setLabelId(editing.visit_label_id ?? "");
       setTitle(editing.title ?? "");
+      setOwner(editing.owner ?? "both");
+
     } else {
       const baseDate = defaultDate ?? new Date();
       setType(familyOnly ? "family_event" : "patient_visit");

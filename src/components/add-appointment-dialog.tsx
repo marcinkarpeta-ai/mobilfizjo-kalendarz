@@ -437,15 +437,35 @@ export function AddAppointmentDialog({
               </div>
             </>
           ) : (
-            <div>
-              <Label htmlFor="a-title">Nazwa wydarzenia</Label>
-              <Input
-                id="a-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="np. Obiad z rodziną"
-              />
+            <div className="grid gap-3">
+              <div>
+                <Label htmlFor="a-title">Nazwa wydarzenia</Label>
+                <Input
+                  id="a-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="np. Obiad z rodziną"
+                />
+              </div>
+              <div>
+                <Label>Kogo dotyczy</Label>
+                <div className="mt-1 grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+                  {FAMILY_OWNERS.map((o) => (
+                    <Button
+                      key={o.value}
+                      type="button"
+                      size="sm"
+                      variant={owner === o.value ? "default" : "ghost"}
+                      aria-pressed={owner === o.value}
+                      onClick={() => setOwner(o.value)}
+                    >
+                      {o.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
+
           )}
 
           {overlapping ? (

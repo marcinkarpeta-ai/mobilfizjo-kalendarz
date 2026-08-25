@@ -329,9 +329,10 @@ export function DayTimeline({
             key={`ap-${appt.id}-${idx}`}
             className={cn(
               "absolute z-10 overflow-hidden rounded-2xl border border-border shadow-sm hover:border-accent",
-              isFamilyEvent ? "bg-family" : "bg-card",
+              isFamilyEvent ? ownerCls.bg : "bg-card",
               isPast && "opacity-60",
-              isOngoing && (isFamilyEvent ? "border-family-bar" : "border-primary"),
+              isOngoing && (isFamilyEvent ? ownerCls.border : "border-primary"),
+
               compact ? "p-2" : "p-3",
             )}
             style={{

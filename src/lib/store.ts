@@ -61,7 +61,10 @@ interface StoreState extends InternalState {
   addAppointment: (a: Omit<Appointment, "id">) => Appointment;
   updateAppointment: (
     id: string,
-    patch: Partial<Pick<Appointment, "starts_at" | "ends_at" | "visit_label_id" | "title">>,
+    patch: Partial<
+      Pick<Appointment, "starts_at" | "ends_at" | "visit_label_id" | "title" | "owner">
+    >,
+
   ) => void;
   cancelAppointment: (id: string) => void;
   deleteAppointment: (id: string) => void;

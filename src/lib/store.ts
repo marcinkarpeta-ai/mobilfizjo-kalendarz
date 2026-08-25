@@ -359,6 +359,8 @@ export const useStore = create<StoreState>()((set, get) => ({
         notes: toUndef(data.notes),
         created_by: toUndef(data.created_by),
         booked_online: data.booked_online ?? false,
+        owner: (data.owner ?? "both") as Appointment["owner"],
+
       };
       set((s) => ({
         appointments: s.appointments.map((x) => (x.id === id ? mapped : x)),

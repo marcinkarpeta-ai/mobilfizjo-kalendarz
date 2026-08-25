@@ -336,6 +336,8 @@ export const useStore = create<StoreState>()((set, get) => ({
           visit_label_id: a.visit_label_id ?? null,
           title: a.title ?? null,
           notes: a.notes ?? null,
+          owner: a.owner ?? "both",
+
           // created_by ustawi trigger set_appointment_created_by
         })
         .select("*")

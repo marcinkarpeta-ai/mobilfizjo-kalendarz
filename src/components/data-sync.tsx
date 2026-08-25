@@ -102,6 +102,8 @@ export function DataSync() {
         notes: u(r.notes),
         created_by: u(r.created_by),
         booked_online: r.booked_online ?? false,
+        owner: (r.owner ?? "both") as Appointment["owner"],
+
       }));
 
       const photosByNote = new Map<string, { id: string; storage_path: string }[]>();

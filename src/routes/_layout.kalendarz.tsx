@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
+  addDays,
   addMonths,
+  eachDayOfInterval,
   endOfMonth,
   endOfWeek,
   format,
@@ -71,11 +73,7 @@ function CalendarPage() {
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(cursor), { locale: pl, weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(cursor), { locale: pl, weekStartsOn: 1 });
-    const arr: Date[] = [];
-    for (let d = start; d <= end; d = new Date(d.getTime() + 86400000)) {
-      arr.push(d);
-    }
-    return arr;
+    return eachDayOfInterval({ start, end });
   }, [cursor]);
 
   const monthFromISO = useMemo(
@@ -83,7 +81,7 @@ function CalendarPage() {
     [isFamily, days],
   );
   const monthToISO = useMemo(
-    () => (isFamily ? new Date(days[days.length - 1].getTime() + 86400000).toISOString() : null),
+    () => (isFamily ? addDays(days[days.length - 1], 1).toISOString() : null),
     [isFamily, days],
   );
   const monthBusy = useBusyBlocks(monthFromISO, monthToISO);

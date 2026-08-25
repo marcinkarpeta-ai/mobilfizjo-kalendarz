@@ -221,6 +221,7 @@ export function AddAppointmentDialog({
         ends_at: new Date(endISO).toISOString(),
         visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
         title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+        ...(type === "family_event" ? { owner } : {}),
       });
       toast.success("Wpis zapisany.");
     } else {
@@ -232,7 +233,9 @@ export function AddAppointmentDialog({
         patient_id: type === "patient_visit" ? patientId : undefined,
         visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
         title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+        owner: type === "family_event" ? owner : "both",
       });
+
       toast.success("Wpis dodany.");
     }
     onOpenChange(false);

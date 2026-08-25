@@ -48,11 +48,12 @@ export function AppointmentCard({
       : "Wydarzenie rodzinne";
 
   const isFamilyEvent = appt.type === "family_event";
+  const ownerCls = familyOwnerClasses(appt.owner);
 
   const accentBar = cancelled
     ? "bg-muted"
     : isFamilyEvent
-      ? "bg-family-bar"
+      ? ownerCls.bar
       : "bg-primary";
 
   const showFamilyBadge = isFamilyEvent && !familyView && !cancelled;
@@ -61,13 +62,14 @@ export function AppointmentCard({
     <article
       className={cn(
         "relative overflow-hidden rounded-2xl border border-border p-4 shadow-sm transition-colors",
-        isFamilyEvent && !cancelled ? "bg-family" : "bg-card",
+        isFamilyEvent && !cancelled ? ownerCls.bg : "bg-card",
         cancelled && "opacity-60",
         isPast && "opacity-60",
-        isOngoing && (isFamilyEvent ? "border-family-bar" : "border-primary"),
+        isOngoing && (isFamilyEvent ? ownerCls.border : "border-primary"),
         !cancelled && "hover:border-accent",
       )}
     >
+
       <span
         aria-hidden
         className={cn(

@@ -5,6 +5,8 @@ import { fmtTime, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useNow } from "@/hooks/use-now";
+import { familyOwnerClasses } from "@/lib/family";
+
 
 
 export function AppointmentCard({

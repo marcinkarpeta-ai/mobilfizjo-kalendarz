@@ -37,6 +37,11 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-family: var(--family);
   --color-family-bar: var(--family-bar);
+  --color-family-his: var(--family-his);
+  --color-family-his-bar: var(--family-his-bar);
+  --color-family-hers: var(--family-hers);
+  --color-family-hers-bar: var(--family-hers-bar);
+
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);

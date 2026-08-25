@@ -61,7 +61,10 @@ interface StoreState extends InternalState {
   addAppointment: (a: Omit<Appointment, "id">) => Appointment;
   updateAppointment: (
     id: string,
-    patch: Partial<Pick<Appointment, "starts_at" | "ends_at" | "visit_label_id" | "title">>,
+    patch: Partial<
+      Pick<Appointment, "starts_at" | "ends_at" | "visit_label_id" | "title" | "owner">
+    >,
+
   ) => void;
   cancelAppointment: (id: string) => void;
   deleteAppointment: (id: string) => void;
@@ -336,6 +339,8 @@ export const useStore = create<StoreState>()((set, get) => ({
           visit_label_id: a.visit_label_id ?? null,
           title: a.title ?? null,
           notes: a.notes ?? null,
+          owner: a.owner ?? "both",
+
           // created_by ustawi trigger set_appointment_created_by
         })
         .select("*")
@@ -357,6 +362,8 @@ export const useStore = create<StoreState>()((set, get) => ({
         notes: toUndef(data.notes),
         created_by: toUndef(data.created_by),
         booked_online: data.booked_online ?? false,
+        owner: (data.owner ?? "both") as Appointment["owner"],
+
       };
       set((s) => ({
         appointments: s.appointments.map((x) => (x.id === id ? mapped : x)),
@@ -399,11 +406,14 @@ export const useStore = create<StoreState>()((set, get) => ({
         ends_at?: string;
         visit_label_id?: string | null;
         title?: string | null;
+        owner?: string;
       } = {};
       if ("starts_at" in patch) dbPatch.starts_at = patch.starts_at;
       if ("ends_at" in patch) dbPatch.ends_at = patch.ends_at;
       if ("visit_label_id" in patch) dbPatch.visit_label_id = patch.visit_label_id ?? null;
       if ("title" in patch) dbPatch.title = patch.title ?? null;
+      if ("owner" in patch && patch.owner) dbPatch.owner = patch.owner;
+
       const { error } = await supabase
         .from("appointments")
         .update(dbPatch)

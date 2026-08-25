@@ -25,7 +25,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useStore } from "@/lib/store";
 import { fmtTime, formatPatientName } from "@/lib/format";
+import { familyOwnerClasses, familyOwnerLabel } from "@/lib/family";
 import type { Appointment } from "@/lib/types";
+
 
 export function AppointmentDetailsSheet({
   appt,
@@ -73,10 +75,11 @@ export function AppointmentDetailsSheet({
               <div
                 className={
                   isFamilyEvent
-                    ? "flex items-start justify-between gap-3 rounded-xl bg-family p-3"
+                    ? `flex items-start justify-between gap-3 rounded-xl p-3 ${familyOwnerClasses(appt.owner).bg}`
                     : "flex items-start justify-between gap-3"
                 }
               >
+
                 <SheetTitle className="text-xl">{title}</SheetTitle>
                 {cancelled ? (
                   <Badge variant="secondary" className="gap-1">
@@ -100,6 +103,13 @@ export function AppointmentDetailsSheet({
                   Etykieta: <span className="text-foreground">{label?.name ?? "—"}</span>
                 </div>
               ) : null}
+              {isFamilyEvent ? (
+                <div className="text-muted-foreground">
+                  Kogo dotyczy:{" "}
+                  <span className="text-foreground">{familyOwnerLabel(appt.owner)}</span>
+                </div>
+              ) : null}
+
               {isVisit && appt.booked_online && !isFamily ? (
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <Globe className="h-3.5 w-3.5" aria-hidden /> Rezerwacja online

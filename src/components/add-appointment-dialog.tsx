@@ -37,7 +37,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
-import type { Appointment, AppointmentType } from "@/lib/types";
+import { FAMILY_OWNERS } from "@/lib/family";
+import type { Appointment, AppointmentType, FamilyOwner } from "@/lib/types";
+
 import { overlaps, formatPatientNameLastFirst, comparePatients } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -115,6 +117,8 @@ export function AddAppointmentDialog({
   const [patientId, setPatientId] = useState<string>("");
   const [labelId, setLabelId] = useState<string>("");
   const [title, setTitle] = useState("");
+  const [owner, setOwner] = useState<FamilyOwner>("both");
+
   const [patientPickerOpen, setPatientPickerOpen] = useState(false);
   const [patientQuery, setPatientQuery] = useState("");
   const [addPatientOpen, setAddPatientOpen] = useState(false);
@@ -141,6 +145,8 @@ export function AddAppointmentDialog({
       setPatientId(editing.patient_id ?? "");
       setLabelId(editing.visit_label_id ?? "");
       setTitle(editing.title ?? "");
+      setOwner(editing.owner ?? "both");
+
     } else {
       const baseDate = defaultDate ?? new Date();
       setType(familyOnly ? "family_event" : "patient_visit");
@@ -152,6 +158,8 @@ export function AddAppointmentDialog({
       setPatientId("");
       setLabelId("");
       setTitle("");
+      setOwner("both");
+
     }
     // Inicjalizacja pól ma nastąpić wyłącznie przy otwarciu okna; wartości
     // początkowe pochodzą z propsów z momentu otwarcia.
@@ -215,6 +223,7 @@ export function AddAppointmentDialog({
         ends_at: new Date(endISO).toISOString(),
         visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
         title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+        ...(type === "family_event" ? { owner } : {}),
       });
       toast.success("Wpis zapisany.");
     } else {
@@ -226,7 +235,9 @@ export function AddAppointmentDialog({
         patient_id: type === "patient_visit" ? patientId : undefined,
         visit_label_id: type === "patient_visit" ? labelId || undefined : undefined,
         title: type === "family_event" ? title || "Wydarzenie rodzinne" : undefined,
+        owner: type === "family_event" ? owner : "both",
       });
+
       toast.success("Wpis dodany.");
     }
     onOpenChange(false);
@@ -437,15 +448,35 @@ export function AddAppointmentDialog({
               </div>
             </>
           ) : (
-            <div>
-              <Label htmlFor="a-title">Nazwa wydarzenia</Label>
-              <Input
-                id="a-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="np. Obiad z rodziną"
-              />
+            <div className="grid gap-3">
+              <div>
+                <Label htmlFor="a-title">Nazwa wydarzenia</Label>
+                <Input
+                  id="a-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="np. Obiad z rodziną"
+                />
+              </div>
+              <div>
+                <Label>Kogo dotyczy</Label>
+                <div className="mt-1 grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+                  {FAMILY_OWNERS.map((o) => (
+                    <Button
+                      key={o.value}
+                      type="button"
+                      size="sm"
+                      variant={owner === o.value ? "default" : "ghost"}
+                      aria-pressed={owner === o.value}
+                      onClick={() => setOwner(o.value)}
+                    >
+                      {o.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
+
           )}
 
           {overlapping ? (

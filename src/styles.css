@@ -37,6 +37,11 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-family: var(--family);
   --color-family-bar: var(--family-bar);
+  --color-family-his: var(--family-his);
+  --color-family-his-bar: var(--family-his-bar);
+  --color-family-hers: var(--family-hers);
+  --color-family-hers-bar: var(--family-hers-bar);
+
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -78,8 +83,13 @@
   --muted-foreground: oklch(0.5 0.02 65);
   --accent: oklch(0.82 0.05 80);              /* #c9b99a */
   --accent-foreground: oklch(0.28 0.02 60);
-  --family: oklch(0.88 0.09 70);              /* cieplejsze tło wydarzeń rodzinnych */
+  --family: oklch(0.88 0.09 70);              /* cieplejsze tło wydarzeń rodzinnych (wspólne) */
   --family-bar: oklch(0.7 0.14 60);           /* mocniejszy pasek akcentu rodzinnego */
+  --family-his: oklch(0.9 0.055 150);         /* pastelowa zieleń — Dawid */
+  --family-his-bar: oklch(0.68 0.1 152);
+  --family-hers: oklch(0.89 0.012 260);       /* grafitowo-popielaty pastel — Kasia */
+  --family-hers-bar: oklch(0.6 0.02 260);
+
 
   --destructive: oklch(0.55 0.18 25);
   --destructive-foreground: oklch(0.985 0.005 80);
@@ -122,6 +132,11 @@
   --accent-foreground: oklch(0.96 0.008 80);
   --family: oklch(0.5 0.09 60);
   --family-bar: oklch(0.72 0.14 65);
+  --family-his: oklch(0.44 0.05 150);
+  --family-his-bar: oklch(0.72 0.1 152);
+  --family-hers: oklch(0.42 0.012 260);
+  --family-hers-bar: oklch(0.72 0.02 260);
+
 
   --destructive: oklch(0.62 0.19 25);
   --destructive-foreground: oklch(0.96 0.008 80);

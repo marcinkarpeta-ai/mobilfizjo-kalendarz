@@ -24,6 +24,8 @@ import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/hooks/use-mounted";
 import { useBusyBlocks } from "@/hooks/use-busy-blocks";
+import { FAMILY_OWNERS, familyOwnerClasses } from "@/lib/family";
+
 
 export const Route = createFileRoute("/_layout/kalendarz")({
   head: () => ({
@@ -148,21 +150,33 @@ function CalendarPage() {
           <div className="min-h-[60vh]" aria-hidden />
         ) : (
           <>
-        {isTherapist ? (
-          <div className="mb-2 flex items-center justify-end gap-3 px-1 text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-1.5">
+        <div className="mb-2 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 px-1 text-[11px] text-muted-foreground">
+          {FAMILY_OWNERS.map((o) => (
+            <span key={o.value} className="flex items-center gap-1.5">
               <span
                 aria-hidden
-                className="h-3 w-3 rounded-[4px] ring-1 ring-destructive/40"
+                className={cn("h-3 w-3 rounded-[4px]", familyOwnerClasses(o.value).bar)}
               />
-              Dzień wolny
+              {o.label}
             </span>
-            <span className="flex items-center gap-1.5">
-              <span aria-hidden className="h-3 w-3 rounded-[4px] bg-muted" />
-              Nieczynne
-            </span>
-          </div>
-        ) : null}
+          ))}
+          {isTherapist ? (
+            <>
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden
+                  className="h-3 w-3 rounded-[4px] ring-1 ring-destructive/40"
+                />
+                Dzień wolny
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span aria-hidden className="h-3 w-3 rounded-[4px] bg-muted" />
+                Nieczynne
+              </span>
+            </>
+          ) : null}
+        </div>
+
         <div className="mb-3 grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {weekdayLabels.map((w) => (
             <div key={w}>{w}</div>

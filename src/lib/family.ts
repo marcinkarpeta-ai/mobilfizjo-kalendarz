@@ -2,7 +2,7 @@ import type { FamilyOwner } from "./types";
 
 export const FAMILY_OWNERS: { value: FamilyOwner; label: string }[] = [
   { value: "his", label: "Dawid" },
-  { value: "hers", label: "Kasia" },
+  { value: "hers", label: "Marta" },
   { value: "both", label: "Wspólne" },
 ];
 

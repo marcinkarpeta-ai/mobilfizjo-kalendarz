@@ -25,7 +25,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useStore } from "@/lib/store";
 import { fmtTime, formatPatientName } from "@/lib/format";
+import { familyOwnerClasses, familyOwnerLabel } from "@/lib/family";
 import type { Appointment } from "@/lib/types";
+
 
 export function AppointmentDetailsSheet({
   appt,

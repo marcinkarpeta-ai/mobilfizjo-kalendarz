@@ -132,6 +132,11 @@
   --accent-foreground: oklch(0.96 0.008 80);
   --family: oklch(0.5 0.09 60);
   --family-bar: oklch(0.72 0.14 65);
+  --family-his: oklch(0.44 0.05 150);
+  --family-his-bar: oklch(0.72 0.1 152);
+  --family-hers: oklch(0.42 0.012 260);
+  --family-hers-bar: oklch(0.72 0.02 260);
+
 
   --destructive: oklch(0.62 0.19 25);
   --destructive-foreground: oklch(0.96 0.008 80);

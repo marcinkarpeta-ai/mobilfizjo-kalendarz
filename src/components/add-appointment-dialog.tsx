@@ -115,6 +115,8 @@ export function AddAppointmentDialog({
   const [patientId, setPatientId] = useState<string>("");
   const [labelId, setLabelId] = useState<string>("");
   const [title, setTitle] = useState("");
+  const [owner, setOwner] = useState<FamilyOwner>("both");
+
   const [patientPickerOpen, setPatientPickerOpen] = useState(false);
   const [patientQuery, setPatientQuery] = useState("");
   const [addPatientOpen, setAddPatientOpen] = useState(false);

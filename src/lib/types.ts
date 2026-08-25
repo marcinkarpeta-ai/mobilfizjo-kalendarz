@@ -34,6 +34,8 @@ export interface VisitLabel {
   sort_order: number;
 }
 
+export type FamilyOwner = "his" | "hers" | "both";
+
 export interface Appointment {
   id: string;
   type: AppointmentType;
@@ -46,7 +48,9 @@ export interface Appointment {
   notes?: string;
   created_by?: string;
   booked_online?: boolean;
+  owner?: FamilyOwner;
 }
+
 
 export interface VisitNote {
   id: string;

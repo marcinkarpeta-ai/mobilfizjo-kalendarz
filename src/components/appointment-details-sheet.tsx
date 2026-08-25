@@ -75,10 +75,11 @@ export function AppointmentDetailsSheet({
               <div
                 className={
                   isFamilyEvent
-                    ? "flex items-start justify-between gap-3 rounded-xl bg-family p-3"
+                    ? `flex items-start justify-between gap-3 rounded-xl p-3 ${familyOwnerClasses(appt.owner).bg}`
                     : "flex items-start justify-between gap-3"
                 }
               >
+
                 <SheetTitle className="text-xl">{title}</SheetTitle>
                 {cancelled ? (
                   <Badge variant="secondary" className="gap-1">

@@ -37,7 +37,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityStrip } from "@/components/availability-strip";
 import { AddPatientDialog } from "@/components/add-patient-dialog";
 import { useStore } from "@/lib/store";
-import type { Appointment, AppointmentType } from "@/lib/types";
+import { FAMILY_OWNERS } from "@/lib/family";
+import type { Appointment, AppointmentType, FamilyOwner } from "@/lib/types";
+
 import { overlaps, formatPatientNameLastFirst, comparePatients } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

@@ -8,6 +8,8 @@ import { formatPatientName } from "@/lib/format";
 import { useNow } from "@/hooks/use-now";
 import { useStore } from "@/lib/store";
 import { getDayRange } from "@/lib/working-hours";
+import { familyOwnerClasses } from "@/lib/family";
+
 
 
 export interface BusyInterval {

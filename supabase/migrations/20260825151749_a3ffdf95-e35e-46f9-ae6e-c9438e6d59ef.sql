@@ -1,0 +1,1 @@
+ALTER TABLE public.appointments ADD COLUMN owner text NOT NULL DEFAULT 'both' CHECK (owner IN ('his','hers','both'));

@@ -88,6 +88,7 @@ export type Database = {
           ends_at: string
           id: string
           notes: string | null
+          owner: string
           patient_id: string | null
           starts_at: string
           status: Database["public"]["Enums"]["appointment_status"]
@@ -102,6 +103,7 @@ export type Database = {
           ends_at: string
           id?: string
           notes?: string | null
+          owner?: string
           patient_id?: string | null
           starts_at: string
           status?: Database["public"]["Enums"]["appointment_status"]
@@ -116,6 +118,7 @@ export type Database = {
           ends_at?: string
           id?: string
           notes?: string | null
+          owner?: string
           patient_id?: string | null
           starts_at?: string
           status?: Database["public"]["Enums"]["appointment_status"]

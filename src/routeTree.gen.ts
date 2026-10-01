@@ -9,43 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LayoutRouteImport } from './routes/_layout'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as RezerwacjaRouteImport } from './routes/rezerwacja'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
-import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
-import { Route as LayoutOAplikacjiRouteImport } from './routes/_layout.o-aplikacji'
-import { Route as LayoutPacjenciRouteImport } from './routes/_layout.pacjenci'
-import { Route as LayoutUstawieniaRouteImport } from './routes/_layout.ustawienia'
 import { Route as LayoutWiadomosciRouteImport } from './routes/_layout.wiadomosci'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
-import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
+import { Route as LayoutUstawieniaRouteImport } from './routes/_layout.ustawienia'
+import { Route as LayoutPacjenciRouteImport } from './routes/_layout.pacjenci'
+import { Route as LayoutOAplikacjiRouteImport } from './routes/_layout.o-aplikacji'
+import { Route as LayoutKalendarzRouteImport } from './routes/_layout.kalendarz'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LayoutSprawyIndexRouteImport } from './routes/_layout.sprawy_.index'
-import { Route as ApiBookingCreateRouteImport } from './routes/api/booking/create'
-import { Route as ApiBookingRequestCodeRouteImport } from './routes/api/booking/request-code'
-import { Route as ApiBookingServicesRouteImport } from './routes/api/booking/services'
-import { Route as ApiBookingSlotsRouteImport } from './routes/api/booking/slots'
-import { Route as ApiBookingStatusRouteImport } from './routes/api/booking/status'
-import { Route as ApiBookingVerifyRouteImport } from './routes/api/booking/verify'
-import { Route as ApiInternalPingDispatchRouteImport } from './routes/api/internal/ping-dispatch'
-import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
+import { Route as LayoutPacjenciIndexRouteImport } from './routes/_layout.pacjenci.index'
 import { Route as ApiPublicSmsBalanceRouteImport } from './routes/api/public/sms-balance'
-import { Route as LayoutUstawieniaSugestieIdRouteImport } from './routes/_layout.ustawienia_.sugestie.$id'
+import { Route as ApiPublicDailyDigestRouteImport } from './routes/api/public/daily-digest'
+import { Route as ApiInternalPingDispatchRouteImport } from './routes/api/internal/ping-dispatch'
+import { Route as ApiBookingVerifyRouteImport } from './routes/api/booking/verify'
+import { Route as ApiBookingStatusRouteImport } from './routes/api/booking/status'
+import { Route as ApiBookingSlotsRouteImport } from './routes/api/booking/slots'
+import { Route as ApiBookingServicesRouteImport } from './routes/api/booking/services'
+import { Route as ApiBookingRequestCodeRouteImport } from './routes/api/booking/request-code'
+import { Route as ApiBookingCreateRouteImport } from './routes/api/booking/create'
+import { Route as LayoutPacjenciIdRouteImport } from './routes/_layout.pacjenci.$id'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicMessagesLogClaimRouteImport } from './routes/api/public/messages-log/claim'
-import { Route as ApiPublicMessagesLogIdDeliveryRouteImport } from './routes/api/public/messages-log/$id.delivery'
+import { Route as LayoutUstawieniaSugestieIdRouteImport } from './routes/_layout.ustawienia_.sugestie.$id'
 import { Route as ApiPublicMessagesLogIdResultRouteImport } from './routes/api/public/messages-log/$id.result'
+import { Route as ApiPublicMessagesLogIdDeliveryRouteImport } from './routes/api/public/messages-log/$id.delivery'
 
-const LayoutRoute = LayoutRouteImport.update({
-  id: '/_layout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const RezerwacjaRoute = RezerwacjaRouteImport.update({
+  id: '/rezerwacja',
+  path: '/rezerwacja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -53,46 +49,18 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RezerwacjaRoute = RezerwacjaRouteImport.update({
-  id: '/rezerwacja',
-  path: '/rezerwacja',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
-  id: '/kalendarz',
-  path: '/kalendarz',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutOAplikacjiRoute = LayoutOAplikacjiRouteImport.update({
-  id: '/o-aplikacji',
-  path: '/o-aplikacji',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutPacjenciRoute = LayoutPacjenciRouteImport.update({
-  id: '/pacjenci',
-  path: '/pacjenci',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutUstawieniaRoute = LayoutUstawieniaRouteImport.update({
-  id: '/ustawienia',
-  path: '/ustawienia',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutWiadomosciRoute = LayoutWiadomosciRouteImport.update({
@@ -100,60 +68,51 @@ const LayoutWiadomosciRoute = LayoutWiadomosciRouteImport.update({
   path: '/wiadomosci',
   getParentRoute: () => LayoutRoute,
 } as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
+const LayoutUstawieniaRoute = LayoutUstawieniaRouteImport.update({
+  id: '/ustawienia',
+  path: '/ustawienia',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPacjenciRoute = LayoutPacjenciRouteImport.update({
+  id: '/pacjenci',
+  path: '/pacjenci',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutOAplikacjiRoute = LayoutOAplikacjiRouteImport.update({
+  id: '/o-aplikacji',
+  path: '/o-aplikacji',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutKalendarzRoute = LayoutKalendarzRouteImport.update({
+  id: '/kalendarz',
+  path: '/kalendarz',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LayoutPacjenciRoute,
-} as any)
-const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => LayoutPacjenciRoute,
-} as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LayoutSprawyIndexRoute = LayoutSprawyIndexRouteImport.update({
   id: '/sprawy_/',
   path: '/sprawy/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const ApiBookingCreateRoute = ApiBookingCreateRouteImport.update({
-  id: '/api/booking/create',
-  path: '/api/booking/create',
-  getParentRoute: () => rootRouteImport,
+const LayoutPacjenciIndexRoute = LayoutPacjenciIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutPacjenciRoute,
 } as any)
-const ApiBookingRequestCodeRoute = ApiBookingRequestCodeRouteImport.update({
-  id: '/api/booking/request-code',
-  path: '/api/booking/request-code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBookingServicesRoute = ApiBookingServicesRouteImport.update({
-  id: '/api/booking/services',
-  path: '/api/booking/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBookingSlotsRoute = ApiBookingSlotsRouteImport.update({
-  id: '/api/booking/slots',
-  path: '/api/booking/slots',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBookingStatusRoute = ApiBookingStatusRouteImport.update({
-  id: '/api/booking/status',
-  path: '/api/booking/status',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBookingVerifyRoute = ApiBookingVerifyRouteImport.update({
-  id: '/api/booking/verify',
-  path: '/api/booking/verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiInternalPingDispatchRoute = ApiInternalPingDispatchRouteImport.update({
-  id: '/api/internal/ping-dispatch',
-  path: '/api/internal/ping-dispatch',
+const ApiPublicSmsBalanceRoute = ApiPublicSmsBalanceRouteImport.update({
+  id: '/api/public/sms-balance',
+  path: '/api/public/sms-balance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicDailyDigestRoute = ApiPublicDailyDigestRouteImport.update({
@@ -161,16 +120,51 @@ const ApiPublicDailyDigestRoute = ApiPublicDailyDigestRouteImport.update({
   path: '/api/public/daily-digest',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSmsBalanceRoute = ApiPublicSmsBalanceRouteImport.update({
-  id: '/api/public/sms-balance',
-  path: '/api/public/sms-balance',
+const ApiInternalPingDispatchRoute = ApiInternalPingDispatchRouteImport.update({
+  id: '/api/internal/ping-dispatch',
+  path: '/api/internal/ping-dispatch',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutUstawieniaSugestieIdRoute =
-  LayoutUstawieniaSugestieIdRouteImport.update({
-    id: '/ustawienia_/sugestie/$id',
-    path: '/ustawienia/sugestie/$id',
-    getParentRoute: () => LayoutRoute,
+const ApiBookingVerifyRoute = ApiBookingVerifyRouteImport.update({
+  id: '/api/booking/verify',
+  path: '/api/booking/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingStatusRoute = ApiBookingStatusRouteImport.update({
+  id: '/api/booking/status',
+  path: '/api/booking/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingSlotsRoute = ApiBookingSlotsRouteImport.update({
+  id: '/api/booking/slots',
+  path: '/api/booking/slots',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingServicesRoute = ApiBookingServicesRouteImport.update({
+  id: '/api/booking/services',
+  path: '/api/booking/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingRequestCodeRoute = ApiBookingRequestCodeRouteImport.update({
+  id: '/api/booking/request-code',
+  path: '/api/booking/request-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingCreateRoute = ApiBookingCreateRouteImport.update({
+  id: '/api/booking/create',
+  path: '/api/booking/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutPacjenciIdRoute = LayoutPacjenciIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LayoutPacjenciRoute,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicMessagesLogClaimRoute =
   ApiPublicMessagesLogClaimRouteImport.update({
@@ -178,16 +172,22 @@ const ApiPublicMessagesLogClaimRoute =
     path: '/api/public/messages-log/claim',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicMessagesLogIdDeliveryRoute =
-  ApiPublicMessagesLogIdDeliveryRouteImport.update({
-    id: '/api/public/messages-log/$id/delivery',
-    path: '/api/public/messages-log/$id/delivery',
-    getParentRoute: () => rootRouteImport,
+const LayoutUstawieniaSugestieIdRoute =
+  LayoutUstawieniaSugestieIdRouteImport.update({
+    id: '/ustawienia_/sugestie/$id',
+    path: '/ustawienia/sugestie/$id',
+    getParentRoute: () => LayoutRoute,
   } as any)
 const ApiPublicMessagesLogIdResultRoute =
   ApiPublicMessagesLogIdResultRouteImport.update({
     id: '/api/public/messages-log/$id/result',
     path: '/api/public/messages-log/$id/result',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMessagesLogIdDeliveryRoute =
+  ApiPublicMessagesLogIdDeliveryRouteImport.update({
+    id: '/api/public/messages-log/$id/delivery',
+    path: '/api/public/messages-log/$id/delivery',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -399,18 +399,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_layout': {
-      id: '/_layout'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof LayoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/rezerwacja': {
+      id: '/rezerwacja'
+      path: '/rezerwacja'
+      fullPath: '/rezerwacja'
+      preLoaderRoute: typeof RezerwacjaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -420,25 +413,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rezerwacja': {
-      id: '/rezerwacja'
-      path: '/rezerwacja'
-      fullPath: '/rezerwacja'
-      preLoaderRoute: typeof RezerwacjaRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/': {
@@ -448,25 +434,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/kalendarz': {
-      id: '/_layout/kalendarz'
-      path: '/kalendarz'
-      fullPath: '/kalendarz'
-      preLoaderRoute: typeof LayoutKalendarzRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/o-aplikacji': {
-      id: '/_layout/o-aplikacji'
-      path: '/o-aplikacji'
-      fullPath: '/o-aplikacji'
-      preLoaderRoute: typeof LayoutOAplikacjiRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/pacjenci': {
-      id: '/_layout/pacjenci'
-      path: '/pacjenci'
-      fullPath: '/pacjenci'
-      preLoaderRoute: typeof LayoutPacjenciRouteImport
+    '/_layout/wiadomosci': {
+      id: '/_layout/wiadomosci'
+      path: '/wiadomosci'
+      fullPath: '/wiadomosci'
+      preLoaderRoute: typeof LayoutWiadomosciRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/ustawienia': {
@@ -476,33 +448,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUstawieniaRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/wiadomosci': {
-      id: '/_layout/wiadomosci'
-      path: '/wiadomosci'
-      fullPath: '/wiadomosci'
-      preLoaderRoute: typeof LayoutWiadomosciRouteImport
+    '/_layout/pacjenci': {
+      id: '/_layout/pacjenci'
+      path: '/pacjenci'
+      fullPath: '/pacjenci'
+      preLoaderRoute: typeof LayoutPacjenciRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+    '/_layout/o-aplikacji': {
+      id: '/_layout/o-aplikacji'
+      path: '/o-aplikacji'
+      fullPath: '/o-aplikacji'
+      preLoaderRoute: typeof LayoutOAplikacjiRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/kalendarz': {
+      id: '/_layout/kalendarz'
+      path: '/kalendarz'
+      fullPath: '/kalendarz'
+      preLoaderRoute: typeof LayoutKalendarzRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_layout/pacjenci/': {
-      id: '/_layout/pacjenci/'
-      path: '/'
-      fullPath: '/pacjenci/'
-      preLoaderRoute: typeof LayoutPacjenciIndexRouteImport
-      parentRoute: typeof LayoutPacjenciRoute
-    }
-    '/_layout/pacjenci/$id': {
-      id: '/_layout/pacjenci/$id'
-      path: '/$id'
-      fullPath: '/pacjenci/$id'
-      preLoaderRoute: typeof LayoutPacjenciIdRouteImport
-      parentRoute: typeof LayoutPacjenciRoute
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/sprawy_/': {
       id: '/_layout/sprawy_/'
@@ -511,53 +490,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSprawyIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/api/booking/create': {
-      id: '/api/booking/create'
-      path: '/api/booking/create'
-      fullPath: '/api/booking/create'
-      preLoaderRoute: typeof ApiBookingCreateRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_layout/pacjenci/': {
+      id: '/_layout/pacjenci/'
+      path: '/'
+      fullPath: '/pacjenci/'
+      preLoaderRoute: typeof LayoutPacjenciIndexRouteImport
+      parentRoute: typeof LayoutPacjenciRoute
     }
-    '/api/booking/request-code': {
-      id: '/api/booking/request-code'
-      path: '/api/booking/request-code'
-      fullPath: '/api/booking/request-code'
-      preLoaderRoute: typeof ApiBookingRequestCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/booking/services': {
-      id: '/api/booking/services'
-      path: '/api/booking/services'
-      fullPath: '/api/booking/services'
-      preLoaderRoute: typeof ApiBookingServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/booking/slots': {
-      id: '/api/booking/slots'
-      path: '/api/booking/slots'
-      fullPath: '/api/booking/slots'
-      preLoaderRoute: typeof ApiBookingSlotsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/booking/status': {
-      id: '/api/booking/status'
-      path: '/api/booking/status'
-      fullPath: '/api/booking/status'
-      preLoaderRoute: typeof ApiBookingStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/booking/verify': {
-      id: '/api/booking/verify'
-      path: '/api/booking/verify'
-      fullPath: '/api/booking/verify'
-      preLoaderRoute: typeof ApiBookingVerifyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/internal/ping-dispatch': {
-      id: '/api/internal/ping-dispatch'
-      path: '/api/internal/ping-dispatch'
-      fullPath: '/api/internal/ping-dispatch'
-      preLoaderRoute: typeof ApiInternalPingDispatchRouteImport
+    '/api/public/sms-balance': {
+      id: '/api/public/sms-balance'
+      path: '/api/public/sms-balance'
+      fullPath: '/api/public/sms-balance'
+      preLoaderRoute: typeof ApiPublicSmsBalanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/daily-digest': {
@@ -567,11 +511,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDailyDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sms-balance': {
-      id: '/api/public/sms-balance'
-      path: '/api/public/sms-balance'
-      fullPath: '/api/public/sms-balance'
-      preLoaderRoute: typeof ApiPublicSmsBalanceRouteImport
+    '/api/internal/ping-dispatch': {
+      id: '/api/internal/ping-dispatch'
+      path: '/api/internal/ping-dispatch'
+      fullPath: '/api/internal/ping-dispatch'
+      preLoaderRoute: typeof ApiInternalPingDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/verify': {
+      id: '/api/booking/verify'
+      path: '/api/booking/verify'
+      fullPath: '/api/booking/verify'
+      preLoaderRoute: typeof ApiBookingVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/status': {
+      id: '/api/booking/status'
+      path: '/api/booking/status'
+      fullPath: '/api/booking/status'
+      preLoaderRoute: typeof ApiBookingStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/slots': {
+      id: '/api/booking/slots'
+      path: '/api/booking/slots'
+      fullPath: '/api/booking/slots'
+      preLoaderRoute: typeof ApiBookingSlotsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/services': {
+      id: '/api/booking/services'
+      path: '/api/booking/services'
+      fullPath: '/api/booking/services'
+      preLoaderRoute: typeof ApiBookingServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/request-code': {
+      id: '/api/booking/request-code'
+      path: '/api/booking/request-code'
+      fullPath: '/api/booking/request-code'
+      preLoaderRoute: typeof ApiBookingRequestCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/create': {
+      id: '/api/booking/create'
+      path: '/api/booking/create'
+      fullPath: '/api/booking/create'
+      preLoaderRoute: typeof ApiBookingCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_layout/pacjenci/$id': {
+      id: '/_layout/pacjenci/$id'
+      path: '/$id'
+      fullPath: '/pacjenci/$id'
+      preLoaderRoute: typeof LayoutPacjenciIdRouteImport
+      parentRoute: typeof LayoutPacjenciRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/messages-log/claim': {
+      id: '/api/public/messages-log/claim'
+      path: '/api/public/messages-log/claim'
+      fullPath: '/api/public/messages-log/claim'
+      preLoaderRoute: typeof ApiPublicMessagesLogClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/ustawienia_/sugestie/$id': {
@@ -581,11 +588,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUstawieniaSugestieIdRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/api/public/messages-log/claim': {
-      id: '/api/public/messages-log/claim'
-      path: '/api/public/messages-log/claim'
-      fullPath: '/api/public/messages-log/claim'
-      preLoaderRoute: typeof ApiPublicMessagesLogClaimRouteImport
+    '/api/public/messages-log/$id/result': {
+      id: '/api/public/messages-log/$id/result'
+      path: '/api/public/messages-log/$id/result'
+      fullPath: '/api/public/messages-log/$id/result'
+      preLoaderRoute: typeof ApiPublicMessagesLogIdResultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/messages-log/$id/delivery': {
@@ -593,13 +600,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/messages-log/$id/delivery'
       fullPath: '/api/public/messages-log/$id/delivery'
       preLoaderRoute: typeof ApiPublicMessagesLogIdDeliveryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/messages-log/$id/result': {
-      id: '/api/public/messages-log/$id/result'
-      path: '/api/public/messages-log/$id/result'
-      fullPath: '/api/public/messages-log/$id/result'
-      preLoaderRoute: typeof ApiPublicMessagesLogIdResultRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

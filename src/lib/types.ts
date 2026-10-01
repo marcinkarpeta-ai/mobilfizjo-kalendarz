@@ -72,6 +72,7 @@ export type MessageKind =
   | "reminder_2h"
   | "confirmation"
   | "confirmation_first"
+  | "reschedule"
   | "cancellation"
   | "marketing_anniversary"
   | "marketing_birthday"

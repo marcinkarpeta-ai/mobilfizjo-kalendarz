@@ -53,6 +53,7 @@ const KIND_LABEL: Record<MessageKind, string> = {
   reminder_2h: "Przypomnienie 2h",
   confirmation: "Potwierdzenie",
   confirmation_first: "Potwierdzenie — pierwsza wizyta",
+  reschedule: "Zmiana terminu",
   cancellation: "Odwołanie",
   marketing_anniversary: "Marketing · rocznica",
   marketing_birthday: "Marketing · urodziny",
